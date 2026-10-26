@@ -16,7 +16,7 @@ bun run preview      # the same app in Cloudflare's Workers runtime, http://loca
 
 ## Deploys
 
-Cloudflare Workers Builds builds every push with `bunx opennextjs-cloudflare build`. A push to `main` goes to production; any other branch gets its own preview link, posted on its pull request. Nobody deploys by hand. If a build fails, run that same command locally to see why.
+Cloudflare Workers Builds builds every push with `bunx opennextjs-cloudflare build`. A push to `main` goes to production; any other branch gets its own preview at `https://<branch>-meta-hackathon.<account>.workers.dev`. Nobody deploys by hand. If a build fails, run that same command locally to see why.
 
 The free plan allows **10 ms of CPU per request**. Waiting on Meta or another API doesn't count; parsing, image work and big JSON do, so heavy work goes in the browser.
 
