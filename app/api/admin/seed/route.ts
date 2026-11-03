@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 /**
  * Seeds the demo data. Body: { force?: boolean, covers?: boolean | string[], virgils?: boolean | string[], spaces?: boolean }.
  * covers: queue a cover image for every seeded challenge that doesn't have one yet; or, given a list of challenge slugs, draw a new cover for each (the old file stays).
- * virgils: draw Virgil dressed for every challenge on the site that doesn't have one yet; or, given a list of slugs, for each of those again.
+ * virgils: draw Virgil dressed for every challenge on the site that doesn't have one yet; or, given a list of slugs, for each of those again; a { slug, outfit } entry dresses him in that outfit instead of one Muse Spark picks.
  * spaces: build each live demo challenge's shared page, and each demo member page the seed asks for, that doesn't have one yet.
  * redesign: [{ slug, request }] asks for a new version of a demo page, built on the current one; slug is "challenge" or "challenge/handle".
  */
@@ -60,10 +60,11 @@ export async function POST(req: Request) {
         }
       }
     } else if (Array.isArray(body.virgils)) {
-      for (const slug of body.virgils) {
+      for (const v of body.virgils as unknown[]) {
+        const { slug, outfit } = typeof v === "string" ? { slug: v, outfit: undefined } : (v as { slug?: unknown; outfit?: unknown });
         const c = typeof slug === "string" ? findChallenge(slug) : null;
         if (!c) throw new AppError("not_found", `No challenge "${String(slug)}".`);
-        queueVirgil(c.id);
+        queueVirgil(c.id, typeof outfit === "string" && outfit.trim() ? outfit.trim() : undefined);
         virgils.queued.push(c.slug);
       }
     }

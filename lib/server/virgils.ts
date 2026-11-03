@@ -16,17 +16,17 @@ import { AppError, id, nowIso } from "./util";
 const BACKDROP = { r: 220, g: 229, b: 236 };
 const PLAIN = path.join(process.cwd(), "public/art/mascot/idle.webp");
 
-/** Queues this challenge's Virgil. Needs Meta's models (Muse Image and SAM 3.1); a no-op otherwise. */
-export function queueVirgil(challengeId: string): void {
+/** Queues this challenge's Virgil, in the given outfit or one Muse Spark picks. Needs Meta's models (Muse Image and SAM 3.1); a no-op otherwise. */
+export function queueVirgil(challengeId: string, outfit?: string): void {
   if (provider() !== "meta") return;
-  queueImageJob(`virgil:${challengeId}`, () => makeVirgil(challengeId));
+  queueImageJob(`virgil:${challengeId}`, () => makeVirgil(challengeId, outfit));
 }
 
 const OUTFIT_GUIDE = `You dress Virgil, a small needle-felted mountain mascot, for one person's challenge this year.
 Answer with one short phrase: his signature look for this challenge, so anyone gets the challenge at a glance even when he's small.
 - One big prop in his hands, held in front of him, about a third of his size, that says the challenge by itself.
 - One felt garment in a bold colour that suits the challenge: a vest, an apron, a jacket, a cardigan, a cape or a jersey.
-- At most one small extra: glasses or goggles, a headband or headphones just under his snow cap, shoes, or a watch.
+- At most one small extra: glasses or goggles, a headband or headphones in a bright colour just under his snow cap (never black: it reads as hair), shoes, or a watch.
 His snow cap stays whole and uncovered: no hat or hood. Nothing carries words, letters or numbers. No flags or national costume.
 It must look different from the looks other challenges already have: {taken}
 Examples:
@@ -69,11 +69,11 @@ function outfitIn(prompt: string): string {
   return prompt.match(/Draw the same Virgil with (.+?)\. Keep him exactly himself/)?.[1] ?? "";
 }
 
-async function makeVirgil(challengeId: string) {
+async function makeVirgil(challengeId: string, outfit?: string) {
   const c = one<ChallengeRow>("SELECT * FROM challenges WHERE id = ?", challengeId);
   if (!c) return;
   const visitor = { visitor: c.creator_id ?? `virgil:${challengeId}` };
-  const prompt = virgilPrompt(await outfitFor(c, visitor));
+  const prompt = virgilPrompt(outfit ?? (await outfitFor(c, visitor)));
   const reference = await sharp(PLAIN).flatten({ background: BACKDROP }).png().toBuffer();
   const drawn = await generateImage(prompt, "1:1", visitor, reference);
   const png = await sharp(drawn.data).png().toBuffer();
