@@ -14,7 +14,7 @@ export const DraftSchema = z.object({
   icon: z.string().describe("One icon name from the allowed list"),
   theme: z.enum(THEMES),
   metric: z.object({
-    name: z.string().describe("What's counted, lower case, e.g. 'miles run', 'books read', 'days practiced', 'HSK level'"),
+    name: z.string().describe("What's counted, lower case, max 32 chars, e.g. 'miles run', 'books read', 'days practiced', 'HSK level'"),
     unit: z.string().describe("Unit for values, e.g. 'mi', 'books', 'days', 'level'; empty if none"),
     target: z.number().nullable().describe("Number to reach by the end of the year, or null if not numeric"),
     aggregation: z.enum(AGGREGATIONS),
@@ -70,6 +70,14 @@ Pick a theme color that fits the mood: ${THEMES.join(", ")}.`,
   return normalizeDraft(draft, today);
 }
 
+/** At most `max` characters, ending on a whole word. */
+function clip(s: string, max: number): string {
+  const t = s.trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max + 1).lastIndexOf(" ");
+  return (cut > 0 ? t.slice(0, cut) : t.slice(0, max)).replace(/[\s,;:.\-–—]+$/, "");
+}
+
 /** "Yards Swum Non-Stop" → "yards swum non-stop"; acronyms like HSK stay. */
 function lowerWords(s: string): string {
   return s
@@ -88,7 +96,7 @@ function normalizeCamps(camps: Draft["camps"], today: string): Draft["camps"] {
     let due = isIsoDate(c.due_on) ? c.due_on : addDays(today, Math.round(((i + 1) * 365) / arr.length));
     if (due <= today) due = addDays(today, 14 + i * 30);
     if (due > end) due = end;
-    return { ...c, title: c.title.slice(0, 40), icon: iconOr(c.icon, i === arr.length - 1 ? "summit" : "camp"), due_on: due };
+    return { ...c, title: clip(c.title, 40), icon: iconOr(c.icon, i === arr.length - 1 ? "summit" : "camp"), due_on: due };
   });
   return out.sort((a, b) => a.due_on.localeCompare(b.due_on));
 }
@@ -106,9 +114,9 @@ export function normalizeDraft(d: Draft, today: string): Draft {
   const camps = normalizeCamps(d.camps, today);
   return {
     ...d,
-    title: d.title.slice(0, 60),
-    tagline: d.tagline.slice(0, 120),
-    metric: { ...d.metric, name: lowerWords(d.metric.name).slice(0, 40) || d.metric.name },
+    title: clip(d.title, 60),
+    tagline: clip(d.tagline, 120),
+    metric: { ...d.metric, name: clip(lowerWords(d.metric.name), 40) || d.metric.name },
     // Generic picks (mountain, tent, flag) say nothing about the challenge; prefer the category's icon.
     icon: ["summit", "camp", "flag"].includes(d.icon) && fallbackIcon !== "summit" ? fallbackIcon : iconOr(d.icon, fallbackIcon),
     camps,
