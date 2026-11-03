@@ -1,8 +1,8 @@
 import { queueCover } from "@/lib/server/covers";
 import { getUser } from "@/lib/server/domain/users";
 import { adminAuthorized, errorJson, json } from "@/lib/server/http";
-import { heroSpaces, seedDemo, seededChallenges } from "@/lib/server/seed";
-import { requestSpace, spaceStatus } from "@/lib/server/spaces";
+import { demoSpaces, seedDemo, seededChallenges } from "@/lib/server/seed";
+import { ownerKeyFor, requestSpace, spaceStatus } from "@/lib/server/spaces";
 import { AppError } from "@/lib/server/util";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 /**
  * Seeds the demo data. Body: { force?: boolean, covers?: boolean, spaces?: boolean }.
  * covers: queue a cover image for every seeded challenge that doesn't have one yet.
- * spaces: build the shared page for each live demo challenge that doesn't have one yet.
- * redesign: [{ slug, request }] asks for a new version of a demo challenge's page, built on the current one.
+ * spaces: build each live demo challenge's shared page, and each demo member page the seed asks for, that doesn't have one yet.
+ * redesign: [{ slug, request }] asks for a new version of a demo page, built on the current one; slug is "challenge" or "challenge/handle".
  */
 export async function POST(req: Request) {
   if (!adminAuthorized(req)) return json({ error: { code: "unauthorized", message: "Missing or wrong x-admin-key." } }, { status: 401 });
@@ -41,16 +41,16 @@ export async function POST(req: Request) {
 
     const spaces: { slug: string; status: string; version_id?: string; error?: string }[] = [];
     if (body.spaces === true) {
-      for (const h of heroSpaces()) {
-        const s = spaceStatus(h.challengeId, "");
-        if (s.current) spaces.push({ slug: h.slug, status: "exists", version_id: s.current.id });
-        else if (s.pending) spaces.push({ slug: h.slug, status: s.pending.status, version_id: s.pending.id });
+      for (const h of demoSpaces()) {
+        const s = spaceStatus(h.challengeId, ownerKeyFor(h.target, h.ownerId));
+        if (s.current) spaces.push({ slug: h.page, status: "exists", version_id: s.current.id });
+        else if (s.pending) spaces.push({ slug: h.page, status: s.pending.status, version_id: s.pending.id });
         else {
           try {
-            const r = requestSpace(getUser(h.creatorId), h.slug, "challenge", h.request, "system");
-            spaces.push({ slug: h.slug, status: r.status, version_id: r.version_id });
+            const r = requestSpace(getUser(h.ownerId), h.slug, h.target, h.request, "system");
+            spaces.push({ slug: h.page, status: r.status, version_id: r.version_id });
           } catch (e) {
-            spaces.push({ slug: h.slug, status: "error", error: e instanceof AppError ? e.message : String(e) });
+            spaces.push({ slug: h.page, status: "error", error: e instanceof AppError ? e.message : String(e) });
           }
         }
       }
@@ -58,19 +58,19 @@ export async function POST(req: Request) {
 
     const redesigned: { slug: string; status: string; version_id?: string; error?: string }[] = [];
     if (Array.isArray(body.redesign)) {
-      const heroes = heroSpaces();
+      const pages = demoSpaces();
       for (const item of body.redesign as { slug?: unknown; request?: unknown }[]) {
-        const h = heroes.find((x) => x.slug === item?.slug);
+        const h = pages.find((x) => x.page === item?.slug);
         const request = typeof item?.request === "string" ? item.request.trim() : "";
         if (!h || request.length < 10) {
           redesigned.push({ slug: String(item?.slug), status: "error", error: "Unknown demo challenge or request too short." });
           continue;
         }
         try {
-          const r = requestSpace(getUser(h.creatorId), h.slug, "challenge", request, "system");
-          redesigned.push({ slug: h.slug, status: r.status, version_id: r.version_id });
+          const r = requestSpace(getUser(h.ownerId), h.slug, h.target, request, "system");
+          redesigned.push({ slug: h.page, status: r.status, version_id: r.version_id });
         } catch (e) {
-          redesigned.push({ slug: h.slug, status: "error", error: e instanceof AppError ? e.message : String(e) });
+          redesigned.push({ slug: h.page, status: "error", error: e instanceof AppError ? e.message : String(e) });
         }
       }
     }

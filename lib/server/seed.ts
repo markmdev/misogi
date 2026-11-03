@@ -55,6 +55,8 @@ type MemberSpec = {
   km?: boolean;
   // Item logging (count / distinct metrics)
   items?: Item[];
+  /** What this member asks the codegen model for when building their own page. */
+  space?: string;
 };
 
 type NoteCtx = { m: MemberSpec; value: number; hour: number; long: boolean; rng: Rng };
@@ -137,6 +139,7 @@ const USERS: DemoUser[] = [
   { handle: "olliegrant", name: "Ollie Grant", tz: "Europe/London", avatar: "sand", agent: "muse", agentName: "Bramble", style: "Cheeky. Take the mickey a bit, I can handle it.", hours: [[19, 22]] },
   { handle: "anacosta", name: "Ana Costa", tz: "Europe/Lisbon", avatar: "rose", agent: "virgil", style: "Sweet and patient. I'm a total beginner.", hours: [[20, 22]] },
   { handle: "rohank", name: "Rohan Kapoor", tz: "Asia/Kolkata", avatar: "peach", agent: "mcp", agentName: "Claude", style: "Technical. Treat practice like training.", hours: [[6, 7], [21, 22]] },
+  { handle: "helennovak", name: "Helen Novak", tz: "America/Chicago", avatar: "rose", agent: "muse", agentName: "Bao", style: "Warm and steady. Remind me who it's for.", hours: [[7, 8], [19, 22]] },
 ];
 
 // ---------- Templates (Zuckerberg's yearly challenges) ----------
@@ -414,7 +417,7 @@ const CHALLENGES: ChallengeSpec[] = [
   {
     key: "mandarin",
     slug: "mandarin-conversation",
-    title: "150 hours of Mandarin",
+    title: "Hold a 20-minute conversation in Mandarin",
     tagline: "About 25 minutes a day, from zero to a real 20-minute chat.",
     description:
       "Start Mandarin from scratch and end the year with a 20-minute conversation with a native speaker, all in Mandarin.\n\n" +
@@ -574,6 +577,71 @@ const CHALLENGES: ChallengeSpec[] = [
           summary: "Arjun is starting from zero. Ten minutes a day for the first month, then twenty. The first camp is the four tones, three weeks out.",
           cadence: "Daily, 10 min to start.",
         },
+      },
+      {
+        handle: "rachelkim",
+        daysAgo: 38,
+        pace: 0.7,
+        amount: [10, 30],
+        gaps: [[24, 19]],
+        beats: [
+          { daysAgo: 38, value: 20, note: "I fly to Taipei every quarter for work. Time to stop pointing at menus." },
+          { daysAgo: 18, value: 15, note: "Back from Taipei. Asked for the bill in Mandarin, mǎidān, and it worked." },
+          { daysAgo: 4, value: 40, note: "Podcast on the flight home. Forty minutes and no movie." },
+        ],
+        plan: {
+          summary:
+            "Rachel flies to Taipei every quarter and wants to get through a client dinner without English by spring. Short sessions on travel days, longer ones at home, and trips are planned in, so a light week never counts as falling behind.",
+          cadence: "15 min most days, longer at home. Travel weeks are light.",
+        },
+      },
+      {
+        handle: "lucasf",
+        daysAgo: 14,
+        pace: 0.75,
+        amount: [10, 25],
+        noteRate: 0.15,
+        beats: [
+          { daysAgo: 14, value: 15, note: "My daughter started Mandarin at school. I'm learning so I can keep up with her." },
+          { daysAgo: 5, value: 20, note: "Bia corrected my tones at breakfast. She's eight." },
+        ],
+        plan: {
+          summary: "Lucas is learning alongside his daughter Bia, who started Mandarin at school. Ten to twenty minutes in the evening, and the two of them quiz each other on Sundays.",
+          cadence: "Evenings, 15 min. Quiz with Bia on Sundays.",
+        },
+      },
+      {
+        handle: "helennovak",
+        daysAgo: 27,
+        pace: 0.85,
+        amount: [20, 35],
+        after: { daysAgo: 16, weekdays: [1, 1, 1, 1, 1, 1, 1], amount: [25, 40] },
+        noteRate: 0.3,
+        ritual: {
+          weekday: 6,
+          amount: 45,
+          hour: 10,
+          notes: [
+            "First lesson with Lin. Greetings, and how to say who I am.",
+            "Lesson with Lin. We practised meeting Lí's parents for the first time.",
+            "Lin lesson: family words. Son, daughter-in-law, in-laws.",
+            "Lin lesson: food words, because Lí's dad cooks for everyone.",
+          ],
+        },
+        beats: [
+          { daysAgo: 27, value: 20, note: "Day one. My son marries Lí in Chengdu next October, and I want to talk with her parents myself." },
+          { daysAgo: 26, value: 25, note: "Booked Lin after reading Daniel's notes here. First lesson on Saturday." },
+          { daysAgo: 12, value: 30, note: "Video call with Lí's mother. I said hěn gāoxìng rènshi nín and she clapped." },
+          { daysAgo: 6, value: 35, note: "Lin says my third tone sounds lovely now. Started Sichuan food words." },
+          { daysAgo: 1, value: 40, note: "Wrote the first two lines of my wedding toast in Mandarin. Lin fixed one word." },
+        ],
+        plan: {
+          summary:
+            "Helen's son marries Lí in Chengdu next October, and Helen wants to talk with Lí's parents for twenty minutes in Mandarin, and give a short toast at the wedding. Twenty-five minutes every evening after dinner: tones and phrases first, then shadowing. A lesson with Lin every Saturday morning, and a video call with Lí's mother once a month to practise for real.",
+          cadence: "Every evening, 25 min. Lesson with Lin on Saturdays.",
+        },
+        space:
+          "Make my page a wedding scrapbook in red and gold: a countdown to the wedding in Chengdu on 9 October 2027, my minutes so far toward the 150 hours, my camps as stepping stones with the ones I've reached stamped, this week's quests as a little to-do card, and my newest notes as torn-paper snippets.",
       },
     ],
     openQuests: [
@@ -2267,13 +2335,21 @@ export function seededChallenges(): { id: string; slug: string; title: string; s
   return rows.sort((a, b) => order.get(a.id)! - order.get(b.id)!);
 }
 
-/** The live challenges whose shared page should be built, with what to ask for. */
-export function heroSpaces(): { challengeId: string; slug: string; creatorId: string; request: string }[] {
-  const out: { challengeId: string; slug: string; creatorId: string; request: string }[] = [];
+type DemoSpace = { page: string; challengeId: string; slug: string; ownerId: string; target: "challenge" | "me"; request: string };
+
+/** The pages the seed builds: each live challenge's shared page, and the members' own pages that ask for one. */
+export function demoSpaces(): DemoSpace[] {
+  const out: DemoSpace[] = [];
   for (const spec of CHALLENGES) {
     const cid = demoId("chl", spec.key);
     const row = one<{ slug: string; creator_id: string | null }>("SELECT slug, creator_id FROM challenges WHERE id = ?", cid);
-    if (row?.creator_id) out.push({ challengeId: cid, slug: row.slug, creatorId: row.creator_id, request: spec.space });
+    if (!row?.creator_id) continue;
+    out.push({ page: row.slug, challengeId: cid, slug: row.slug, ownerId: row.creator_id, target: "challenge", request: spec.space });
+    for (const m of spec.members) {
+      if (!m.space) continue;
+      const u = one<{ id: string; handle: string }>("SELECT id, handle FROM users WHERE id = ?", demoId("usr", m.handle));
+      if (u) out.push({ page: `${row.slug}/${u.handle}`, challengeId: cid, slug: row.slug, ownerId: u.id, target: "me", request: m.space });
+    }
   }
   return out;
 }

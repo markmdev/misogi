@@ -105,7 +105,7 @@ export function requireCreator(c: ChallengeRow, userId: string): MembershipRow {
 }
 
 function uniqueSlug(title: string): string {
-  const base = slugify(title, 40);
+  const base = slugify(title);
   let slug = base;
   for (let i = 2; one("SELECT 1 FROM challenges WHERE slug = ?", slug); i++) slug = `${base}-${i}`;
   return slug;
