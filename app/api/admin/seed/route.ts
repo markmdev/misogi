@@ -1,4 +1,5 @@
 import { queueCover } from "@/lib/server/covers";
+import { findChallenge } from "@/lib/server/domain/challenges";
 import { getUser } from "@/lib/server/domain/users";
 import { adminAuthorized, errorJson, json } from "@/lib/server/http";
 import { demoSpaces, seedDemo, seededChallenges } from "@/lib/server/seed";
@@ -9,8 +10,8 @@ export const dynamic = "force-dynamic";
 
 
 /**
- * Seeds the demo data. Body: { force?: boolean, covers?: boolean, spaces?: boolean }.
- * covers: queue a cover image for every seeded challenge that doesn't have one yet.
+ * Seeds the demo data. Body: { force?: boolean, covers?: boolean | string[], spaces?: boolean }.
+ * covers: queue a cover image for every seeded challenge that doesn't have one yet; or, given a list of challenge slugs, draw a new cover for each (the old file stays).
  * spaces: build each live demo challenge's shared page, and each demo member page the seed asks for, that doesn't have one yet.
  * redesign: [{ slug, request }] asks for a new version of a demo page, built on the current one; slug is "challenge" or "challenge/handle".
  */
@@ -36,6 +37,13 @@ export async function POST(req: Request) {
           queueCover(c.id);
           covers.queued.push(c.slug);
         }
+      }
+    } else if (Array.isArray(body.covers)) {
+      for (const slug of body.covers) {
+        const c = typeof slug === "string" ? findChallenge(slug) : null;
+        if (!c) throw new AppError("not_found", `No challenge "${String(slug)}".`);
+        queueCover(c.id);
+        covers.queued.push(c.slug);
       }
     }
 
@@ -77,7 +85,7 @@ export async function POST(req: Request) {
 
     return json({
       ...seed,
-      covers: body.covers === true ? covers : null,
+      covers: body.covers === true || Array.isArray(body.covers) ? covers : null,
       spaces: body.spaces === true ? spaces : null,
       redesigned: Array.isArray(body.redesign) ? redesigned : null,
     });
