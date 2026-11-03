@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ConnectPanel } from "@/components/client/connect";
 import { Footer, TopBar } from "@/components/nav";
 import { Mascot } from "@/components/ui";
-import { currentUser, publicOrigin } from "@/lib/server/auth";
+import { currentUser, keyStatus, publicOrigin } from "@/lib/server/auth";
 import { myChallenges } from "@/lib/server/domain/challenges";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +31,7 @@ export default async function Connect() {
               slug={first?.slug ?? null}
               title={first?.title}
               initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
+              hasKey={keyStatus(user.id).has_key}
             />
           ) : (
             <div className="card flex flex-col items-center p-6 text-center">

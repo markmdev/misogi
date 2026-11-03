@@ -6,7 +6,7 @@ import { ConnectPanel } from "@/components/client/connect";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
 import { Avatar, EmptyState, Icon, IconTile, ProgressBar } from "@/components/ui";
-import { currentUser, publicOrigin } from "@/lib/server/auth";
+import { currentUser, keyStatus, publicOrigin } from "@/lib/server/auth";
 import { getChallenge, getMembership, myChallenges } from "@/lib/server/domain/challenges";
 import { memberFacts } from "@/lib/server/domain/progress";
 import { firstName, withUnit } from "@/lib/shared/format";
@@ -98,6 +98,7 @@ export default async function Me() {
               slug={mine[0]?.c.slug ?? null}
               title={mine[0]?.c.title}
               initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
+              hasKey={keyStatus(user.id).has_key}
             />
           </div>
         </section>

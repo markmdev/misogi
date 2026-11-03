@@ -9,7 +9,7 @@ import { SpaceFrame } from "@/components/client/space-frame";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
 import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, SectionTitle, Stat } from "@/components/ui";
-import { currentUser, publicOrigin } from "@/lib/server/auth";
+import { currentUser, keyStatus, publicOrigin } from "@/lib/server/auth";
 import { findChallenge } from "@/lib/server/domain/challenges";
 import { getUserByHandle } from "@/lib/server/domain/users";
 import { memberView, pulse } from "@/lib/server/views";
@@ -76,8 +76,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                 </div>
               </div>
             </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
-              {isOwner && !completed && <LogButton slug={c.slug} metric={metric} quests={quests} today={facts.today} />}
+            <div className="flex shrink-0 items-center gap-2">
+              {isOwner && !completed && <LogButton slug={c.slug} metric={metric} quests={quests} today={facts.today} className="flex-1 sm:flex-none" />}
               {isOwner ? (
                 <ShareWeekButton
                   cardUrl={`/c/${c.slug}/${user.handle}/card?d=${facts.today}-${facts.total}-${facts.streak}`}
@@ -111,6 +111,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                 slug={c.slug}
                 title={c.title}
                 initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
+                hasKey={keyStatus(viewer!.id).has_key}
               />
             </div>
           </section>
@@ -292,6 +293,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                     slug={c.slug}
                     title={c.title}
                     initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
+                    hasKey={keyStatus(viewer!.id).has_key}
                   />
                 </div>
               </section>

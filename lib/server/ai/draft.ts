@@ -70,6 +70,15 @@ Pick a theme color that fits the mood: ${THEMES.join(", ")}.`,
   return normalizeDraft(draft, today);
 }
 
+/** "Yards Swum Non-Stop" → "yards swum non-stop"; acronyms like HSK stay. */
+function lowerWords(s: string): string {
+  return s
+    .trim()
+    .split(/\s+/)
+    .map((w) => (w.length > 1 && w === w.toUpperCase() ? w : w.toLowerCase()))
+    .join(" ");
+}
+
 /** Keeps model output inside what the product supports. */
 export function normalizeDraft(d: Draft, today: string): Draft {
   const end = addYear(today);
@@ -86,6 +95,7 @@ export function normalizeDraft(d: Draft, today: string): Draft {
     ...d,
     title: d.title.slice(0, 60),
     tagline: d.tagline.slice(0, 120),
+    metric: { ...d.metric, name: lowerWords(d.metric.name).slice(0, 40) || d.metric.name },
     // Generic picks (mountain, tent, flag) say nothing about the challenge; prefer the category's icon.
     icon: ["summit", "camp", "flag"].includes(d.icon) && fallbackIcon !== "summit" ? fallbackIcon : icon(d.icon, fallbackIcon),
     camps,

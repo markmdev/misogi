@@ -182,7 +182,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             <div className="grid grid-cols-2 gap-px bg-line">
               <div className="bg-white p-4">
                 <div className="label">Measured by</div>
-                <div className="mt-1 text-[15px] font-extrabold text-ink capitalize">{draft.metric.name}</div>
+                <div className="mt-1 text-[15px] font-extrabold text-ink first-letter:uppercase">{draft.metric.name}</div>
               </div>
               <div className="bg-white p-4">
                 <div className="label">Summit</div>
@@ -327,11 +327,9 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
           <div className="mt-6">
             <ConnectPanel origin={origin} slug={created.slug} title={draft?.title} initialKey={created.key} initialStatus={null} />
           </div>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <button className="btn btn-moss flex-1" onClick={() => router.push(`/c/${created.slug}/${created.handle}`)}>
-              See my page
-            </button>
-          </div>
+          <button className="btn btn-moss mt-6 w-full" onClick={() => router.push(`/c/${created.slug}/${created.handle}`)}>
+            See my page
+          </button>
           <p className="mt-3 text-center text-[13px] text-ink-3">
             No AI handy? Tap <b>Ask Virgil</b> on your page and Misogi&apos;s own guide takes it from there.
           </p>

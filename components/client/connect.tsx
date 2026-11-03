@@ -58,12 +58,15 @@ export function ConnectPanel({
   title,
   initialKey,
   initialStatus,
+  hasKey = false,
 }: {
   origin: string;
   slug: string | null;
   title?: string;
   initialKey?: string | null;
   initialStatus: Status | null;
+  /** The person already made a key (its text can't be shown again). */
+  hasKey?: boolean;
 }) {
   const [key, setKey] = useState<string | null>(initialKey ?? null);
   const [tab, setTab] = useState<"muse" | "mcp">("muse");
@@ -115,11 +118,13 @@ export function ConnectPanel({
       {!key && (
         <div className="card flex flex-col items-start gap-3 p-4">
           <p className="text-[14px] leading-6 text-ink-2">
-            Your AI needs a key to act for you. Making a new key turns off any old one.
+            {hasKey
+              ? "Already sent your AI the message? You're set. Lost it? Make a new key; the old one stops working."
+              : "Your AI needs a key to act for you."}
           </p>
-          <button className="btn btn-sm" onClick={makeKey} disabled={pending}>
+          <button className={hasKey ? "btn btn-sm btn-ghost" : "btn btn-sm"} onClick={makeKey} disabled={pending}>
             {pending ? <Spinner /> : <Icon name="key" size={22} />}
-            Make my key
+            {hasKey ? "Make a new key" : "Make my key"}
           </button>
           {error && <p className="text-[14px] font-bold text-coral-deep">{error}</p>}
         </div>
