@@ -199,25 +199,25 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
           </section>
         </div>
 
-        {/* Personal space */}
+        {/* Personal page */}
         <section>
           <SectionTitle
-            title={isOwner ? "Your space" : `${name}'s space`}
+            title={isOwner ? "Your page" : `${name}'s page`}
             icon="paintbrush"
             action={space.current ? <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">{space.current.built_by ? `Built by ${space.current.built_by}` : "Made by AI"} · {timeAgo(space.current.created_at)}</span> : null}
           />
           <SpaceFrame
             space={space}
-            title={`${user.display_name}'s space for ${c.title}`}
+            title={`${user.display_name}'s page for ${c.title}`}
             reloadKey={stamp}
             empty={
               <EmptyState
                 pose="flag"
-                title={isOwner ? "Your space is empty" : "Nothing here yet"}
+                title={isOwner ? "Your page is empty" : "Nothing here yet"}
                 body={
                   isOwner
                     ? "Tell your AI what this page should be. Try: “A cozy study notebook with this week's words and my streak.”"
-                    : `${name}'s AI hasn't built a space yet.`
+                    : `${name}'s AI hasn't built a page yet.`
                 }
               />
             }

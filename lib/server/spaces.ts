@@ -91,7 +91,7 @@ export function requestSpace(user: UserRow, slug: string, target: SpaceTarget, r
   const c = getChallenge(slug);
   checkAccess(c, user, target);
   const text = request.trim();
-  if (text.length < 8) throw new AppError("invalid", "Describe the space in a sentence or two.");
+  if (text.length < 8) throw new AppError("invalid", "Describe the page in a sentence or two.");
   const ownerKey = ownerKeyFor(target, user.id);
   const pending = one<{ id: string }>(
     "SELECT id FROM space_versions WHERE challenge_id = ? AND owner_key = ? AND status IN ('queued','building')",

@@ -88,7 +88,7 @@ export function activityText(a: ActivityItem): string {
     case "plan":
       return Number(d.version) > 1 ? "updated their plan" : "wrote their plan";
     case "space":
-      return d.target === "me" ? "rebuilt their space" : "redesigned the challenge page";
+      return d.target === "me" ? "rebuilt their page" : "redesigned the challenge page";
     case "completed":
       return `reached the summit of ${a.challenge.title}`;
     case "level":

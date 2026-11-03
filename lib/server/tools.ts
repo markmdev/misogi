@@ -269,7 +269,7 @@ export const TOOLS = [
   }),
   tool({
     name: "update_space",
-    label: "Building the space",
+    label: "Building the page",
     writes: true,
     description:
       "Ask Misogi to build a new version of a space: a small web page generated from your description. target \"me\" is the caller's own space; \"challenge\" is the shared page (creator only). Describe what to show and the feel. It builds in the background (about a minute); check with get_space.",
@@ -286,7 +286,7 @@ export const TOOLS = [
   }),
   tool({
     name: "get_space",
-    label: "Checking the space",
+    label: "Checking the page",
     writes: false,
     description: "Status of a space: the live version, any build in progress, and the last failure with its reason.",
     input: z.object({ challenge: challengeArg, target: z.enum(["me", "challenge"]) }),
@@ -299,7 +299,7 @@ export const TOOLS = [
   }),
   tool({
     name: "undo_space",
-    label: "Undoing the space",
+    label: "Undoing the page",
     writes: true,
     description: "Go back to the previous version of a space.",
     input: z.object({ challenge: challengeArg, target: z.enum(["me", "challenge"]) }),
