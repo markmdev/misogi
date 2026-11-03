@@ -162,7 +162,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
               <SectionTitle
                 title="The challenge page"
                 icon="paintbrush"
-                action={space.current ? <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">Made by AI · {timeAgo(space.current.created_at)}</span> : null}
+                action={space.current ? <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">{space.current.built_by ? `Built by ${space.current.built_by}` : "Made by AI"} · {timeAgo(space.current.created_at)}</span> : null}
               />
               <SpaceFrame
                 space={space}

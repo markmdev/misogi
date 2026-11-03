@@ -142,7 +142,7 @@ export type ChallengeSummary = {
 };
 
 export type SpaceStatus = {
-  current: { id: string; version: number; url: string; request: string; created_at: string } | null;
+  current: { id: string; version: number; url: string; request: string; created_at: string; built_by: string | null } | null;
   pending: { id: string; version: number; status: "queued" | "building"; request: string; created_at: string } | null;
   last_failure: { id: string; version: number; error: string; request: string; created_at: string } | null;
   versions: number;

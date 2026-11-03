@@ -3,6 +3,7 @@
 // pages are served from stored HTML with fresh data inlined, so they keep working
 // when the model is unavailable.
 
+import { museName } from "@/lib/shared/format";
 import type { SpaceStatus } from "@/lib/shared/types";
 import type { UserRow } from "./auth";
 import { all, one, run, tx } from "./db";
@@ -56,7 +57,7 @@ export function spaceStatus(challengeId: string, ownerKey: string): SpaceStatus 
     ownerKey,
   )!.n;
   return {
-    current: cur ? { id: cur.id, version: cur.version, url: `/s/${cur.id}`, request: cur.request, created_at: cur.created_at } : null,
+    current: cur ? { id: cur.id, version: cur.version, url: `/s/${cur.id}`, request: cur.request, created_at: cur.created_at, built_by: museName(cur.model) } : null,
     pending: pending
       ? { id: pending.id, version: pending.version, status: pending.status as "queued" | "building", request: pending.request, created_at: pending.created_at }
       : null,

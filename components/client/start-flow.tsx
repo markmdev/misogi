@@ -43,6 +43,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   const [step, setStep] = useState<Step>(initialIdea ? "drafting" : "idea");
   const [idea, setIdea] = useState(initialIdea);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [draftedBy, setDraftedBy] = useState<string | null>(null);
   const [pairs, setPairs] = useState<Pair[] | null>(null);
   const [choices, setChoices] = useState<("gentle" | "firm")[]>([]);
   const [name, setName] = useState(signedInName ?? "");
@@ -59,9 +60,10 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
     setPairs(null);
     try {
       const r = await fetch("/api/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idea: text, timezone: tz() }) });
-      const d = (await r.json()) as { draft?: Draft; error?: { message: string } };
+      const d = (await r.json()) as { draft?: Draft; drafted_by?: string | null; error?: { message: string } };
       if (!r.ok || !d.draft) throw new Error(d.error?.message ?? "Couldn't draft that. Try again.");
       setDraft(d.draft);
+      setDraftedBy(d.drafted_by ?? null);
       setStep("draft");
       // Fetch the style examples in the background while they read the draft.
       void fetch("/api/style-pairs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: d.draft.title }) })
@@ -198,7 +200,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
         </section>
       )}
 
-      {step === "draft" && draft && <DraftYear draft={draft} setDraft={setDraft} onRetry={() => void runDraft(idea)} onAccept={() => setStep("style")} />}
+      {step === "draft" && draft && <DraftYear draft={draft} draftedBy={draftedBy} setDraft={setDraft} onRetry={() => void runDraft(idea)} onAccept={() => setStep("style")} />}
 
       {step === "style" && (
         <section className="animate-rise">
@@ -302,7 +304,19 @@ const YEAR_GRID = "grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:g
 const CLIMB_CELL = "lg:col-start-2 lg:row-span-4 lg:row-start-1";
 
 /** The drafted year arrives in order: the misogi, how it's measured, the camps from base to summit, then this week. */
-function DraftYear({ draft, setDraft, onRetry, onAccept }: { draft: Draft; setDraft: (d: Draft) => void; onRetry: () => void; onAccept: () => void }) {
+function DraftYear({
+  draft,
+  draftedBy,
+  setDraft,
+  onRetry,
+  onAccept,
+}: {
+  draft: Draft;
+  draftedBy: string | null;
+  setDraft: (d: Draft) => void;
+  onRetry: () => void;
+  onAccept: () => void;
+}) {
   const pal = palette(draft.theme);
   const camps: Milestone[] = draft.camps.map((c, i) => ({ id: String(i), title: c.title, target: c.target, due_on: c.due_on, emoji: c.icon }));
   const at = { metric: 200, camps: 450, quests: 450 + camps.length * CAMP_STEP_MS + 150 };
@@ -380,7 +394,16 @@ function DraftYear({ draft, setDraft, onRetry, onAccept }: { draft: Draft; setDr
       </div>
 
       <div className="animate-rise" style={after(at.quests + 80 + draft.first_quests.length * 110 + 60)}>
-        <p className="text-[14px] leading-6 text-ink-2">This is a first draft. Your AI tunes it to your life after a short chat.</p>
+        <p className="text-[14px] leading-6 text-ink-2">
+          {draftedBy ? (
+            <>
+              Drafted by <b className="text-ink">{draftedBy}</b>.
+            </>
+          ) : (
+            "This is a first draft."
+          )}{" "}
+          Your AI tunes it to your life after a short chat.
+        </p>
         <div className="mt-4 flex gap-3">
           <button className="btn btn-ghost flex-1" onClick={onRetry}>
             Try again

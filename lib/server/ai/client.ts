@@ -54,12 +54,6 @@ export function modelFor(job: Job): string {
   return env || MODELS[provider()][job];
 }
 
-/** Human label for the model family doing a job, shown in the UI. */
-export function modelLabel(job: Job): string {
-  if (provider() === "meta") return job === "codegen" ? "Muse Wonder" : job === "image" ? "Muse Image" : "Muse Spark";
-  return job === "image" ? "Grok Imagine" : "Grok";
-}
-
 function baseUrl(): string {
   if (provider() === "meta") {
     // A personal Meta key talks to Meta directly; otherwise go through the team gateway.

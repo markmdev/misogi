@@ -15,6 +15,12 @@ export function timeAgo(iso: string | null | undefined, now = Date.now()): strin
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+/** "Muse Wonder" for "muse-wonder-1.0": the Meta model to credit on screen, or null for any other model. */
+export function museName(model: string | null | undefined): string | null {
+  const m = /^muse-([a-z]+)/.exec(model ?? "");
+  return m ? `Muse ${m[1][0].toUpperCase()}${m[1].slice(1)}` : null;
+}
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** "Nov 2" or "Nov 2, 2027" for a YYYY-MM-DD date. */
