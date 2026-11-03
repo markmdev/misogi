@@ -13,6 +13,7 @@ import {
   type MembershipRow,
 } from "./challenges";
 import { recordActivity } from "./feed";
+import { queueBadge } from "../badges";
 import { getUser, publicUser } from "./users";
 
 // ---------- Plans (the curriculum) ----------
@@ -88,6 +89,7 @@ export function setPlan(
       due_on: x.due_on ?? null,
       emoji: (x.emoji ?? carried?.emoji ?? "camp").slice(0, 24),
       done_at: carried?.done_at ?? null,
+      badge: carried?.badge ?? null,
     };
   });
   return tx(() => {
@@ -129,7 +131,10 @@ function autoReachMilestones(c: ChallengeRow, userId: string): Milestone[] {
   }
   if (reached.length) {
     run("UPDATE plans SET milestones_json = ? WHERE id = ?", JSON.stringify(milestones), plan.id);
-    for (const m of reached) recordActivity(c.id, userId, "milestone", { milestone_id: m.id, title: m.title, emoji: m.emoji });
+    for (const m of reached) {
+      recordActivity(c.id, userId, "milestone", { milestone_id: m.id, title: m.title, emoji: m.emoji });
+      queueBadge(c.id, userId, m.id);
+    }
   }
   return reached;
 }
@@ -147,6 +152,7 @@ export function completeMilestone(user: UserRow, slug: string, milestoneId: stri
     m.done_at = nowIso();
     run("UPDATE plans SET milestones_json = ? WHERE id = ?", JSON.stringify(milestones), plan.id);
     recordActivity(c.id, user.id, "milestone", { milestone_id: m.id, title: m.title, emoji: m.emoji });
+    queueBadge(c.id, user.id, m.id);
     return m;
   });
 }

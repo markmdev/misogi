@@ -178,6 +178,13 @@ export function initSpaceQueue() {
 
 const CONCURRENCY = 3;
 
+// Repair context for builds that fix a version which crashed in the browser (kept in memory).
+const repairs = globalThis as unknown as { __spaceRepairs?: Map<string, { html: string; error: string }> };
+function repairMap() {
+  if (!repairs.__spaceRepairs) repairs.__spaceRepairs = new Map();
+  return repairs.__spaceRepairs;
+}
+
 function enqueue(versionId: string, userId: string) {
   const q = queue();
   q.waiting.push({ versionId, userId });
@@ -208,12 +215,15 @@ async function build(versionId: string, userId: string) {
       v.challenge_id,
       v.owner_key,
     )?.html;
+    const repair = repairMap().get(versionId) ?? null;
+    repairMap().delete(versionId);
     const { html, model } = await buildSpaceHtml({
       challenge: c,
       ownerUserId: v.owner_key || null,
       request: v.request,
       currentHtml: currentHtml ?? null,
       visitor: userId,
+      repair,
     });
     tx(() => {
       run(
@@ -260,9 +270,32 @@ export function reportRenderError(versionId: string, message: string) {
     v.owner_key,
     v.version,
   );
-  tx(() => {
-    run("UPDATE space_versions SET status = 'failed', error = ? WHERE id = ?", `It broke in the browser: ${message.slice(0, 300)}`, v.id);
+  const error = message.slice(0, 300);
+  const repairId = tx(() => {
+    run("UPDATE space_versions SET status = 'failed', error = ? WHERE id = ?", `It broke in the browser: ${error}`, v.id);
     if (prev) run("UPDATE spaces SET current_version_id = ? WHERE challenge_id = ? AND owner_key = ?", prev.id, v.challenge_id, v.owner_key);
     else run("DELETE FROM spaces WHERE challenge_id = ? AND owner_key = ?", v.challenge_id, v.owner_key);
+    // Heal once: rebuild the same request with the error fed back to the model.
+    if (v.author === "repair" || !v.html) return null;
+    const pending = one("SELECT 1 FROM space_versions WHERE challenge_id = ? AND owner_key = ? AND status IN ('queued','building')", v.challenge_id, v.owner_key);
+    if (pending) return null;
+    const next = (one<{ n: number | null }>("SELECT MAX(version) n FROM space_versions WHERE challenge_id = ? AND owner_key = ?", v.challenge_id, v.owner_key)!.n ?? 0) + 1;
+    const rid = id("spc");
+    run(
+      `INSERT INTO space_versions (id, challenge_id, owner_key, version, request, status, author, created_at)
+       VALUES (?, ?, ?, ?, ?, 'queued', 'repair', ?)`,
+      rid,
+      v.challenge_id,
+      v.owner_key,
+      next,
+      v.request,
+      nowIso(),
+    );
+    return rid;
   });
+  if (repairId) {
+    repairMap().set(repairId, { html: v.html!, error });
+    const owner = v.owner_key || one<{ creator_id: string }>("SELECT creator_id FROM challenges WHERE id = ?", v.challenge_id)?.creator_id || "";
+    enqueue(repairId, owner);
+  }
 }

@@ -19,6 +19,7 @@ const DATA_CONTRACT = `type SpaceData = {
              last_log_on; days_since_last_log; streak; longest_streak; active_days; this_week; last_week;
              xp; level; level_xp; level_xp_needed; rank; members; next_milestone; milestones_done; milestones_total };
   };
+  facts: null | (same object as member.facts);   // convenience copy; null on the shared page
   members: { handle; name; total; progress: number|null; rank; streak; level }[];   // leaderboard, best first
   logs: { who; date; value: number|null; label: string|null; note }[];               // newest first (max 400)
   generated_at: string;
@@ -40,6 +41,9 @@ Hard rules:
 - Read all data at runtime: const data = JSON.parse(document.getElementById("misogi-data").textContent);
   Render everything from data. Never hard-code numbers, names or dates that come from data, because the data changes every day.
 - Every view must look intentional with empty data (no logs, no plan, no quests): show a friendly empty state.
+- The page must never throw. Guard every optional value: data.member?.facts?.total ?? 0, (data.member?.plan?.camps ?? []), etc.
+  Wrap rendering in try/catch per section so one bad field can't blank the page.
+- Don't embed the data yourself and don't create an element with id "misogi-data": Misogi injects it at load.
 - Mobile first: perfect at 360–430 px wide, comfortable up to 960 px (center a max-width column). No horizontal scroll.
 - It's embedded below Misogi's own header (title, join button, leaderboard already shown). Don't add site navigation or repeat the title as a giant banner; lead with the content that's special to this person.
 - Under 60 KB. Respect prefers-reduced-motion.
@@ -66,6 +70,8 @@ export function validateSpaceHtml(raw: string): string {
   const end = html.toLowerCase().lastIndexOf("</html>");
   if (end < 0) throw new AppError("internal", "The page was cut off before it finished.");
   html = html.slice(0, end + "</html>".length);
+  // The model sometimes pastes a copy of the sample data; only the live injected data may be used.
+  html = html.replace(/<script[^>]*id=["']misogi-data["'][^>]*>[\s\S]*?<\/script>/gi, "");
   if (html.length > 220_000) throw new AppError("internal", "The page came out too big.");
   if (!html.includes("misogi-data")) throw new AppError("internal", "The page doesn't read Misogi's data.");
   if (/<script[^>]+\bsrc\s*=/i.test(html)) throw new AppError("internal", "The page tried to load an external script.");
@@ -86,6 +92,8 @@ export async function buildSpaceHtml(args: {
   request: string;
   currentHtml: string | null;
   visitor?: string;
+  /** When repairing: the version that crashed in the browser, and its error. */
+  repair?: { html: string; error: string } | null;
 }): Promise<{ html: string; model: string }> {
   const data = trimData(spaceData(args.challenge, args.ownerUserId));
   const pal = palette(args.challenge.theme);
@@ -96,9 +104,11 @@ export async function buildSpaceHtml(args: {
     `Theme colors: tint ${pal.tint}, accent ${pal.accent}, deep ${pal.deep}. Page background should be transparent or very light.`,
     `Data contract:\n${DATA_CONTRACT}`,
     `Today's data (logs trimmed to 30; the real page gets up to 400):\n${JSON.stringify(data)}`,
-    args.currentHtml
-      ? `Current page (edit it: apply the request, keep what the request doesn't mention):\n${args.currentHtml}`
-      : "There's no page yet. Create the first version.",
+    args.repair
+      ? `The last version crashed in the browser with: ${args.repair.error}\nFix the cause and make every data access defensive. Here is that version:\n${args.repair.html}`
+      : args.currentHtml
+        ? `Current page (edit it: apply the request, keep what the request doesn't mention):\n${args.currentHtml}`
+        : "There's no page yet. Create the first version.",
   ].join("\n\n");
 
   let lastError = "";

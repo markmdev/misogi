@@ -25,6 +25,8 @@ export type Milestone = {
   due_on?: string | null;
   emoji?: string;
   done_at?: string | null;
+  /** Generated badge image (path under /media) once the camp is reached. */
+  badge?: string | null;
 };
 
 export type Plan = {

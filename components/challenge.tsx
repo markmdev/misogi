@@ -79,7 +79,13 @@ export function ActivityRow({ a, showChallenge = true }: { a: ActivityItem; show
           )}
         </div>
       </div>
-      {a.kind === "milestone" && <Icon name={String(a.data.emoji ?? "flag")} size={36} className="shrink-0 animate-pop" />}
+      {a.kind === "milestone" &&
+        (typeof a.data.badge === "string" ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={`/media/${a.data.badge}`} alt={`Badge for ${String(a.data.title ?? "a camp")}`} className="h-14 w-14 shrink-0 animate-pop rounded-full object-cover ring-2 ring-white shadow-sm" />
+        ) : (
+          <Icon name={String(a.data.emoji ?? "flag")} size={36} className="shrink-0 animate-pop" />
+        ))}
       {a.kind === "level" && <Icon name="xp" size={32} className="shrink-0" />}
     </li>
   );
@@ -170,11 +176,16 @@ export function CampPath({ milestones, accent, deep, tint, total, unit }: { mile
                   border: state === "next" ? `4px solid ${accent}` : "none",
                 }}
               >
-                <Icon
-                  name={isSummit ? "summit" : m.emoji || "camp"}
-                  size={state === "next" ? 52 : 42}
-                  className={cx(state === "later" && "opacity-55 grayscale-[0.6]")}
-                />
+                {state === "done" && m.badge ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={`/media/${m.badge}`} alt={`Badge for ${m.title}`} className="h-[60px] w-[60px] rounded-full object-cover" />
+                ) : (
+                  <Icon
+                    name={isSummit ? "summit" : m.emoji || "camp"}
+                    size={state === "next" ? 52 : 42}
+                    className={cx(state === "later" && "opacity-55 grayscale-[0.6]")}
+                  />
+                )}
                 {state === "done" && (
                   <span className="absolute -right-1 -bottom-1 grid h-7 w-7 place-items-center rounded-full border-[3px] border-white bg-moss text-white">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

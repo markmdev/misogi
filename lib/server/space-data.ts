@@ -29,6 +29,8 @@ export type SpaceData = {
     quests: Pick<Quest, "title" | "detail" | "kind" | "xp" | "due_on" | "status">[];
     facts: Facts;
   } | null;
+  /** Same as member.facts (null on the shared page), at the top level for convenience. */
+  facts: Facts | null;
   members: { handle: string; name: string; total: number; progress: number | null; rank: number; streak: number; level: number }[];
   /** Newest first. On a member space, only that member's entries. */
   logs: { who: string; date: string; value: number | null; label: string | null; note: string }[];
@@ -73,6 +75,7 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
       created_on: c.created_at.slice(0, 10),
     },
     member,
+    facts: member?.facts ?? null,
     members: board.slice(0, 50).map((s) => ({
       handle: s.handle,
       name: s.display_name,
