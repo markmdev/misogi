@@ -52,8 +52,8 @@ export default async function Home() {
             />
             <div className="absolute inset-x-0 bottom-0 h-40 sm:h-56" style={{ background: "linear-gradient(to bottom, transparent, var(--color-cream) 92%)" }} />
           </div>
-          <div className="relative mx-auto -mt-24 max-w-2xl px-4 sm:-mt-32">
-            <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">
+          <div className="relative mx-auto -mt-24 max-w-2xl px-4 max-[239px]:px-2 sm:-mt-32">
+            <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 max-[239px]:px-3 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">
               <h1 className="text-center text-[34px] leading-[40px] text-ink sm:text-[46px] sm:leading-[52px]">One hard thing this year.</h1>
               <p className="mx-auto mt-3 max-w-md text-center text-[16px] leading-6 text-ink-2 sm:text-[17px]">
                 Say it in a line. Your AI plans the year, checks in, and keeps your page up to date. Friends can climb with you.
@@ -82,7 +82,7 @@ export default async function Home() {
         {/* Live challenges + feed */}
         {live.length > 0 && (
           <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
-            <div className="mb-4 flex items-end justify-between gap-3">
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-[26px] leading-8 text-ink">On the mountain now</h2>
                 <p className="mt-1 text-[15px] text-ink-2">Open to join. The early climbers are demo profiles.</p>
@@ -119,7 +119,7 @@ export default async function Home() {
 
         {/* Your AI does the work */}
         <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
-          <div className="card grid items-center gap-8 overflow-hidden p-6 sm:p-10 lg:grid-cols-2">
+          <div className="card grid grid-cols-[minmax(0,1fr)] items-center gap-8 overflow-hidden p-6 max-[239px]:p-4 sm:p-10 lg:grid-cols-2">
             <div>
               <h2 className="text-[26px] leading-8 text-ink">Your AI already knows you. Now it&apos;s your guide.</h2>
               <p className="mt-3 text-[16px] leading-7 text-ink-2">

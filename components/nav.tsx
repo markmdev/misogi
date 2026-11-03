@@ -4,9 +4,9 @@ import { Avatar, cx, Icon } from "./ui";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/" className={cx("flex items-center gap-2", className)} aria-label="Misogi home">
+    <Link href="/" className={cx("flex shrink-0 items-center gap-2", className)} aria-label="Misogi home">
       <Icon name="summit" size={34} />
-      <span className="font-display text-[22px] font-semibold tracking-tight text-ink">misogi</span>
+      <span className="font-display text-[22px] font-semibold tracking-tight text-ink max-[299px]:hidden">misogi</span>
     </Link>
   );
 }
@@ -14,10 +14,10 @@ export function Logo({ className }: { className?: string }) {
 export function TopBar({ user, transparent = false }: { user: Pick<UserRow, "display_name" | "avatar" | "handle"> | null; transparent?: boolean }) {
   return (
     <header className={cx("sticky top-0 z-40", transparent ? "bg-transparent" : "border-b border-line/70 bg-cream/85 backdrop-blur-md")}>
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 max-[299px]:px-3 sm:px-6">
         <Logo />
         <nav className="flex items-center gap-1 sm:gap-2">
-          <Link href="/explore" className="rounded-xl px-3 py-2 text-[15px] font-bold text-ink-2 transition hover:bg-white/70 hover:text-ink">
+          <Link href="/explore" className="rounded-xl px-3 py-2 max-[279px]:px-2 text-[15px] font-bold text-ink-2 transition hover:bg-white/70 hover:text-ink">
             Explore
           </Link>
           {user ? (
@@ -26,7 +26,7 @@ export function TopBar({ user, transparent = false }: { user: Pick<UserRow, "dis
               <Avatar name={user.display_name} color={user.avatar} size={34} />
             </Link>
           ) : (
-            <Link href="/start" className="btn btn-sm">
+            <Link href="/start" className="btn btn-sm max-[255px]:hidden">
               Start yours
             </Link>
           )}

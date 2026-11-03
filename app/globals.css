@@ -106,6 +106,8 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    /* A quick second tap (on Virgil, a chip, the wheel) shouldn't zoom the page; pinching still does. */
+    touch-action: manipulation;
     text-rendering: optimizeLegibility;
   }
   body {
@@ -118,6 +120,7 @@
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.01em;
+    overflow-wrap: break-word;
   }
   ::selection {
     background: var(--color-coral-soft);
@@ -206,9 +209,10 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 36px;
-    padding: 0 14px 0 8px;
-    border-radius: 999px;
+    min-height: 36px;
+    padding: 6px 14px 6px 8px;
+    border-radius: 18px;
+    line-height: 18px;
     background: var(--color-paper);
     border: 1px solid var(--color-line);
     font-weight: 700;
