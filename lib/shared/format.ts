@@ -98,10 +98,32 @@ export function activityText(a: ActivityItem): string {
   }
 }
 
-export function agentLabel(kind: string | null | undefined, name: string | null | undefined): string | null {
+/** Folds back-to-back repeats of the same quiet event by one person (rebuilt their page, updated their plan) into one row with a count. */
+export function foldRepeats(items: ActivityItem[]): { a: ActivityItem; times: number }[] {
+  const out: { a: ActivityItem; times: number }[] = [];
+  for (const a of items) {
+    const last = out.at(-1);
+    const same =
+      last &&
+      (a.kind === "space" || a.kind === "plan") &&
+      last.a.kind === a.kind &&
+      last.a.user?.handle === a.user?.handle &&
+      last.a.challenge.slug === a.challenge.slug &&
+      last.a.data.target === a.data.target;
+    if (same) last.times++;
+    else out.push({ a, times: 1 });
+  }
+  return out;
+}
+
+/**
+ * Who guides someone, the one way the site says it: "Bao, your Muse", "Helen's Muse", "Claude, your AI" or "Virgil",
+ * Misogi's own guide. `whose` is how the owner reads in that spot: "Your" to open a line, "your", or "Helen's".
+ */
+export function agentLabel(kind: string | null | undefined, name: string | null | undefined, whose = "Your"): string | null {
   const k = (kind ?? "").toLowerCase();
-  const brand = k === "muse" ? "Muse" : k === "mcp" ? "MCP agent" : k === "virgil" ? "Misogi" : k === "agent" ? "AI agent" : null;
-  if (name && brand && k !== "virgil") return `${name} · ${brand}`;
   if (k === "virgil") return "Virgil";
-  return name ?? brand;
+  const brand = k === "muse" ? "Muse" : k === "mcp" || k === "agent" ? "AI" : null;
+  if (!brand) return name ?? null;
+  return name ? `${name}, ${whose.toLowerCase() === "your" ? "your" : whose} ${brand}` : `${whose} ${brand}`;
 }

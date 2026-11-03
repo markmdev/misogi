@@ -25,6 +25,7 @@ Motion says what just happened, once, then stops.
 ## Words
 
 - Use the climber's words: challenge, climb, camps, summit, quests, log, guide. Never a programmer's word on screen ("v2", "space", "agent kind", "null").
+- Who does what is said one way everywhere. A person's guide is **their Muse** ("Bao, your Muse"; "Helen's Muse" on someone else's page), or **Virgil**, Misogi's own guide, for people without Muse; another AI is "Claude, your AI". Meta's models are credited at the moment they make something (Muse Spark drafted this, built by Muse Wonder, drawn by Muse Image) and explained once, on the home page. Never "agent", "MCP" or "your AI" where Muse is meant.
 - Labels say what a person needs: "Built by Muse Wonder · 2h ago", not a version number.
 - A key never shows in full: on screen it's `msk_••••` and its last four; Copy gives the full text.
 

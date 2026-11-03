@@ -7,7 +7,7 @@ import { currentUser } from "@/lib/server/auth";
 import { getChallenge, getMembership, myChallenges } from "@/lib/server/domain/challenges";
 import { memberFacts } from "@/lib/server/domain/progress";
 import { getUserByHandle } from "@/lib/server/domain/users";
-import { agentLabel, withUnit } from "@/lib/shared/format";
+import { agentLabel, firstName, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export default async function Profile(props: PageProps<"/u/[handle]">) {
       const ch = getChallenge(c.slug);
       return { c, facts: memberFacts(ch, getMembership(ch.id, u.id)!) };
     });
-  const guide = agentLabel(u.agent_kind, u.agent_name);
+  const guide = agentLabel(u.agent_kind, u.agent_name, viewer?.id === u.id ? "your" : `${firstName(u.display_name)}'s`);
   return (
     <>
       <TopBar user={viewer} />

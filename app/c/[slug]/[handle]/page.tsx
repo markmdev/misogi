@@ -37,7 +37,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const pal = palette(c.theme);
   const stamp = pulse(c);
   const name = firstName(user.display_name);
-  const guide = agentLabel(user.agent_kind, user.agent_name);
+  const guide = agentLabel(user.agent_kind, user.agent_name, isOwner ? "your" : `${firstName(user.display_name)}'s`);
   const welcome = isOwner && sp.welcome === "1";
   const origin = await publicOrigin();
   const completed = membership.status === "completed";
@@ -74,7 +74,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                     <Pill tone="white" className="!min-h-6 !py-0.5 !text-[12px]">
                       <Icon name={user.agent_kind === "virgil" ? "camp" : "orb"} size={16} />
                       Guided by {guide}
-                      {user.agent_seen_at && <span className="font-bold text-ink-3">· {timeAgo(user.agent_seen_at)}</span>}
+                      {user.agent_seen_at && <span className="font-bold text-ink-3 max-sm:hidden">· {timeAgo(user.agent_seen_at)}</span>}
                     </Pill>
                   )}
                   {completed && <Pill tone="gold">Summit reached</Pill>}
@@ -202,7 +202,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
         </div>
 
         {/* Personal page */}
-        <section>
+        <section id="page" className="scroll-mt-20">
           <SectionTitle
             title={isOwner ? "Your page" : `${name}'s page`}
             icon="paintbrush"

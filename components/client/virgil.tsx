@@ -171,7 +171,7 @@ export function Virgil({
       <button
         onClick={() => setOpen(true)}
         className={cx(
-          "fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white p-1.5 shadow-[var(--shadow-float)] ring-1 ring-line transition duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] sm:pr-4",
+          "fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white p-1.5 pr-4 shadow-[var(--shadow-float)] ring-1 ring-line transition duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
           tucked ? "pointer-events-none translate-y-24 opacity-0" : "hover:-translate-y-0.5",
         )}
         aria-label="Ask Virgil"
@@ -179,7 +179,7 @@ export function Virgil({
         <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-cream-2">
           <Mascot pose="idle" src={look} size={40} alt="" />
         </span>
-        <span className="hidden font-display text-[16px] font-semibold text-ink sm:inline">Ask Virgil</span>
+        <span className="font-display text-[16px] font-semibold text-ink">Ask Virgil</span>
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Virgil" wide>
         {!signedIn ? (

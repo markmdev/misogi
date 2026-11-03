@@ -12,7 +12,7 @@ import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, Ring, Se
 import { currentUser } from "@/lib/server/auth";
 import { findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { challengeView, pulse } from "@/lib/server/views";
-import { firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { firstName, foldRepeats, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -205,9 +205,11 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
               <SectionTitle title="Latest" icon="chat" />
               {feed.length ? (
                 <ul className="card divide-y divide-line px-4">
-                  {feed.slice(0, 10).map((a) => (
-                    <ActivityRow key={a.id} a={a} showChallenge={false} />
-                  ))}
+                  {foldRepeats(feed)
+                    .slice(0, 10)
+                    .map(({ a, times }) => (
+                      <ActivityRow key={a.id} a={a} times={times} showChallenge={false} />
+                    ))}
                 </ul>
               ) : (
                 <EmptyState pose="sleep" title="Quiet so far" body="Logs, camps and new climbers show up here." />

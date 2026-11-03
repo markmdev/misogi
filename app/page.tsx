@@ -8,7 +8,7 @@ import { currentUser } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
 import { siteFeed } from "@/lib/server/domain/feed";
 import { showcaseView } from "@/lib/server/views";
-import { firstName } from "@/lib/shared/format";
+import { firstName, foldRepeats } from "@/lib/shared/format";
 import { SCENES } from "@/lib/shared/art";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,13 @@ const STEPS = [
     title: "Climb together",
     body: "Anyone can join your challenge. Same summit, their own path, one leaderboard.",
   },
+];
+
+/** Meta's models behind Misogi, named once in plain words; each moment on the site credits the one that made it. */
+const MODELS = [
+  { name: "Muse Spark", does: "drafts your year from one line.", icon: "sparkles" },
+  { name: "Muse Wonder", does: "builds your page from one message.", icon: "paintbrush" },
+  { name: "Muse Image", does: "draws each challenge's cover and its Virgil.", icon: "art" },
 ];
 
 export default async function Home() {
@@ -120,8 +127,8 @@ export default async function Home() {
                     Just now
                   </h3>
                   <ul className="divide-y divide-line">
-                    {feed.map((a) => (
-                      <ActivityRow key={a.id} a={a} />
+                    {foldRepeats(feed).map(({ a, times }) => (
+                      <ActivityRow key={a.id} a={a} times={times} />
                     ))}
                   </ul>
                 </aside>
@@ -130,22 +137,25 @@ export default async function Home() {
           </section>
         )}
 
-        {/* Your AI does the work */}
+        {/* Your Muse does the work */}
         <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
           <div className={cx("card grid grid-cols-[minmax(0,1fr)] items-center gap-8 overflow-hidden p-6 max-[239px]:p-4 sm:p-10", proof && "lg:grid-cols-2")}>
             <div>
-              <h2 className="text-[26px] leading-8 text-ink">Your AI already knows you. Now it&apos;s your guide.</h2>
+              <h2 className="text-[26px] leading-8 text-ink">Your Muse already knows you. Now it&apos;s your guide.</h2>
               <p className="mt-3 text-[16px] leading-7 text-ink-2">
                 Connect Meta&apos;s Muse with one message. It reads your plan, checks in when you go quiet, logs what you tell it, and
-                redesigns your page when you ask. No new app to remember.
+                redesigns your page when you ask. No Muse? Virgil, Misogi&apos;s own guide, does the same right here.
               </p>
-              <div className="mt-5 flex flex-wrap items-center gap-2">
-                {["Muse", "Claude", "ChatGPT", "Any MCP agent"].map((n) => (
-                  <span key={n} className="rounded-full border border-line bg-cream px-3 py-1.5 text-[13px] font-extrabold text-ink-2">
-                    {n}
-                  </span>
+              <ul className="mt-5 flex flex-col gap-2.5">
+                {MODELS.map((m) => (
+                  <li key={m.name} className="flex items-center gap-3 text-[15px] leading-6 text-ink-2">
+                    <Icon name={m.icon} size={30} />
+                    <span>
+                      <b className="text-ink">{m.name}</b> {m.does}
+                    </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/start" className="btn">
                   Start yours

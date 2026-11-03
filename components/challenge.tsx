@@ -70,7 +70,7 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
   );
 }
 
-export function ActivityRow({ a, showChallenge = true }: { a: ActivityItem; showChallenge?: boolean }) {
+export function ActivityRow({ a, times = 1, showChallenge = true }: { a: ActivityItem; times?: number; showChallenge?: boolean }) {
   const pal = palette(a.challenge.theme);
   const note = typeof a.data.note === "string" && a.data.note ? a.data.note : null;
   return (
@@ -85,7 +85,15 @@ export function ActivityRow({ a, showChallenge = true }: { a: ActivityItem; show
         )}
         <div className="min-w-0 flex-1">
           <p className="text-[15px] leading-5 text-ink">
-            <span className="font-extrabold">{a.user ? firstName(a.user.display_name) : "Someone"}</span> {activityText(a)}
+            <span className="font-extrabold">{a.user ? firstName(a.user.display_name) : "Someone"}</span>{" "}
+            {a.kind === "space" && a.data.target === "me" && a.user ? (
+              <Link href={`/c/${a.challenge.slug}/${a.user.handle}#page`} className="underline decoration-line-2 underline-offset-4 hover:decoration-ink">
+                {activityText(a)}
+              </Link>
+            ) : (
+              activityText(a)
+            )}
+            {times > 1 && <span className="text-ink-2"> · {times} times</span>}
           </p>
           {note && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">“{note}”</p>}
           <div className="mt-1.5 flex items-center gap-2 text-[12px] font-bold text-ink-3">

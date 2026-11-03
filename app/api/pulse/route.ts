@@ -16,7 +16,7 @@ export function GET(req: Request) {
     ? {
         id: a.id,
         text: `${a.user ? firstName(a.user.display_name) : "Someone"} ${activityText(a)}`,
-        via: a.user && a.user.agent_kind && a.user.agent_kind !== "web" ? agentLabel(a.user.agent_kind, a.user.agent_name) : null,
+        via: a.user && a.user.agent_kind && a.user.agent_kind !== "web" ? agentLabel(a.user.agent_kind, a.user.agent_name, `${firstName(a.user.display_name)}'s`) : null,
         at: a.created_at,
       }
     : null;
