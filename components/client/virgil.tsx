@@ -52,7 +52,20 @@ const STARTERS = [
   "I fell behind. Help me adjust",
 ];
 
-export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false }: { signedIn: boolean; challenge?: string; thread?: string; autoOpen?: boolean }) {
+export function Virgil({
+  signedIn,
+  challenge,
+  thread = "main",
+  autoOpen = false,
+  look,
+}: {
+  signedIn: boolean;
+  challenge?: string;
+  thread?: string;
+  autoOpen?: boolean;
+  /** Virgil dressed for the challenge whose pages he's on. */
+  look?: string | null;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(autoOpen);
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -164,7 +177,7 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
         aria-label="Ask Virgil"
       >
         <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-cream-2">
-          <Mascot pose="idle" size={40} alt="" />
+          <Mascot pose="idle" src={look} size={40} alt="" />
         </span>
         <span className="hidden font-display text-[16px] font-semibold text-ink sm:inline">Ask Virgil</span>
       </button>
@@ -198,7 +211,7 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
                 ) : (
                   <div key={i} className="flex items-start gap-2">
                     <span className="mt-1 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-cream-2">
-                      <Mascot pose={m.text ? "idle" : "think"} size={30} alt="" />
+                      <Mascot pose={m.text ? "idle" : "think"} src={m.text ? look : null} size={30} alt="" />
                     </span>
                     <div className="min-w-0 max-w-[85%]">
                       {(m.steps ?? []).length > 0 && (

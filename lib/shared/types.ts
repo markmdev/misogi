@@ -133,6 +133,8 @@ export type ChallengeSummary = {
   metric: Metric;
   members: number;
   cover_url: string | null;
+  /** Virgil dressed for this challenge, cut out; null until he's drawn. */
+  virgil_url: string | null;
   template_year: number | null;
   template_label: string | null;
   creator: PublicUser | null;

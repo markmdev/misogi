@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const TYPES: Record<string, string> = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp" };
 
-/** Serves generated images (covers, badges) from the data directory. */
+/** Serves generated images (covers, Virgils, badges) from the data directory. */
 export async function GET(_req: NextRequest, ctx: RouteContext<"/media/[...path]">) {
   const { path: parts } = await ctx.params;
   const root = path.join(dataDir(), "media");

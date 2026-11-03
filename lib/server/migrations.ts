@@ -186,4 +186,7 @@ export const migrations: string[] = [
   );
   CREATE INDEX agent_messages_thread ON agent_messages(user_id, thread, created_at);
   `,
+  /* 2: Virgil dressed for each challenge */ `
+  ALTER TABLE challenges ADD COLUMN virgil_path TEXT;
+  `,
 ];

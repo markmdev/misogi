@@ -18,17 +18,21 @@ export function Mascot({
   className,
   alt = "Virgil, the Misogi mountain spirit",
   style,
+  src,
 }: {
   pose?: string;
+  /** A picture of him to show instead of the pose, such as Virgil dressed for a challenge. */
+  src?: string | null;
   size?: number;
   className?: string;
   alt?: string;
   style?: CSSProperties;
 }) {
   const known = pose in MASCOT ? pose : "idle";
-  const still = (MASCOT as Record<string, string>)[known];
-  // Small Virgils (the chat button, avatars beside each chat message) stay still, so a list never twitches.
-  if (size < 48) {
+  const still = src ?? (MASCOT as Record<string, string>)[known];
+  // Small Virgils (the chat button, avatars beside each chat message) stay still, so a list never twitches,
+  // and so does a dressed Virgil, who has no loops of his own.
+  if (size < 48 || src) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={still} alt={alt} width={size} height={size} style={style} className={cx("select-none object-contain", className)} draggable={false} />;
   }

@@ -11,7 +11,7 @@ import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
 import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, SectionTitle, Stat } from "@/components/ui";
 import { currentUser, publicOrigin } from "@/lib/server/auth";
-import { findChallenge } from "@/lib/server/domain/challenges";
+import { findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { getUserByHandle } from "@/lib/server/domain/users";
 import { memberView, pulse } from "@/lib/server/views";
 import { agentLabel, firstName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
@@ -325,8 +325,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
         </div>
       </main>
       <Footer />
-      {isOwner && <Virgil signedIn challenge={c.slug} />}
-      {!isOwner && <Virgil signedIn={!!viewer} />}
+      {isOwner && <Virgil signedIn challenge={c.slug} look={virgilUrl(c)} />}
+      {!isOwner && <Virgil signedIn={!!viewer} look={virgilUrl(c)} />}
     </div>
   );
 }

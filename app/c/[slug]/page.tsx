@@ -8,9 +8,9 @@ import { LivePulse } from "@/components/client/live";
 import { SpaceFrame } from "@/components/client/space-frame";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
-import { Avatar, EmptyState, Icon, IconTile, Pill, ProgressBar, Ring, SectionTitle } from "@/components/ui";
+import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, Ring, SectionTitle } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
-import { findChallenge } from "@/lib/server/domain/challenges";
+import { findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { challengeView, pulse } from "@/lib/server/views";
 import { firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
@@ -57,7 +57,12 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
           <div className="absolute inset-x-0 bottom-0 h-28 sm:h-36" style={{ background: `linear-gradient(to bottom, transparent, ${pal.tint} 92%)` }} />
         </div>
         <div className="relative mx-auto -mt-20 max-w-6xl px-4 sm:-mt-24 sm:px-6">
-          <div className="card flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
+          {c.virgil_path && (
+            <div className="pointer-events-none absolute right-8 bottom-full z-10 -mb-2 sm:right-14">
+              <Mascot src={virgilUrl(c)} size={112} className="animate-bob drop-shadow-[0_6px_6px_rgb(46_42_38/0.18)]" alt={`Virgil, dressed for ${c.title}`} />
+            </div>
+          )}
+          <div className="card relative flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
             <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 sm:flex sm:items-start">
               <IconTile name={c.emoji} size={76} bg={pal.tint} className="shadow-[0_4px_0_rgb(0_0_0/0.06)]" />
               <div className="contents sm:block sm:min-w-0">
@@ -108,6 +113,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
               )}
               <ShareButton url={`/c/${c.slug}`} text={`${c.title} · climb it with me on Misogi`} className="grow sm:grow-0" />
             </div>
+            {c.virgil_path && <span className="absolute top-2 right-5 text-[12px] font-bold text-ink-3 sm:right-8">Dressed by Muse Image</span>}
           </div>
         </div>
       </section>
@@ -228,7 +234,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
         </aside>
       </main>
       <Footer />
-      <Virgil signedIn={!!viewer} challenge={isMember ? c.slug : undefined} />
+      <Virgil signedIn={!!viewer} challenge={isMember ? c.slug : undefined} look={virgilUrl(c)} />
     </div>
   );
 }

@@ -1,24 +1,27 @@
 import { queueCover } from "@/lib/server/covers";
+import { all } from "@/lib/server/db";
 import { findChallenge } from "@/lib/server/domain/challenges";
 import { getUser } from "@/lib/server/domain/users";
 import { adminAuthorized, errorJson, json } from "@/lib/server/http";
 import { demoSpaces, seedDemo, seededChallenges } from "@/lib/server/seed";
 import { ownerKeyFor, requestSpace, spaceStatus } from "@/lib/server/spaces";
 import { AppError } from "@/lib/server/util";
+import { queueVirgil } from "@/lib/server/virgils";
 
 export const dynamic = "force-dynamic";
 
 
 /**
- * Seeds the demo data. Body: { force?: boolean, covers?: boolean | string[], spaces?: boolean }.
+ * Seeds the demo data. Body: { force?: boolean, covers?: boolean | string[], virgils?: boolean | string[], spaces?: boolean }.
  * covers: queue a cover image for every seeded challenge that doesn't have one yet; or, given a list of challenge slugs, draw a new cover for each (the old file stays).
+ * virgils: draw Virgil dressed for every challenge on the site that doesn't have one yet; or, given a list of slugs, for each of those again.
  * spaces: build each live demo challenge's shared page, and each demo member page the seed asks for, that doesn't have one yet.
  * redesign: [{ slug, request }] asks for a new version of a demo page, built on the current one; slug is "challenge" or "challenge/handle".
  */
 export async function POST(req: Request) {
   if (!adminAuthorized(req)) return json({ error: { code: "unauthorized", message: "Missing or wrong x-admin-key." } }, { status: 401 });
   try {
-    let body: { force?: unknown; covers?: unknown; spaces?: unknown; redesign?: unknown } = {};
+    let body: { force?: unknown; covers?: unknown; virgils?: unknown; spaces?: unknown; redesign?: unknown } = {};
     const text = await req.text();
     if (text.trim()) {
       try {
@@ -44,6 +47,24 @@ export async function POST(req: Request) {
         if (!c) throw new AppError("not_found", `No challenge "${String(slug)}".`);
         queueCover(c.id);
         covers.queued.push(c.slug);
+      }
+    }
+
+    const virgils = { queued: [] as string[], already: 0 };
+    if (body.virgils === true) {
+      for (const c of all<{ id: string; slug: string; virgil_path: string | null }>("SELECT id, slug, virgil_path FROM challenges WHERE status != 'draft'")) {
+        if (c.virgil_path) virgils.already++;
+        else {
+          queueVirgil(c.id);
+          virgils.queued.push(c.slug);
+        }
+      }
+    } else if (Array.isArray(body.virgils)) {
+      for (const slug of body.virgils) {
+        const c = typeof slug === "string" ? findChallenge(slug) : null;
+        if (!c) throw new AppError("not_found", `No challenge "${String(slug)}".`);
+        queueVirgil(c.id);
+        virgils.queued.push(c.slug);
       }
     }
 
@@ -86,6 +107,7 @@ export async function POST(req: Request) {
     return json({
       ...seed,
       covers: body.covers === true || Array.isArray(body.covers) ? covers : null,
+      virgils: body.virgils === true || Array.isArray(body.virgils) ? virgils : null,
       spaces: body.spaces === true ? spaces : null,
       redesigned: Array.isArray(body.redesign) ? redesigned : null,
     });

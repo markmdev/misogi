@@ -333,7 +333,13 @@ function sniffMime(data: Buffer): string {
   return "image/webp";
 }
 
-export async function generateImage(prompt: string, aspect: Aspect = "1:1", opts: CallOptions = {}): Promise<{ data: Buffer; mime: string; model: string }> {
+/** `reference`, an image to draw from (Meta only), such as a character to keep on model. */
+export async function generateImage(
+  prompt: string,
+  aspect: Aspect = "1:1",
+  opts: CallOptions = {},
+  reference?: Buffer,
+): Promise<{ data: Buffer; mime: string; model: string }> {
   const model = modelFor("image");
   if (provider() === "meta") {
     // Muse Image answers on /v1/responses with an image_generation_call item (base64).
@@ -341,13 +347,16 @@ export async function generateImage(prompt: string, aspect: Aspect = "1:1", opts
       "/responses",
       {
         model,
-        input: prompt,
+        input: reference
+          ? [{ role: "user", content: [{ type: "input_text", text: prompt }, { type: "input_image", image_url: dataUrl(reference) }] }]
+          : prompt,
         tools: [
           {
             type: "image_generation",
             size: META_SIZES[aspect],
             output_format: "png",
-            reasoning_strength: "low",
+            // Keeping a character on model takes the refining passes; the price is the same.
+            reasoning_strength: reference ? "high" : "low",
             enable_web_search: false,
             enable_shell: false,
           },
@@ -363,6 +372,7 @@ export async function generateImage(prompt: string, aspect: Aspect = "1:1", opts
     const data = Buffer.from(b64, "base64");
     return { data, mime: sniffMime(data), model };
   }
+  if (reference) throw new AppError("internal", "Drawing from a reference image needs Meta's models.");
   const res = await post(
     "/images/generations",
     { model, prompt, n: 1, aspect_ratio: aspect, response_format: "b64_json" },
@@ -376,4 +386,27 @@ export async function generateImage(prompt: string, aspect: Aspect = "1:1", opts
   else if (first?.url) data = Buffer.from(await (await fetch(first.url, { signal: AbortSignal.timeout(30_000) })).arrayBuffer());
   else throw new AppError("resting", "The image model returned nothing.");
   return { data, mime: sniffMime(data), model };
+}
+
+function dataUrl(image: Buffer): string {
+  return `data:${sniffMime(image)};base64,${image.toString("base64")}`;
+}
+
+/**
+ * Segments every match of `concept` (a short noun phrase) in an image with SAM 3.1 (Meta only).
+ * Returns SAM's output line: a box and a mask per match, decoded with @meta-sam/parser.
+ */
+export async function segment(image: Buffer, concept: string, opts: CallOptions = {}): Promise<string> {
+  if (provider() !== "meta") throw new AppError("internal", "Segmenting needs Meta's models.");
+  const res = await post(
+    "/responses",
+    {
+      model: "sam-3.1",
+      store: false,
+      input: [{ type: "message", role: "user", content: [{ type: "input_text", text: concept }, { type: "input_image", image_url: dataUrl(image) }] }],
+    },
+    "image",
+    { timeoutMs: 90_000, ...opts },
+  );
+  return outputText((await res.json()) as ResponsesResult);
 }

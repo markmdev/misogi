@@ -23,6 +23,7 @@ export type ChallengeRow = {
   metric_aggregation: Aggregation;
   metric_direction: Direction;
   cover_path: string | null;
+  virgil_path: string | null;
   status: "draft" | "active" | "completed" | "template";
   template_year: number | null;
   template_label: string | null;
@@ -260,6 +261,14 @@ export function setCover(challengeId: string, path: string) {
   run("UPDATE challenges SET cover_path = ?, updated_at = ? WHERE id = ?", path, nowIso(), challengeId);
 }
 
+export function virgilUrl(c: Pick<ChallengeRow, "virgil_path">): string | null {
+  return c.virgil_path ? `/media/${c.virgil_path}` : null;
+}
+
+export function setVirgil(challengeId: string, path: string) {
+  run("UPDATE challenges SET virgil_path = ?, updated_at = ? WHERE id = ?", path, nowIso(), challengeId);
+}
+
 export function joinChallenge(user: UserRow, slug: string): { challenge: ChallengeRow; membership: MembershipRow; already: boolean } {
   const c = getChallenge(slug);
   if (c.status === "template")
@@ -407,6 +416,7 @@ export function summarize(c: ChallengeRow): ChallengeSummary {
     metric: metricOf(c),
     members,
     cover_url: coverUrl(c),
+    virgil_url: virgilUrl(c),
     template_year: c.template_year,
     template_label: c.template_label,
     creator: creator ? publicUser(creator) : null,

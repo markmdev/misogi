@@ -15,6 +15,7 @@ import { queueStarterPlan } from "@/lib/server/starter";
 import { tx } from "@/lib/server/db";
 import { AppError, dateIn, isValidTimeZone } from "@/lib/server/util";
 import { rateLimit } from "@/lib/server/http";
+import { queueVirgil } from "@/lib/server/virgils";
 
 export type ActionResult<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
 
@@ -85,6 +86,7 @@ export async function startChallenge(input: unknown): Promise<ActionResult<{ slu
     });
     if (!existing) await startSession(result.user.id);
     queueCover(result.challengeId);
+    queueVirgil(result.challengeId);
     return { ok: true, data: { slug: result.slug, key: result.key, handle: result.user.handle } };
   } catch (e) {
     return failure(e);

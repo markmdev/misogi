@@ -6,52 +6,13 @@ import path from "node:path";
 import { generateImage } from "./ai/client";
 import { dataDir, one, run } from "./db";
 import { setCover, type ChallengeRow } from "./domain/challenges";
+import { queueImageJob } from "./image-jobs";
 import { toWebp } from "./images";
 import { AppError, id, nowIso } from "./util";
 
-const CONCURRENCY = 2;
-
-const state = globalThis as unknown as {
-  __coverQueue?: { running: number; waiting: string[]; active: Set<string> };
-};
-
-function queue() {
-  if (!state.__coverQueue) state.__coverQueue = { running: 0, waiting: [], active: new Set() };
-  return state.__coverQueue;
-}
-
 /** Queues a cover for the challenge. Returns at once and never throws. */
 export function queueCover(challengeId: string): void {
-  try {
-    const q = queue();
-    if (q.active.has(challengeId) || q.waiting.includes(challengeId)) return;
-    q.waiting.push(challengeId);
-    pump();
-  } catch (e) {
-    console.error("[cover] couldn't queue", challengeId, e);
-  }
-}
-
-/** Covers waiting or being drawn right now. */
-export function coverQueueSize(): number {
-  const q = queue();
-  return q.waiting.length + q.running;
-}
-
-function pump() {
-  const q = queue();
-  while (q.running < CONCURRENCY && q.waiting.length) {
-    const challengeId = q.waiting.shift()!;
-    q.running++;
-    q.active.add(challengeId);
-    void makeCover(challengeId)
-      .catch((e) => console.error("[cover] failed", challengeId, e instanceof AppError ? e.message : e))
-      .finally(() => {
-        q.running--;
-        q.active.delete(challengeId);
-        pump();
-      });
-  }
+  queueImageJob(`cover:${challengeId}`, () => makeCover(challengeId));
 }
 
 const PALETTE_WORDS: Record<string, string> = {

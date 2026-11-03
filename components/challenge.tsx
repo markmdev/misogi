@@ -37,6 +37,14 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
         <div className="absolute bottom-3 left-3">
           <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
         </div>
+        {c.virgil_url && (
+          <Mascot
+            src={c.virgil_url}
+            size={96}
+            alt=""
+            className="absolute right-2 -bottom-1 drop-shadow-[0_4px_4px_rgb(46_42_38/0.2)] transition duration-500 group-hover:-translate-y-1"
+          />
+        )}
         {isTemplate && c.template_year && (
           <span className="absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[12px] font-extrabold text-ink shadow-sm">{c.template_year}</span>
         )}

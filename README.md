@@ -18,9 +18,10 @@ Built for the Meta Global AI Developer Hackathon, Indie track.
 
 | | What it does in Misogi | Where |
 |---|---|---|
-| **Muse Spark** | Drafts the year from one line as structured output: the measure, the camps, this week's quests. Writes the gentle-or-firm check-in examples you pick your coaching style from, and runs Virgil with tool calls. | [`lib/server/ai/draft.ts`](lib/server/ai/draft.ts), [`lib/server/ai/virgil.ts`](lib/server/ai/virgil.ts) |
+| **Muse Spark** | Drafts the year from one line as structured output: the measure, the camps, this week's quests. Writes the gentle-or-firm check-in examples you pick your coaching style from, runs Virgil with tool calls, and picks what Virgil wears for each challenge. | [`lib/server/ai/draft.ts`](lib/server/ai/draft.ts), [`lib/server/ai/virgil.ts`](lib/server/ai/virgil.ts), [`lib/server/virgils.ts`](lib/server/virgils.ts) |
 | **Muse Wonder** | Writes a whole web page for a challenge or a climber from one sentence ("make my page a wedding scrapbook in red and gold"), streamed, checked and run in a locked sandbox with live data. | [`lib/server/ai/codegen.ts`](lib/server/ai/codegen.ts), [`lib/server/spaces.ts`](lib/server/spaces.ts) |
-| **Muse Image** | Draws the cover of each challenge started on the site, and the badge a climber earns at each camp. | [`lib/server/covers.ts`](lib/server/covers.ts), [`lib/server/badges.ts`](lib/server/badges.ts) |
+| **Muse Image** | Draws the cover of each challenge started on the site, Virgil dressed for each challenge (drawn from the plain Virgil as its reference, so he stays himself), and the badge a climber earns at each camp. | [`lib/server/covers.ts`](lib/server/covers.ts), [`lib/server/virgils.ts`](lib/server/virgils.ts), [`lib/server/badges.ts`](lib/server/badges.ts) |
+| **SAM 3.1** | Cuts each challenge's Virgil out of Muse Image's picture, so he can stand on the challenge's page and cards. | [`lib/server/virgils.ts`](lib/server/virgils.ts) |
 | **Muse**, Meta's agent | The climber's own guide: it calls Misogi's tools to run the intake, re-plan, log progress and rebuild the page, and schedules its own check-ins. | [`lib/server/agent-guide.ts`](lib/server/agent-guide.ts), [`lib/server/tools.ts`](lib/server/tools.ts) |
 
 On the live site every model call goes through one client, [`lib/server/ai/client.ts`](lib/server/ai/client.ts), on Meta's Responses API (`AI_PROVIDER=meta`), with a reasoning level per job: minimal for drafts, low for Virgil's tool calls, medium for writing pages. The same client keeps an xAI path for local runs without a Meta key. The site names the model at work where you see it: "Drafted by Muse Spark" under the year, "Built by Muse Wonder" over each page.
@@ -57,7 +58,8 @@ flowchart LR
   web -->|build a page| wonder[Muse Wonder]
   tools -->|build a page| wonder
   wonder --> frame[Sandboxed page<br/>with live data]
-  web -->|covers| image[Muse Image]
+  web -->|covers, Virgil's outfits| image[Muse Image]
+  image -->|cut Virgil out| sam[SAM 3.1]
   tools -->|badges| image
 ```
 
