@@ -16,7 +16,7 @@ Judges score Impact 30%, use of Meta's models 25%, technical depth 20%, demo 25%
 
 ## Before recording
 - Switch `AI_PROVIDER=meta` once credits land, so every call on screen is a Meta model (see README).
-- Point a real domain at the server first (Muse's vault rejects `sslip.io`), then in Muse choose "Always allow this site" so approvals don't interrupt the take.
+- In Muse, choose "Always allow this site" so approvals don't interrupt the take.
 - Seeded challenges make the gallery and leaderboards look alive; check `/explore` first.
 - Refresh the demo climbers' history to today so streaks and "active this week" are current (real accounts, spaces and covers are untouched):
   `curl -s -X POST https://<host>/api/admin/seed -H "x-admin-key: $ADMIN_KEY" -d '{"force":true}'`

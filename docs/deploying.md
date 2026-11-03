@@ -2,7 +2,7 @@
 
 Production is one EC2 instance running `next start` behind Caddy, which handles HTTPS, with SQLite on the instance's disk. One script builds and ships a commit, and rolls back on its own if the new release is unhealthy.
 
-- **Live:** https://misogi.35-171-183-237.sslip.io
+- **Live:** https://getmisogi.com (the earlier https://misogi.35-171-183-237.sslip.io still serves, for agents that saved it)
 - **Health:** `/api/health` returns `{"ok":true,"challenges":…,"ai":"xai"}`. `ai` shows which provider is live.
 - **Resource IDs, costs, server layout, teardown:** [`infra/README.md`](../infra/README.md)
 
@@ -51,7 +51,7 @@ scripts/deploy.sh <sha>
 `bun run seed` and `bun run ai-check` work against production when you point them at it. Keep the admin key in your shell; don't paste it anywhere:
 
 ```sh
-export BASE_URL=https://misogi.35-171-183-237.sslip.io
+export BASE_URL=https://getmisogi.com
 export ADMIN_KEY=$(ssh -i ~/.ssh/misogi-hackathon.pem ubuntu@35.171.183.237 'sudo sed -n "s/^ADMIN_KEY=//p" /etc/misogi/env')
 
 bun run ai-check --image       # checks every model job with the live provider
@@ -93,7 +93,7 @@ They live in `/etc/misogi/env` (`root:misogi`, mode 640). After any change, run 
 
 ## Moving to a real domain
 
-Muse's secure vault refuses `sslip.io` addresses, and its "Always allow" option needs a stable address, so do this before recording.
+This is how the site moved from its `sslip.io` name to getmisogi.com. The old name keeps serving, so agents that saved it keep working.
 
 1. Point an `A` record for the new name (say `misogi.example.com`) at `35.171.183.237`. Wait until `dig +short misogi.example.com` prints that IP.
 2. In `infra/Caddyfile`, serve both names so agents already using the old address keep working, and send bare-IP visits to the new name:

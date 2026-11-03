@@ -4,7 +4,7 @@ Misogi runs as a plain `next start` on one small EC2 instance, with Caddy in fro
 Everything here was created by hand with the AWS CLI on 2026-11-03 and provisioned with
 [`provision.sh`](provision.sh). Deploys go through [`../scripts/deploy.sh`](../scripts/deploy.sh).
 
-- **Site:** https://misogi.35-171-183-237.sslip.io
+- **Site:** https://getmisogi.com
 - **SSH:** `ssh -i ~/.ssh/misogi-hackathon.pem ubuntu@35.171.183.237`
 - **Deploy:** `scripts/deploy.sh` (ships the committed `HEAD`). Step-by-step guide for the team:
   [`docs/deploying.md`](../docs/deploying.md)
@@ -23,7 +23,7 @@ without that tag.
 | Public IPv4 | `35.171.183.237` | **auto-assigned, not an Elastic IP** (see below) |
 | Security group | `sg-076f84021708f5a7e` (`misogi-hackathon-sg`) | in: 22/tcp from YOUR_IP/32 only; 80 and 443/tcp from 0.0.0.0/0 and ::/0. out: all |
 | Key pair | `misogi-hackathon` (`key-0e01c3892c100ab26`) | ed25519; private key at `~/.ssh/misogi-hackathon.pem` on the operator's Mac (not in git) |
-| Hostname | `misogi.35-171-183-237.sslip.io` | [sslip.io](https://sslip.io) resolves it to the IP inside the name; no DNS records to manage |
+| Hostname | `getmisogi.com` | A records for it and `www` point at the instance; `www` redirects to it. The earlier `misogi.35-171-183-237.sslip.io` still serves: [sslip.io](https://sslip.io) resolves it to the IP inside the name |
 | TLS | Let's Encrypt | Caddy gets and renews the certificate on its own |
 
 Approximate cost: about $24/month for the instance, $2.40 for the volume and $3.65 for the public IPv4.

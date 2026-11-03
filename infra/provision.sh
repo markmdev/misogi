@@ -6,7 +6,7 @@
 #
 # Settings (env vars; the defaults match infra/README.md):
 #   MISOGI_HOST       server public IPv4              (default 35.171.183.237)
-#   MISOGI_DOMAIN     public hostname                 (default misogi.<ip-with-dashes>.sslip.io)
+#   MISOGI_DOMAIN     public hostname                 (default getmisogi.com)
 #   MISOGI_SSH_KEY    SSH private key                 (default ~/.ssh/misogi-hackathon.pem)
 #   MISOGI_SSH_USER   SSH user                        (default ubuntu)
 #   GROK_KEY_API_DIR  folder with `url` and `password` (default ~/.config/grok-key-api)
@@ -280,7 +280,7 @@ fi
 
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 HOST=${MISOGI_HOST:-35.171.183.237}
-DOMAIN=${MISOGI_DOMAIN:-misogi.${HOST//./-}.sslip.io}
+DOMAIN=${MISOGI_DOMAIN:-getmisogi.com}
 SSH_KEY=${MISOGI_SSH_KEY:-$HOME/.ssh/misogi-hackathon.pem}
 SSH_USER=${MISOGI_SSH_USER:-ubuntu}
 GROK_DIR=${GROK_KEY_API_DIR:-$HOME/.config/grok-key-api}
