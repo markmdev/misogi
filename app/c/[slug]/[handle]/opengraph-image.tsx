@@ -32,17 +32,24 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               {c?.title ?? "Misogi"}
             </div>
             <div style={{ display: "flex", marginTop: 18, fontFamily: "Fredoka", fontSize: 64, color: "#2E2A26" }}>{u ? `${firstName(u.display_name)}'s climb` : "A climb"}</div>
-            {f && metric ? (
-              <div style={{ display: "flex", gap: 28, marginTop: 26, fontSize: 30, fontWeight: 800, color: "#6B635B" }}>
-                <span>{withUnit(f.total, metric.unit)}{f.target != null ? ` of ${withUnit(f.target, metric.unit)}` : ""}</span>
-                <span>{f.streak} day streak</span>
-                <span>Day {f.day}</span>
+            {f ? (
+              <div style={{ display: "flex", gap: 14, marginTop: 28 }}>
+                {f.streak > 0 ? <Chip icon="streak" text={`${f.streak} day streak`} /> : null}
+                <Chip icon="calendar" text={`Day ${f.day} of ${f.days_total}`} />
               </div>
             ) : null}
           </div>
-          {f && f.progress != null ? (
-            <div style={{ display: "flex", height: 26, borderRadius: 999, background: "#EFE5D8", overflow: "hidden" }}>
-              <div style={{ display: "flex", width: `${Math.max(4, Math.round(f.progress * 100))}%`, height: "100%", borderRadius: 999, background: pal.accent }} />
+          {f && metric ? (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
+                <span style={{ fontFamily: "Fredoka", fontSize: 56, lineHeight: 1, color: "#2E2A26" }}>{withUnit(f.total, metric.unit)}</span>
+                <span style={{ fontSize: 28, fontWeight: 800, color: "#6B635B", paddingBottom: 4 }}>{f.target != null ? `of ${withUnit(f.target, metric.unit)}` : "so far"}</span>
+              </div>
+              {f.progress != null ? (
+                <div style={{ display: "flex", marginTop: 20, height: 26, borderRadius: 999, background: "#EFE5D8", overflow: "hidden" }}>
+                  <div style={{ display: "flex", width: `${Math.max(4, Math.round(f.progress * 100))}%`, height: "100%", borderRadius: 999, background: pal.accent }} />
+                </div>
+              ) : null}
             </div>
           ) : (
             <div style={{ display: "flex", fontFamily: "Fredoka", fontSize: 34, color: "#2E2A26" }}>misogi</div>
@@ -52,5 +59,14 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       </div>
     ),
     { ...size, fonts: ogFonts() },
+  );
+}
+
+function Chip({ icon, text }: { icon: string; text: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 20px 8px 12px", borderRadius: 999, background: "#fff", border: "2px solid #EFE5D8", fontSize: 26, fontWeight: 800, color: "#6B635B" }}>
+      <img src={ogIcon(icon)} alt="" width={36} height={36} />
+      {text}
+    </div>
   );
 }
