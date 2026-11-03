@@ -38,14 +38,14 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
         {c.tagline && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">{c.tagline}</p>}
         <div className="mt-auto flex items-center justify-between gap-2 pt-4">
           {isTemplate ? (
-            <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">Zuckerberg · {c.template_year}</span>
+            <span className="shrink-0 text-[13px] font-bold whitespace-nowrap text-ink-3">Zuckerberg</span>
           ) : (
-            <span className="flex items-center gap-1.5 text-[13px] font-extrabold text-ink-2">
+            <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-extrabold whitespace-nowrap text-ink-2">
               <Icon name="highfive" size={20} />
               {c.members} climbing
             </span>
           )}
-          <span className="max-w-[60%] truncate rounded-full px-2.5 py-1 text-[12px] font-extrabold whitespace-nowrap" style={{ background: pal.tint, color: pal.deep }}>
+          <span className="min-w-0 truncate rounded-full px-2.5 py-1 text-[12px] font-extrabold whitespace-nowrap" style={{ background: pal.tint, color: pal.deep }}>
             {metricLine(c.metric)}
           </span>
         </div>
