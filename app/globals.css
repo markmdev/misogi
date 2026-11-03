@@ -43,6 +43,7 @@
   --animate-bob: bob 3.2s ease-in-out infinite;
   --animate-fade: fade 0.9s ease both;
   --animate-trail: trail 0.4s ease-out both;
+  --animate-fresh: fresh 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 
   @keyframes pop {
     0% { transform: scale(0.6); opacity: 0; }
@@ -64,6 +65,25 @@
   @keyframes trail {
     0% { clip-path: inset(100% 0 0 0); }
     100% { clip-path: inset(0 0 0 0); }
+  }
+  /* Something new on a live page: rises in, then a glow in the challenge's color fades. */
+  @keyframes fresh {
+    0% {
+      transform: translateY(10px) scale(0.97);
+      opacity: 0;
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent, var(--color-coral)) 50%, transparent);
+      background-color: color-mix(in srgb, var(--accent, var(--color-coral)) 16%, transparent);
+    }
+    14% {
+      transform: none;
+      opacity: 1;
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent, var(--color-coral)) 40%, transparent);
+      background-color: color-mix(in srgb, var(--accent, var(--color-coral)) 16%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 6px transparent;
+      background-color: transparent;
+    }
   }
 }
 

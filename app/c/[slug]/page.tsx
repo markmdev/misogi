@@ -43,7 +43,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
   const stamp = pulse(c);
 
   return (
-    <div style={{ background: pal.tint }} className="min-h-dvh">
+    <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
       <TopBar user={viewer} />
       {!isTemplate && <LivePulse slug={c.slug} />}
 

@@ -6,6 +6,7 @@ import { cheerAction, joinAction, logFromWeb, skipQuestAction } from "@/app/acti
 import { shortDate } from "@/lib/shared/format";
 import type { Metric, Quest } from "@/lib/shared/types";
 import { cx, Icon, IconTile } from "../ui";
+import { Fresh } from "./live";
 import { Sheet } from "./sheet";
 import { Spinner } from "./space-frame";
 
@@ -271,54 +272,58 @@ export function QuestList({ slug, quests, metric, owner, today, accent }: { slug
   return (
     <div className="flex flex-col gap-2.5">
       {open.map((q) => (
-        <div key={q.id} className="group flex items-center gap-3 rounded-[18px] bg-white p-3 pr-3 ring-1 ring-line" style={{ boxShadow: "0 3px 0 var(--color-line)" }}>
-          <IconTile name={q.kind === "boss" ? "trophy" : KIND_ICON[q.kind]} size={46} bg="var(--color-cream)" />
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] leading-5 font-extrabold text-ink">{q.title}</div>
-            {q.detail && <div className="mt-0.5 line-clamp-2 text-[13px] leading-5 text-ink-2">{q.detail}</div>}
-            <div className="mt-1 flex items-center gap-2 text-[12px] font-extrabold text-ink-3">
-              {q.kind === "boss" && <span className="rounded-full bg-coral-soft px-2 py-0.5 text-coral-deep">Boss</span>}
-              {q.due_on && <span>Due {shortDate(q.due_on)}</span>}
+        <Fresh key={q.id} className="rounded-[18px]">
+          <div className="group flex items-center gap-3 rounded-[18px] bg-white p-3 pr-3 ring-1 ring-line" style={{ boxShadow: "0 3px 0 var(--color-line)" }}>
+            <IconTile name={q.kind === "boss" ? "trophy" : KIND_ICON[q.kind]} size={46} bg="var(--color-cream)" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[15px] leading-5 font-extrabold text-ink">{q.title}</div>
+              {q.detail && <div className="mt-0.5 line-clamp-2 text-[13px] leading-5 text-ink-2">{q.detail}</div>}
+              <div className="mt-1 flex items-center gap-2 text-[12px] font-extrabold text-ink-3">
+                {q.kind === "boss" && <span className="rounded-full bg-coral-soft px-2 py-0.5 text-coral-deep">Boss</span>}
+                {q.due_on && <span>Due {shortDate(q.due_on)}</span>}
+              </div>
             </div>
+            <span className="flex shrink-0 items-center gap-0.5 font-display text-[15px] font-semibold text-gold-deep">
+              {q.xp}
+              <Icon name="xp" size={18} />
+            </span>
+            {owner && (
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  onClick={() => skip(q)}
+                  className="hidden h-11 rounded-xl px-2 text-[12px] font-extrabold text-ink-3 hover:text-ink sm:group-hover:block"
+                  disabled={busy === q.id}
+                >
+                  Skip
+                </button>
+                <button
+                  onClick={() => complete(q)}
+                  disabled={busy === q.id}
+                  aria-label={`Complete ${q.title}`}
+                  className="grid h-11 w-11 place-items-center rounded-[14px] bg-white ring-1 ring-line-2 transition active:translate-y-[2px]"
+                  style={{ boxShadow: "0 3px 0 var(--color-line-2)", color: accent }}
+                >
+                  {busy === q.id ? (
+                    <Spinner />
+                  ) : (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M5 12.5l4.5 4.5L19 7.5" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
-          <span className="flex shrink-0 items-center gap-0.5 font-display text-[15px] font-semibold text-gold-deep">
-            {q.xp}
-            <Icon name="xp" size={18} />
-          </span>
-          {owner && (
-            <div className="flex shrink-0 items-center gap-1.5">
-              <button
-                onClick={() => skip(q)}
-                className="hidden h-11 rounded-xl px-2 text-[12px] font-extrabold text-ink-3 hover:text-ink sm:group-hover:block"
-                disabled={busy === q.id}
-              >
-                Skip
-              </button>
-              <button
-                onClick={() => complete(q)}
-                disabled={busy === q.id}
-                aria-label={`Complete ${q.title}`}
-                className="grid h-11 w-11 place-items-center rounded-[14px] bg-white ring-1 ring-line-2 transition active:translate-y-[2px]"
-                style={{ boxShadow: "0 3px 0 var(--color-line-2)", color: accent }}
-              >
-                {busy === q.id ? (
-                  <Spinner />
-                ) : (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <path d="M5 12.5l4.5 4.5L19 7.5" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
+        </Fresh>
       ))}
       {done.map((q) => (
-        <div key={q.id} className="flex items-center gap-3 rounded-[18px] bg-moss-soft/70 p-3 ring-1 ring-moss/15">
-          <Icon name="check" size={34} className="mx-1.5" />
-          <div className="min-w-0 flex-1 text-[15px] font-bold text-moss-deep line-through decoration-2 opacity-80">{q.title}</div>
-          <span className="text-[12px] font-extrabold text-moss-deep">+{q.xp} XP</span>
-        </div>
+        <Fresh key={`${q.id}:done`} className="rounded-[18px]">
+          <div className="flex items-center gap-3 rounded-[18px] bg-moss-soft/70 p-3 ring-1 ring-moss/15">
+            <Icon name="check" size={34} className="mx-1.5" />
+            <div className="min-w-0 flex-1 text-[15px] font-bold text-moss-deep line-through decoration-2 opacity-80">{q.title}</div>
+            <span className="text-[12px] font-extrabold text-moss-deep">+{q.xp} XP</span>
+          </div>
+        </Fresh>
       ))}
       {owner && (
         <QuickLog slug={slug} metric={metric} quests={quests} open={logFor != null} questId={logFor} onClose={() => setLogFor(null)} today={today} />

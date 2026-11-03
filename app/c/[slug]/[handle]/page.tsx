@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { CampPath, sceneFor } from "@/components/challenge";
 import { CheerButton, LogButton, QuestList, ShareButton, ShareWeekButton } from "@/components/client/actions";
 import { ConnectPanel } from "@/components/client/connect";
-import { LivePulse } from "@/components/client/live";
+import { Fresh, LivePulse } from "@/components/client/live";
 import { SpaceFrame } from "@/components/client/space-frame";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
@@ -44,7 +44,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const drafting = isOwner && !plan && v.justJoined;
 
   return (
-    <div style={{ background: pal.tint }} className="min-h-dvh">
+    <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
       <TopBar user={viewer} />
       <LivePulse slug={c.slug} />
 
@@ -122,14 +122,20 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
 
         {/* Stats */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat icon="streak" value={facts.streak} label={facts.streak === 1 ? "day streak" : "day streak"} tint="#FFEBDD" />
-          <Stat icon="xp" value={facts.xp} label={`XP · level ${facts.level}`} tint="var(--color-gold-soft)" />
-          <Stat
-            icon={c.emoji}
-            value={withUnit(facts.total, metric.unit)}
-            label={facts.target != null ? `of ${withUnit(facts.target, metric.unit)}` : metric.name}
-            tint={pal.tint}
-          />
+          <Fresh key={`streak-${facts.streak}`} className="rounded-[22px]">
+            <Stat icon="streak" value={facts.streak} label={facts.streak === 1 ? "day streak" : "day streak"} tint="#FFEBDD" />
+          </Fresh>
+          <Fresh key={`xp-${facts.xp}`} className="rounded-[22px]">
+            <Stat icon="xp" value={facts.xp} label={`XP · level ${facts.level}`} tint="var(--color-gold-soft)" />
+          </Fresh>
+          <Fresh key={`total-${facts.total}`} className="rounded-[22px]">
+            <Stat
+              icon={c.emoji}
+              value={withUnit(facts.total, metric.unit)}
+              label={facts.target != null ? `of ${withUnit(facts.target, metric.unit)}` : metric.name}
+              tint={pal.tint}
+            />
+          </Fresh>
           <Stat
             icon={facts.pace != null && facts.pace >= 1 ? "rocket" : "hourglass"}
             value={facts.pace != null ? `${facts.pace >= 1 ? "Ahead" : "Behind"}` : facts.days_remaining}
@@ -225,38 +231,40 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
             {logs.length ? (
               <ul className="card divide-y divide-line px-4">
                 {logs.slice(0, 30).map((l) => (
-                  <li key={l.id} className="flex gap-3 py-3.5">
-                    <div className="w-12 shrink-0 pt-0.5 text-center">
-                      <div className="font-display text-[13px] font-semibold text-ink-3 uppercase">{shortDate(l.logged_for).split(" ")[0]}</div>
-                      <div className="font-display text-[20px] leading-6 font-semibold text-ink">{shortDate(l.logged_for).split(" ")[1]}</div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {l.value != null ? (
-                          <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>
-                        ) : (
-                          (metric.aggregation === "sum" || metric.aggregation === "latest") &&
-                          !l.quest_title && <Pill className="!h-6 !text-[12px]">Practice</Pill>
-                        )}
-                        {l.label && <span className="text-[15px] font-extrabold text-ink">{l.label}</span>}
-                        {l.quest_title && <Pill tone="moss" className="!h-6 !text-[12px]">✓ {l.quest_title}</Pill>}
-                        <span className="text-[12px] font-extrabold text-gold-deep">+{l.xp} XP</span>
+                  <li key={l.id}>
+                    <Fresh className="-mx-2 flex gap-3 rounded-2xl px-2 py-3.5">
+                      <div className="w-12 shrink-0 pt-0.5 text-center">
+                        <div className="font-display text-[13px] font-semibold text-ink-3 uppercase">{shortDate(l.logged_for).split(" ")[0]}</div>
+                        <div className="font-display text-[20px] leading-6 font-semibold text-ink">{shortDate(l.logged_for).split(" ")[1]}</div>
                       </div>
-                      {l.note && <p className="mt-1 text-[15px] leading-6 text-ink-2">{l.note}</p>}
-                      <div className="mt-2 flex items-center gap-2">
-                        {isOwner ? (
-                          (l.cheers ?? 0) > 0 && (
-                            <span className="inline-flex h-8 items-center gap-1 rounded-full bg-coral-soft px-2.5 text-[13px] font-extrabold text-coral-deep">
-                              <Icon name="cheer" size={18} />
-                              {l.cheers}
-                            </span>
-                          )
-                        ) : (
-                          <CheerButton logId={l.id} count={l.cheers ?? 0} disabled={!viewer || !v.viewerIsMember} />
-                        )}
-                        <span className="text-[12px] font-bold text-ink-3">via {sourceLabel(l.source, user.agent_name)}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {l.value != null ? (
+                            <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>
+                          ) : (
+                            (metric.aggregation === "sum" || metric.aggregation === "latest") &&
+                            !l.quest_title && <Pill className="!h-6 !text-[12px]">Practice</Pill>
+                          )}
+                          {l.label && <span className="text-[15px] font-extrabold text-ink">{l.label}</span>}
+                          {l.quest_title && <Pill tone="moss" className="!h-6 !text-[12px]">✓ {l.quest_title}</Pill>}
+                          <span className="text-[12px] font-extrabold text-gold-deep">+{l.xp} XP</span>
+                        </div>
+                        {l.note && <p className="mt-1 text-[15px] leading-6 text-ink-2">{l.note}</p>}
+                        <div className="mt-2 flex items-center gap-2">
+                          {isOwner ? (
+                            (l.cheers ?? 0) > 0 && (
+                              <span className="inline-flex h-8 items-center gap-1 rounded-full bg-coral-soft px-2.5 text-[13px] font-extrabold text-coral-deep">
+                                <Icon name="cheer" size={18} />
+                                {l.cheers}
+                              </span>
+                            )
+                          ) : (
+                            <CheerButton logId={l.id} count={l.cheers ?? 0} disabled={!viewer || !v.viewerIsMember} />
+                          )}
+                          <span className="text-[12px] font-bold text-ink-3">via {sourceLabel(l.source, user.agent_name)}</span>
+                        </div>
                       </div>
-                    </div>
+                    </Fresh>
                   </li>
                 ))}
               </ul>
@@ -270,29 +278,31 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
             {plan && (
               <section>
                 <SectionTitle title="The plan" icon="map" />
-                <div className="card p-5">
-                  <p className="text-[15px] leading-7 whitespace-pre-line text-ink">{plan.summary_md}</p>
-                  {plan.cadence && (
-                    <div className="mt-4 flex items-center gap-3 rounded-2xl bg-cream px-3 py-2.5">
-                      <IconTile name="calendar" size={36} bg="#fff" />
-                      <div className="text-[14px] leading-5 font-bold text-ink-2">{plan.cadence}</div>
-                    </div>
-                  )}
-                  {plans.length > 1 && (
-                    <div className="mt-4 border-t border-line pt-4">
-                      <div className="label mb-2">Versions</div>
-                      <ol className="flex flex-col gap-2">
-                        {plans.map((p) => (
-                          <li key={p.version} className="flex items-start gap-2 text-[13px] leading-5">
-                            <span className="rounded-md bg-cream-2 px-1.5 font-extrabold text-ink-2">v{p.version}</span>
-                            <span className="text-ink-2">{p.reason || "Updated"}</span>
-                            <span className="ml-auto shrink-0 font-bold text-ink-3">{timeAgo(p.created_at)}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  )}
-                </div>
+                <Fresh key={plan.version} className="rounded-[22px]">
+                  <div className="card p-5">
+                    <p className="text-[15px] leading-7 whitespace-pre-line text-ink">{plan.summary_md}</p>
+                    {plan.cadence && (
+                      <div className="mt-4 flex items-center gap-3 rounded-2xl bg-cream px-3 py-2.5">
+                        <IconTile name="calendar" size={36} bg="#fff" />
+                        <div className="text-[14px] leading-5 font-bold text-ink-2">{plan.cadence}</div>
+                      </div>
+                    )}
+                    {plans.length > 1 && (
+                      <div className="mt-4 border-t border-line pt-4">
+                        <div className="label mb-2">Versions</div>
+                        <ol className="flex flex-col gap-2">
+                          {plans.map((p) => (
+                            <li key={p.version} className="flex items-start gap-2 text-[13px] leading-5">
+                              <span className="rounded-md bg-cream-2 px-1.5 font-extrabold text-ink-2">v{p.version}</span>
+                              <span className="text-ink-2">{p.reason || "Updated"}</span>
+                              <span className="ml-auto shrink-0 font-bold text-ink-3">{timeAgo(p.created_at)}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                </Fresh>
               </section>
             )}
             {isOwner && !welcome && (

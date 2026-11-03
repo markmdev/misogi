@@ -3,6 +3,7 @@ import { SCENES } from "@/lib/shared/art";
 import { activityText, firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { ActivityItem, ChallengeSummary, Metric, Milestone, Standing } from "@/lib/shared/types";
+import { Fresh } from "./client/live";
 import { Avatar, cx, Icon, IconTile, Mascot, ProgressBar } from "./ui";
 
 export function sceneFor(theme: string, small = true): string {
@@ -57,36 +58,38 @@ export function ActivityRow({ a, showChallenge = true }: { a: ActivityItem; show
   const pal = palette(a.challenge.theme);
   const note = typeof a.data.note === "string" && a.data.note ? a.data.note : null;
   return (
-    <li className="flex gap-3 py-3">
-      {a.user ? (
-        <Link href={`/c/${a.challenge.slug}/${a.user.handle}`} className="shrink-0">
-          <Avatar name={a.user.display_name} color={a.user.avatar} size={40} />
-        </Link>
-      ) : (
-        <IconTile name={a.challenge.emoji} size={40} />
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="text-[15px] leading-5 text-ink">
-          <span className="font-extrabold">{a.user ? firstName(a.user.display_name) : "Someone"}</span> {activityText(a)}
-        </p>
-        {note && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">“{note}”</p>}
-        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12px] font-bold text-ink-3">
-          <span>{timeAgo(a.created_at)}</span>
-          {showChallenge && (
-            <Link href={`/c/${a.challenge.slug}`} className="rounded-full px-2 py-0.5 font-extrabold" style={{ background: pal.tint, color: pal.deep }}>
-              {a.challenge.title}
-            </Link>
-          )}
-        </div>
-      </div>
-      {a.kind === "milestone" &&
-        (typeof a.data.badge === "string" ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={`/media/${a.data.badge}`} alt={`Badge for ${String(a.data.title ?? "a camp")}`} className="h-14 w-14 shrink-0 animate-pop rounded-full object-cover ring-2 ring-white shadow-sm" />
+    <li>
+      <Fresh className="-mx-2 flex gap-3 rounded-2xl px-2 py-3">
+        {a.user ? (
+          <Link href={`/c/${a.challenge.slug}/${a.user.handle}`} className="shrink-0">
+            <Avatar name={a.user.display_name} color={a.user.avatar} size={40} />
+          </Link>
         ) : (
-          <Icon name={String(a.data.emoji ?? "flag")} size={36} className="shrink-0 animate-pop" />
-        ))}
-      {a.kind === "level" && <Icon name="xp" size={32} className="shrink-0" />}
+          <IconTile name={a.challenge.emoji} size={40} />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] leading-5 text-ink">
+            <span className="font-extrabold">{a.user ? firstName(a.user.display_name) : "Someone"}</span> {activityText(a)}
+          </p>
+          {note && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">“{note}”</p>}
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12px] font-bold text-ink-3">
+            <span>{timeAgo(a.created_at)}</span>
+            {showChallenge && (
+              <Link href={`/c/${a.challenge.slug}`} className="rounded-full px-2 py-0.5 font-extrabold" style={{ background: pal.tint, color: pal.deep }}>
+                {a.challenge.title}
+              </Link>
+            )}
+          </div>
+        </div>
+        {a.kind === "milestone" &&
+          (typeof a.data.badge === "string" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={`/media/${a.data.badge}`} alt={`Badge for ${String(a.data.title ?? "a camp")}`} className="h-14 w-14 shrink-0 animate-pop rounded-full object-cover ring-2 ring-white shadow-sm" />
+          ) : (
+            <Icon name={String(a.data.emoji ?? "flag")} size={36} className="shrink-0 animate-pop" />
+          ))}
+        {a.kind === "level" && <Icon name="xp" size={32} className="shrink-0" />}
+      </Fresh>
     </li>
   );
 }
@@ -98,42 +101,44 @@ export function Leaderboard({ rows, metric, slug, highlight, accent }: { rows: S
   return (
     <ol className="card divide-y divide-line overflow-hidden">
       {rows.map((s) => (
-        <li key={s.handle} className={cx("flex items-center gap-3 px-4 py-3", s.handle === highlight && "bg-cream")}>
-          <span
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold"
-            style={s.rank <= 3 ? { background: MEDALS[s.rank - 1], color: "#5a3e00" } : { color: "var(--color-ink-3)" }}
-          >
-            {s.rank}
-          </span>
-          <Link href={`/c/${slug}/${s.handle}`} className="flex min-w-0 flex-1 items-center gap-3">
-            <Avatar name={s.display_name} color={s.avatar} size={38} />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-[15px] font-extrabold text-ink">{s.display_name}</span>
-                {s.role === "creator" && (
-                  <span className="shrink-0" title="Started this challenge">
-                    <Icon name="flag" size={18} alt="Started this challenge" />
-                  </span>
+        <li key={s.handle} className={cx(s.handle === highlight && "bg-cream")}>
+          <Fresh key={s.total} className="flex items-center gap-3 px-4 py-3">
+            <span
+              className="grid h-7 w-7 shrink-0 place-items-center rounded-full font-display text-[14px] font-semibold"
+              style={s.rank <= 3 ? { background: MEDALS[s.rank - 1], color: "#5a3e00" } : { color: "var(--color-ink-3)" }}
+            >
+              {s.rank}
+            </span>
+            <Link href={`/c/${slug}/${s.handle}`} className="flex min-w-0 flex-1 items-center gap-3">
+              <Avatar name={s.display_name} color={s.avatar} size={38} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-[15px] font-extrabold text-ink">{s.display_name}</span>
+                  {s.role === "creator" && (
+                    <span className="shrink-0" title="Started this challenge">
+                      <Icon name="flag" size={18} alt="Started this challenge" />
+                    </span>
+                  )}
+                </div>
+                {s.progress != null ? (
+                  <ProgressBar value={s.progress} color={accent} height={8} className="mt-1.5 max-w-[220px]" />
+                ) : (
+                  <div className="mt-0.5 text-[13px] font-bold text-ink-3">Level {s.level}</div>
                 )}
               </div>
-              {s.progress != null ? (
-                <ProgressBar value={s.progress} color={accent} height={8} className="mt-1.5 max-w-[220px]" />
+            </Link>
+            <div className="text-right">
+              <div className="font-display text-[16px] font-semibold text-ink tabular-nums">{withUnit(s.total, metric.unit)}</div>
+              {s.streak > 0 ? (
+                <div className="flex items-center justify-end gap-0.5 text-[12px] font-extrabold text-flame">
+                  <Icon name="streak" size={16} />
+                  {s.streak}
+                </div>
               ) : (
-                <div className="mt-0.5 text-[13px] font-bold text-ink-3">Level {s.level}</div>
+                <div className="text-[12px] font-bold text-ink-3">{s.last_log_on ? shortDate(s.last_log_on) : "Not yet"}</div>
               )}
             </div>
-          </Link>
-          <div className="text-right">
-            <div className="font-display text-[16px] font-semibold text-ink tabular-nums">{withUnit(s.total, metric.unit)}</div>
-            {s.streak > 0 ? (
-              <div className="flex items-center justify-end gap-0.5 text-[12px] font-extrabold text-flame">
-                <Icon name="streak" size={16} />
-                {s.streak}
-              </div>
-            ) : (
-              <div className="text-[12px] font-bold text-ink-3">{s.last_log_on ? shortDate(s.last_log_on) : "Not yet"}</div>
-            )}
-          </div>
+          </Fresh>
         </li>
       ))}
     </ol>
@@ -204,37 +209,39 @@ export function CampPath({
               </svg>
             )}
             <div className="relative flex items-center" style={{ translate: `${x}px 0` }}>
-              <div
-                className={cx(
-                  "relative grid place-items-center rounded-full transition",
-                  reveal && "animate-pop",
-                  state === "next" ? "h-[84px] w-[84px]" : "h-[68px] w-[68px]",
-                )}
-                style={{
-                  animationDelay: reveal ? `${at}ms` : undefined,
-                  background: state === "later" ? "var(--color-cream-2)" : state === "done" ? accent : "#fff",
-                  boxShadow: state === "later" ? "0 5px 0 var(--color-line-2)" : `0 5px 0 ${deep}`,
-                  border: state === "next" ? `4px solid ${accent}` : "none",
-                }}
-              >
-                {state === "done" && m.badge ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={`/media/${m.badge}`} alt={`Badge for ${m.title}`} className="h-[60px] w-[60px] rounded-full object-cover" />
-                ) : (
-                  <Icon
-                    name={isSummit ? "summit" : m.emoji || "camp"}
-                    size={state === "next" ? 52 : 42}
-                    className={cx(state === "later" && "opacity-55 grayscale-[0.6]")}
-                  />
-                )}
-                {state === "done" && (
-                  <span className="absolute -right-1 -bottom-1 grid h-7 w-7 place-items-center rounded-full border-[3px] border-white bg-moss text-white">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="M5 12.5l4.5 4.5L19 7.5" />
-                    </svg>
-                  </span>
-                )}
-              </div>
+              <Fresh key={state} className="rounded-full">
+                <div
+                  className={cx(
+                    "relative grid place-items-center rounded-full transition",
+                    reveal && "animate-pop",
+                    state === "next" ? "h-[84px] w-[84px]" : "h-[68px] w-[68px]",
+                  )}
+                  style={{
+                    animationDelay: reveal ? `${at}ms` : undefined,
+                    background: state === "later" ? "var(--color-cream-2)" : state === "done" ? accent : "#fff",
+                    boxShadow: state === "later" ? "0 5px 0 var(--color-line-2)" : `0 5px 0 ${deep}`,
+                    border: state === "next" ? `4px solid ${accent}` : "none",
+                  }}
+                >
+                  {state === "done" && m.badge ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={`/media/${m.badge}`} alt={`Badge for ${m.title}`} className="h-[60px] w-[60px] rounded-full object-cover" />
+                  ) : (
+                    <Icon
+                      name={isSummit ? "summit" : m.emoji || "camp"}
+                      size={state === "next" ? 52 : 42}
+                      className={cx(state === "later" && "opacity-55 grayscale-[0.6]")}
+                    />
+                  )}
+                  {state === "done" && (
+                    <span className="absolute -right-1 -bottom-1 grid h-7 w-7 place-items-center rounded-full border-[3px] border-white bg-moss text-white">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M5 12.5l4.5 4.5L19 7.5" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+              </Fresh>
               {state === "next" && (
                 <Mascot
                   pose="climb"

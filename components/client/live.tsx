@@ -1,8 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Icon } from "../ui";
+
+// True once a live page has been checked for changes, so what mounts after that arrived with a refresh.
+let settled = false;
 
 type Latest = { id: string; text: string; via: string | null; at: string } | null;
 
@@ -12,9 +15,17 @@ type Latest = { id: string; text: string; via: string | null; at: string } | nul
  */
 export function LivePulse({ slug, interval = 6000 }: { slug: string; interval?: number }) {
   const router = useRouter();
+  const pathname = usePathname();
   const last = useRef<string | null>(null);
   const lastActivity = useRef<string | null>(null);
   const [toast, setToast] = useState<Latest>(null);
+
+  useLayoutEffect(() => {
+    settled = false;
+    return () => {
+      settled = false;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let stopped = false;
@@ -31,6 +42,7 @@ export function LivePulse({ slug, interval = 6000 }: { slug: string; interval?: 
               setTimeout(() => setToast((t) => (t?.id === latest.id ? null : t)), 6000);
             }
             last.current = stamp;
+            settled = true;
             lastActivity.current = latest?.id ?? lastActivity.current ?? "none";
           }
         } catch {
@@ -56,6 +68,22 @@ export function LivePulse({ slug, interval = 6000 }: { slug: string; interval?: 
           {toast.via && <div className="text-[12px] font-bold text-white/70">via {toast.via}</div>}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Wraps something that can change while the page is open. When it first appears after a live refresh
+ * (a new log, a finished quest, a changed number: key it by what changed), it rises in and glows once.
+ */
+export function Fresh({ children, className }: { children: ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (settled) ref.current?.classList.add("animate-fresh");
+  }, []);
+  return (
+    <div ref={ref} className={className}>
+      {children}
     </div>
   );
 }
