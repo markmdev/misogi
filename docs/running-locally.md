@@ -1,0 +1,101 @@
+# Running Misogi locally
+
+About five minutes from clone to a working app with demo data. There's no Docker and no database server: the app creates a SQLite file on first start.
+
+## What you need
+
+- **bun** 1.3.6 or newer (`curl -fsSL https://bun.sh/install | bash`)
+- **Node.js** 20 or newer. Next.js and SQLite run on Node; production uses 24.
+- macOS or Linux
+- An AI key from Java (see step 2)
+
+## 1. Install
+
+```sh
+git clone https://github.com/markmdev/meta-hackathon.git
+cd meta-hackathon
+bun install
+cp .env.example .env.local
+```
+
+## 2. Add the AI key
+
+Put the values Java sent you in `.env.local`. Use one of these:
+
+| Option | Set in `.env.local` | Notes |
+|---|---|---|
+| Team xAI key API (recommended) | `GROK_KEY_API_URL`, `GROK_KEY_API_PASSWORD` | The app fetches the current xAI key and fetches it again when it rotates (every 2 hours). |
+| A fixed xAI key | `XAI_API_KEY` | Overrides the key API. Stops working when the key rotates. |
+| Meta, once credits land | `AI_PROVIDER=meta` and `META_API_KEY` or `GATEWAY_KEY` | `META_API_KEY` calls `api.meta.ai` directly. `GATEWAY_KEY` goes through Mark's gateway. |
+
+These values are secrets. Keep them in `.env.local`, which git ignores, and never put them in code, commits, issues, screenshots or agent transcripts you share. Restart `bun dev` after you change `.env.local`.
+
+The whole team shares the xAI key pool. When xAI reports a real usage limit, the app asks the key API to switch accounts (at most once an hour per server), and that changes the key for everyone. So don't run model-heavy jobs in a loop.
+
+## 3. Run it
+
+```sh
+bun dev              # http://localhost:3000
+```
+
+In a second terminal:
+
+```sh
+bun run seed         # demo challenges, 38 demo people, a few weeks of history
+bun run ai-check     # one small call per model job; every check should say "ok": true
+```
+
+Open http://localhost:3000. Use `localhost`, not `127.0.0.1`: Next.js 16 blocks dev scripts on other hostnames, so on `127.0.0.1` the page renders but never becomes interactive.
+
+Seed options, combined as needed (`bun run seed --covers --spaces`):
+
+- `--covers` draws a cover image for each demo challenge. It uses the image model and takes about a minute in the background.
+- `--spaces` builds the AI-made page for each demo challenge. It uses the page builder and takes a few minutes in the background.
+- `--force` rebuilds the demo people and dates their history to today. Your own accounts, pages and covers stay.
+
+Without `--covers`, the demo challenges show their theme art instead of a cover.
+
+## 4. Check your changes
+
+```sh
+bun run typecheck
+bun run lint
+bun test             # 15 end-to-end tests against the server on :3000
+```
+
+The tests use the HTTP API, make no model calls, and create their own accounts. They refuse to run against anything other than localhost.
+
+## Trying the product
+
+- **Start a challenge:** open `/start` and type one line. It drafts the year, creates your account (a browser session, no password) and opens your page.
+- **Virgil:** the "Ask Virgil" button on any page. It uses the same tools as outside agents.
+- **Connect Claude Code to your local server:** make a key in the "Your AI" section of your page (or at `/connect`). The "Claude & other agents" tab shows the exact command, which looks like this:
+  ```sh
+  claude mcp add --transport http misogi-local http://localhost:3000/api/mcp --header "Authorization: Bearer msk_..."
+  ```
+- **Muse** runs in the cloud and can't reach `localhost`. Test Muse against the live site.
+- **Agent guide:** http://localhost:3000/agent.md is the guide agents read. It's generated from the tool registry.
+
+## Good to know
+
+- **Starting over:** stop the server, delete `data/` and start again. `data/` holds the database, covers and generated media, and is not committed.
+- **Another port:** `bun dev -p 3001`, then add `BASE_URL=http://localhost:3001` to `.env.local` so the tests and scripts follow.
+- **One dev server per checkout.** Next.js refuses to start a second one in the same folder and tells you the running one's port and PID.
+- **Database scripts run inside the server.** better-sqlite3 doesn't load under Bun, so `bun run seed` and `bun run ai-check` are HTTP calls to `/api/admin/*`. Add new admin jobs as routes there. In dev they're open; in production they need `ADMIN_KEY`.
+- **Next.js 16 is newer than most models' training data.** Read the guide in `node_modules/next/dist/docs/` before writing Next.js code (see `AGENTS.md`).
+- **Model calls:** `AI_DEBUG=1` logs each call's job, model, time and tokens. `AI_MODEL_<JOB>` overrides one model, e.g. `AI_MODEL_CODEGEN`. The jobs and defaults are in `lib/server/ai/client.ts`.
+
+## Where things are
+
+| Path | What |
+|---|---|
+| `app/` | Pages, route handlers, server actions (`app/actions.ts`) |
+| `components/` | UI. `components/client/*` are client components. |
+| `lib/server/tools.ts` | The one tool registry behind the HTTP API, MCP and Virgil |
+| `lib/server/domain/` | Challenges, plans, logs, quests, feed (SQLite) |
+| `lib/server/ai/` | Model client, drafting, Virgil, page builder |
+| `lib/server/spaces.ts` | Generated pages: build queue, validation, self-repair |
+| `lib/server/migrations.ts` | Database schema. It applies on server start. |
+| `tests/api.test.ts` | End-to-end tests |
+
+Shipping a change: [deploying.md](deploying.md).

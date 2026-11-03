@@ -94,7 +94,7 @@ async function xaiKey(force = false): Promise<string> {
   return value;
 }
 
-/** Asks the key pool to switch accounts after a real limit error. At most once per 10 minutes. */
+/** Asks the key pool to switch accounts after a real limit error. At most once an hour per server. */
 async function rotateXaiKey() {
   const cfg = keyApiConfig();
   if (!cfg || process.env.XAI_API_KEY) return;

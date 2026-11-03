@@ -15,8 +15,9 @@
 #
 # Secrets never appear in this file, on a command line or in the output. The Grok key API URL
 # and password are read from GROK_KEY_API_DIR on the operator's machine and streamed to the
-# server over SSH stdin. SESSION_SECRET is generated on the server the first time and kept on
-# re-runs, so re-provisioning doesn't log everyone out.
+# server over SSH stdin. SESSION_SECRET and ADMIN_KEY are generated on the server the first time
+# and kept on re-runs, so re-provisioning doesn't log everyone out. Lines added to /etc/misogi/env
+# by hand (AI_PROVIDER=meta, Meta keys, model overrides) survive re-runs too.
 #
 # How it works: the script copies itself, Caddyfile and misogi.service to the server, then runs
 # itself there as root with --remote.
@@ -24,6 +25,10 @@ set -euo pipefail
 
 step() { printf '\n==> %s\n' "$*"; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+# True if a site block in the Caddyfile lists the domain, alone or with others ("a.com, b.com {").
+serves_domain() { # <Caddyfile> <domain>
+	grep -E '^[^#[:space:]{][^#]*\{[[:space:]]*$' "$1" | tr -s ', \t{' '\n' | grep -qxF "$2"
+}
 
 # ----------------------------------------------------------------------------------------------
 # Server side (runs as root on the instance)
@@ -32,6 +37,42 @@ die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 apt_get() {
 	apt-get -y -q -o DPkg::Lock::Timeout=300 \
 		-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold "$@"
+}
+
+# Prints the service environment. The first block is rewritten on every run. SESSION_SECRET and
+# ADMIN_KEY are generated once and kept; AI_PROVIDER keeps its current value (the last one wins,
+# as in systemd). Any other line added by hand (Meta keys, AI_MODEL_* overrides) is kept as is.
+render_env() { # <current env file, may not exist> <domain> <grok url> <grok password>
+	local env=$1 domain=$2 grok_url=$3 grok_password=$4
+	local session_secret="" admin_key="" ai_provider=""
+	local managed='^(NODE_ENV|PORT|HOSTNAME|DATABASE_PATH|DATA_DIR|PUBLIC_URL|SESSION_SECRET|ADMIN_KEY|AI_PROVIDER|GROK_KEY_API_URL|GROK_KEY_API_PASSWORD)='
+	if [[ -f $env ]]; then
+		session_secret=$(sed -n 's/^SESSION_SECRET=//p' "$env" | tail -n 1)
+		admin_key=$(sed -n 's/^ADMIN_KEY=//p' "$env" | tail -n 1)
+		ai_provider=$(sed -n 's/^AI_PROVIDER=//p' "$env" | tail -n 1)
+	fi
+	if [[ -z $session_secret ]]; then
+		session_secret=$(openssl rand -base64 48 | tr -d '\n')
+		echo "generated a new SESSION_SECRET" >&2
+	fi
+	if [[ -z $admin_key ]]; then
+		admin_key=$(openssl rand -hex 24)
+		echo "generated a new ADMIN_KEY (read it with: sudo grep ADMIN_KEY /etc/misogi/env)" >&2
+	fi
+	echo "NODE_ENV=production"
+	echo "PORT=3000"
+	echo "HOSTNAME=127.0.0.1"
+	echo "DATABASE_PATH=/var/lib/misogi/misogi.db"
+	echo "DATA_DIR=/var/lib/misogi"
+	echo "PUBLIC_URL=https://$domain"
+	printf 'SESSION_SECRET=%s\n' "$session_secret"
+	printf 'ADMIN_KEY=%s\n' "$admin_key"
+	printf 'AI_PROVIDER=%s\n' "${ai_provider:-xai}"
+	printf 'GROK_KEY_API_URL=%s\n' "$grok_url"
+	printf 'GROK_KEY_API_PASSWORD=%s\n' "$grok_password"
+	if [[ -f $env ]]; then
+		grep -vE "$managed" "$env" | grep -vE '^[[:space:]]*$' || true
+	fi
 }
 
 remote() {
@@ -136,29 +177,11 @@ remote() {
 	# /srv/misogi/app is a symlink to the live release; scripts/deploy.sh creates and switches it.
 
 	step "/etc/misogi/env"
-	local env=/etc/misogi/env session_secret="" tmp env_changed=0
-	if [[ -f $env ]]; then
-		session_secret=$(sed -n 's/^SESSION_SECRET=//p' "$env" | head -n 1)
-	fi
-	if [[ -z $session_secret ]]; then
-		session_secret=$(openssl rand -base64 48 | tr -d '\n')
-		echo "generated a new SESSION_SECRET"
-	fi
+	local env=/etc/misogi/env tmp env_changed=0
 	tmp=$(mktemp /etc/misogi/.env.XXXXXX)
 	chown root:misogi "$tmp"
 	chmod 640 "$tmp"
-	{
-		echo "NODE_ENV=production"
-		echo "PORT=3000"
-		echo "HOSTNAME=127.0.0.1"
-		echo "DATABASE_PATH=/var/lib/misogi/misogi.db"
-		echo "DATA_DIR=/var/lib/misogi"
-		echo "PUBLIC_URL=https://$domain"
-		printf 'SESSION_SECRET=%s\n' "$session_secret"
-		echo "AI_PROVIDER=xai"
-		printf 'GROK_KEY_API_URL=%s\n' "$grok_url"
-		printf 'GROK_KEY_API_PASSWORD=%s\n' "$grok_password"
-	} >"$tmp"
+	render_env "$env" "$domain" "$grok_url" "$grok_password" >"$tmp"
 	if [[ -f $env ]] && cmp -s "$tmp" "$env"; then
 		rm -f "$tmp"
 		echo "unchanged"
@@ -167,7 +190,7 @@ remote() {
 		env_changed=1
 		echo "written (root:misogi 640)"
 	fi
-	unset grok_url grok_password session_secret
+	unset grok_url grok_password
 
 	step "systemd unit misogi.service"
 	local unit_changed=0
@@ -186,7 +209,7 @@ remote() {
 	fi
 
 	step "Caddy"
-	grep -q "^$domain {" "$src/Caddyfile" || die "Caddyfile doesn't serve $domain"
+	serves_domain "$src/Caddyfile" "$domain" || die "Caddyfile doesn't serve $domain"
 	# Validate as the caddy user, from a copy it can read (the upload dir is private).
 	local check
 	check=$(mktemp /tmp/Caddyfile.XXXXXX)
@@ -267,7 +290,7 @@ BUN_VERSION=${BUN_VERSION:-$(sed -n 's/.*"packageManager"[[:space:]]*:[[:space:]
 [[ -n $BUN_VERSION ]] || die "couldn't read the bun version from package.json; set BUN_VERSION"
 [[ -r $SSH_KEY ]] || die "SSH key not found: $SSH_KEY"
 [[ -s $GROK_DIR/url && -s $GROK_DIR/password ]] || die "missing $GROK_DIR/url or $GROK_DIR/password"
-grep -q "^$DOMAIN {" "$REPO/infra/Caddyfile" || die "infra/Caddyfile doesn't serve $DOMAIN; update it first"
+serves_domain "$REPO/infra/Caddyfile" "$DOMAIN" || die "infra/Caddyfile doesn't serve $DOMAIN; update it first"
 
 CTL_DIR=$(mktemp -d /tmp/misogi-ssh.XXXXXX)
 SSH_OPTS=(-i "$SSH_KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10

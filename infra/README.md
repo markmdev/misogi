@@ -6,7 +6,8 @@ Everything here was created by hand with the AWS CLI on 2026-11-03 and provision
 
 - **Site:** https://misogi.35-171-183-237.sslip.io
 - **SSH:** `ssh -i ~/.ssh/misogi-hackathon.pem ubuntu@35.171.183.237`
-- **Deploy:** `scripts/deploy.sh` (ships the committed `HEAD`)
+- **Deploy:** `scripts/deploy.sh` (ships the committed `HEAD`). Step-by-step guide for the team:
+  [`docs/deploying.md`](../docs/deploying.md)
 
 The AWS account (AWS_ACCOUNT_ID, us-east-1) also runs other production systems. Every Misogi
 resource is tagged `Name=misogi-hackathon` and `Project=misogi-hackathon`. Don't touch anything
@@ -69,11 +70,11 @@ Installed: Node.js 24 (NodeSource apt repo), bun (version pinned to `packageMana
 build-essential, python3. Unattended security upgrades are on, and there's a 2 GB swapfile.
 
 `/etc/misogi/env` holds `NODE_ENV`, `PORT`, `HOSTNAME`, `DATABASE_PATH`, `DATA_DIR`,
-`PUBLIC_URL`, `SESSION_SECRET`, `AI_PROVIDER=xai`, `GROK_KEY_API_URL` and
-`GROK_KEY_API_PASSWORD`. `provision.sh` streams the Grok values from
-`~/.config/grok-key-api/` on the operator's Mac over SSH stdin. `SESSION_SECRET` is generated on
-the server once and kept on re-runs. None of these values are in git. To read one, SSH in and run
-`sudo cat /etc/misogi/env`.
+`PUBLIC_URL`, `SESSION_SECRET`, `ADMIN_KEY`, `AI_PROVIDER`, `GROK_KEY_API_URL` and
+`GROK_KEY_API_PASSWORD`, plus anything added by hand (Meta keys, `AI_MODEL_*`). `provision.sh`
+streams the Grok values from `~/.config/grok-key-api/` on the operator's Mac over SSH stdin.
+`SESSION_SECRET` and `ADMIN_KEY` are generated on the server once and kept on re-runs. None of
+these values are in git. To read one, SSH in and run `sudo cat /etc/misogi/env`.
 
 ## Deploying
 
@@ -106,8 +107,9 @@ journalctl -u caddy                          # TLS / proxy problems
 ```
 
 - **Change or add an env var:** edit `/etc/misogi/env` (keep values unquoted), then
-  `sudo systemctl restart misogi`. `provision.sh` regenerates the whole file on every run (it
-  keeps `SESSION_SECRET`), so make the same change in the script or the next run undoes it.
+  `sudo systemctl restart misogi`. `provision.sh` rewrites its own lines on every run (keeping
+  `SESSION_SECRET`, `ADMIN_KEY` and `AI_PROVIDER`) and carries every other line over unchanged.
+  `PUBLIC_URL` comes from `MISOGI_DOMAIN`, so change that in the script, not in the file.
 - **Re-provision** (safe at any time; restarts the app only if the unit or env changed):
   `infra/provision.sh`.
 - **Restore a backup:** `sudo systemctl stop misogi`,

@@ -1,5 +1,5 @@
 // End-to-end tests against a running Misogi server (no mocks).
-//   BASE_URL=http://localhost:3100 bun test
+//   BASE_URL=http://localhost:3000 bun test   (that is the default)
 // They create their own accounts and challenges; no model calls except where noted.
 
 import { describe, expect, test } from "bun:test";
@@ -8,7 +8,10 @@ import { describe, expect, test } from "bun:test";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = Record<string, any>;
 
-const BASE = process.env.BASE_URL ?? "http://localhost:3100";
+const BASE = process.env.BASE_URL || "http://localhost:3000";
+// These tests create real accounts and challenges. Keep them off shared servers unless asked.
+if (!/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?\/?$/.test(BASE) && !process.env.ALLOW_REMOTE_TESTS)
+  throw new Error(`Refusing to run against ${BASE}: the tests create accounts there. Set ALLOW_REMOTE_TESTS=1 if you mean it.`);
 const run = Math.random().toString(36).slice(2, 8);
 
 async function signup(name: string) {

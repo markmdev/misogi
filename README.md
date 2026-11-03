@@ -48,7 +48,7 @@ All calls go through `lib/server/ai/client.ts`, which speaks the Responses API t
 | Space codegen (streamed) | `muse-wonder-1.0` | `grok-build-0.1` |
 | Challenge covers | `muse-image-1.0` | `grok-imagine-image-2.0` |
 
-**Switching to Meta when credits land:** set `AI_PROVIDER=meta` and either `GATEWAY_KEY` (Mark's gateway; `GATEWAY_JUDGES_KEY` optional) or `META_API_KEY` (direct to `api.meta.ai`) in `/etc/misogi/env`, then `sudo systemctl restart misogi`. Check every model job in one call before recording:
+**Switching to Meta when credits land:** set `AI_PROVIDER=meta` and either `GATEWAY_KEY` (Mark's gateway; `GATEWAY_JUDGES_KEY` optional) or `META_API_KEY` (direct to `api.meta.ai`) in `/etc/misogi/env`, then `sudo systemctl restart misogi` ([step by step](docs/deploying.md#switching-to-meta-models)). Check every model job in one call before recording:
 
 ```sh
 curl -s -X POST https://<host>/api/admin/ai-check -H "x-admin-key: $ADMIN_KEY" -d '{"image":true}'
@@ -59,20 +59,18 @@ It runs a plain reply, a structured draft, a tool call (Virgil), a streamed page
 ## Run it
 
 ```sh
-bun install
-bun dev                          # http://localhost:3000, database at ./data/misogi.db
-BASE_URL=http://localhost:3000 bun test   # end-to-end API tests against the running server
-bun run typecheck && bun run lint
+bun install && cp .env.example .env.local   # then add the AI key (see the guide)
+bun dev                                     # http://localhost:3000, database at ./data/misogi.db
+bun run seed                                # demo challenges and people (in a second terminal)
+bun run ai-check                            # one small call per model job
+bun run typecheck && bun run lint && bun test
 ```
 
-Local AI calls use `XAI_API_KEY`, or the team Grok key API config in `~/.config/grok-key-api` (never the Grok app login).
-Demo data: `curl -X POST localhost:3000/api/admin/seed -H 'content-type: application/json' -d '{"covers":true}'` (in production it needs `x-admin-key`).
-
-Note: better-sqlite3 doesn't load under the Bun runtime, so scripts that touch the database run inside the Next server (see `app/api/admin/seed`), and `bun test` only talks HTTP.
+Step by step, with the key options and gotchas: [`docs/running-locally.md`](docs/running-locally.md). Shipping: [`docs/deploying.md`](docs/deploying.md).
 
 ## Hosting
 
-One `t4g.medium` in us-east-1, tagged `Project=misogi-hackathon`. Everything about it (resource IDs, SSH, teardown) is in [`infra/README.md`](infra/README.md).
+One `t4g.medium` in us-east-1, tagged `Project=misogi-hackathon`. The team's deploy guide (access, deploying, switching to Meta, moving to a real domain) is [`docs/deploying.md`](docs/deploying.md). Resource IDs, server layout and teardown are in [`infra/README.md`](infra/README.md).
 
 ```sh
 scripts/deploy.sh          # deploys the committed HEAD: build on the server, atomic switch, health check, auto-rollback
@@ -107,5 +105,5 @@ Everything in this repository after the initial empty scaffold (commit `2491d12`
 ## How we work
 
 - **Everything reaches main by pull request.** Nobody force-pushes main.
-- **Meta's API key never goes in this repo.** Secrets live in `/etc/misogi/env` on the server.
+- **Meta's API key never goes in this repo.** Secrets live in `.env.local` on your machine and `/etc/misogi/env` on the server.
 - **Mark's agents sign everything they write here** with `[AGENT · …]`.
