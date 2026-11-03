@@ -43,11 +43,11 @@ export function metricLine(m: Metric): string {
   const target = m.target != null ? withUnit(m.target, m.unit) : null;
   switch (m.aggregation) {
     case "days":
-      return target ? `${target} of ${m.name}` : `Days of ${m.name}`;
+      return m.target != null ? `${num(m.target)} days` : "Daily";
     case "latest":
       return target ? `Reach ${target}` : `Track ${m.name}`;
     case "distinct":
-      return target ? `${num(m.target)} different ${m.name}` : `Different ${m.name}`;
+      return m.target != null ? `${num(m.target)} ${m.name.replace(/^(different|distinct)\s+/i, "")}` : m.name;
     default:
       return target ?? m.name;
   }
