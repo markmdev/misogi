@@ -11,7 +11,7 @@ import { Avatar, EmptyState, Icon, IconTile, Pill, ProgressBar, Ring, SectionTit
 import { currentUser } from "@/lib/server/auth";
 import { findChallenge } from "@/lib/server/domain/challenges";
 import { challengeView, pulse } from "@/lib/server/views";
-import { firstName, metricLine, shortDate, withUnit } from "@/lib/shared/format";
+import { firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -56,7 +56,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
         </div>
         <div className="relative mx-auto -mt-20 max-w-6xl px-4 sm:-mt-24 sm:px-6">
           <div className="card flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
-            <div className="flex min-w-0 items-start gap-4">
+            <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row">
               <IconTile name={c.emoji} size={76} bg={pal.tint} className="shadow-[0_4px_0_rgb(0_0_0/0.06)]" />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -78,9 +78,9 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
                 {c.tagline && <p className="mt-1.5 max-w-2xl text-[16px] leading-6 text-ink-2">{c.tagline}</p>}
                 {!isTemplate && (
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-[14px] font-bold text-ink-2">
-                    <div className="flex -space-x-2">
+                    <div className="flex -space-x-1">
                       {board.slice(0, 5).map((s) => (
-                        <Avatar key={s.handle} name={s.display_name} color={s.avatar} size={30} ring />
+                        <Avatar key={s.handle} name={s.display_name} color={s.avatar} size={32} ring />
                       ))}
                     </div>
                     <span>
@@ -162,7 +162,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
               <SectionTitle
                 title="The challenge page"
                 icon="paintbrush"
-                action={space.current ? <span className="text-[13px] font-bold text-ink-3">v{space.current.version} · built by AI</span> : null}
+                action={space.current ? <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">Made by AI · {timeAgo(space.current.created_at)}</span> : null}
               />
               <SpaceFrame
                 space={space}

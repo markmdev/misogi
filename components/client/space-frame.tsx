@@ -47,7 +47,7 @@ export function SpaceFrame({ space, title, reloadKey, empty }: { space: SpaceSta
           <Spinner />A new version is being built. It shows up here when it&apos;s ready.
         </div>
       )}
-      <div className="overflow-hidden rounded-[26px] bg-white ring-1 ring-line" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div className="overflow-hidden rounded-[26px] bg-white/50 ring-1 ring-line">
         {!loaded && <div className="h-[420px] animate-pulse bg-cream-2/60" />}
         <iframe
           ref={frame}

@@ -127,7 +127,7 @@ export function Leaderboard({ rows, metric, slug, highlight, accent }: { rows: S
                 )}
               </div>
             </Link>
-            <div className="text-right">
+            <div className="min-w-[5.5rem] text-right">
               <div className="font-display text-[16px] font-semibold text-ink tabular-nums">{withUnit(s.total, metric.unit)}</div>
               {s.streak > 0 ? (
                 <div className="flex items-center justify-end gap-0.5 text-[12px] font-extrabold text-flame">
