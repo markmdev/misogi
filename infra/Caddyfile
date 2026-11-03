@@ -1,0 +1,28 @@
+# Caddy config for the Misogi EC2 host. Installed to /etc/caddy/Caddyfile by infra/provision.sh.
+# Caddy gets and renews the TLS certificate for the hostname automatically.
+# If the server's public IP changes, update both addresses below (see infra/README.md).
+
+{
+	# The security group only opens TCP 443, so don't advertise HTTP/3 (UDP 443).
+	servers {
+		protocols h1 h2
+	}
+}
+
+misogi.35-171-183-237.sslip.io {
+	encode zstd gzip
+	# reverse_proxy sets X-Forwarded-For/-Proto/-Host to the real client values.
+	reverse_proxy 127.0.0.1:3000
+
+	log {
+		output file /var/log/caddy/misogi-access.log {
+			roll_size 50MiB
+			roll_keep 5
+		}
+	}
+}
+
+# Plain-HTTP requests to the bare IP get redirected to the hostname.
+http://35.171.183.237 {
+	redir https://misogi.35-171-183-237.sslip.io{uri} permanent
+}
