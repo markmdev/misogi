@@ -380,3 +380,59 @@ export function ShareButton({ url, text, className }: { url: string; text: strin
     </button>
   );
 }
+
+/** Shares the weekly recap image: the native share sheet with the PNG where supported, otherwise a download. */
+export function ShareWeekButton({ cardUrl, pageUrl, text, className }: { cardUrl: string; pageUrl: string; text: string; className?: string }) {
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button className={cx("btn btn-sm", className)} onClick={() => setOpen(true)}>
+        <Icon name="camera" size={22} />
+        Share my week
+      </button>
+      <Sheet open={open} onClose={() => setOpen(false)} title="Your week">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cardUrl} alt="Your weekly recap card" className="w-full rounded-[22px] ring-1 ring-line" />
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            className="btn btn-sm"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const blob = await (await fetch(cardUrl)).blob();
+                const file = new File([blob], "my-misogi-week.png", { type: "image/png" });
+                const full = pageUrl.startsWith("http") ? pageUrl : `${window.location.origin}${pageUrl}`;
+                if (navigator.canShare?.({ files: [file] })) {
+                  await navigator.share({ files: [file], text: `${text} ${full}` });
+                } else {
+                  const a = document.createElement("a");
+                  a.href = URL.createObjectURL(blob);
+                  a.download = "my-misogi-week.png";
+                  a.click();
+                  URL.revokeObjectURL(a.href);
+                }
+              } catch {
+                /* the person closed the share sheet */
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            {busy ? <Spinner /> : null}
+            Save or share
+          </button>
+          <a
+            className="btn btn-ink btn-sm"
+            target="_blank"
+            rel="noreferrer"
+            href={`https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(pageUrl)}`}
+          >
+            Post on X
+          </a>
+        </div>
+      </Sheet>
+    </>
+  );
+}

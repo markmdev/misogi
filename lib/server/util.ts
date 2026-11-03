@@ -54,13 +54,18 @@ export function nowIso(): string {
 export function slugify(s: string, max = 48): string {
   const base = s
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, max)
-    .replace(/-+$/g, "");
-  return base || "challenge";
+    .replace(/^-+|-+$/g, "");
+  let slug = base;
+  if (slug.length > max) {
+    // Cut at a word boundary so slugs never end mid-word.
+    const cut = slug.slice(0, max + 1);
+    const lastDash = cut.lastIndexOf("-");
+    slug = lastDash > max / 2 ? cut.slice(0, lastDash) : slug.slice(0, max);
+  }
+  return slug.replace(/-+$/g, "") || "challenge";
 }
 
 export function isValidTimeZone(tz: string): boolean {

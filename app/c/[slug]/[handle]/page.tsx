@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CampPath, sceneFor } from "@/components/challenge";
-import { CheerButton, LogButton, QuestList, ShareButton } from "@/components/client/actions";
+import { CheerButton, LogButton, QuestList, ShareButton, ShareWeekButton } from "@/components/client/actions";
 import { ConnectPanel } from "@/components/client/connect";
 import { LivePulse } from "@/components/client/live";
 import { SpaceFrame } from "@/components/client/space-frame";
@@ -78,7 +78,16 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
               {isOwner && !completed && <LogButton slug={c.slug} metric={metric} quests={quests} today={facts.today} />}
-              <ShareButton url={`/c/${c.slug}/${user.handle}`} text={`${user.display_name} is climbing “${c.title}” on Misogi`} />
+              {isOwner ? (
+                <ShareWeekButton
+                  cardUrl={`/c/${c.slug}/${user.handle}/card?d=${facts.today}-${facts.total}-${facts.streak}`}
+                  pageUrl={`${origin}/c/${c.slug}/${user.handle}`}
+                  text={`My week on “${c.title}”. What's your misogi?`}
+                  className="btn-ghost"
+                />
+              ) : (
+                <ShareButton url={`/c/${c.slug}/${user.handle}`} text={`${user.display_name} is climbing “${c.title}” on Misogi`} />
+              )}
             </div>
           </div>
         </div>

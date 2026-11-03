@@ -23,7 +23,7 @@ export const DraftSchema = z.object({
   camps: z
     .array(
       z.object({
-        title: z.string().describe("Camp name, max 40 chars"),
+        title: z.string().describe("Camp name, max 40 chars, no numbering (not 'Camp 1: ...')"),
         detail: z.string().describe("What being here means, one short sentence"),
         target: z.number().nullable().describe("Metric value that marks this camp, or null"),
         due_on: z.string().describe("YYYY-MM-DD"),

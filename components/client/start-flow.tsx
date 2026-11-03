@@ -81,6 +81,10 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   }, []);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
+  useEffect(() => {
     if (step !== "drafting") return;
     const t = setInterval(() => setLine((l) => Math.min(l + 1, DRAFTING_LINES.length - 1)), 2600);
     return () => clearInterval(t);
@@ -165,10 +169,11 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                 <div className="label" style={{ color: pal.deep }}>
                   Your misogi
                 </div>
-                <input
+                <textarea
                   value={draft.title}
-                  onChange={(e) => setDraft({ ...draft, title: e.target.value.slice(0, 60) })}
-                  className="mt-0.5 w-full bg-transparent font-display text-[22px] leading-7 font-semibold text-ink outline-none"
+                  onChange={(e) => setDraft({ ...draft, title: e.target.value.replace(/\n/g, " ").slice(0, 60) })}
+                  rows={draft.title.length > 26 ? 2 : 1}
+                  className="mt-0.5 w-full resize-none bg-transparent font-display text-[22px] leading-7 font-semibold text-ink outline-none"
                   aria-label="Challenge title"
                 />
                 <p className="mt-0.5 text-[14px] leading-5 text-ink-2">{draft.tagline}</p>
