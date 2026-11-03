@@ -19,6 +19,11 @@ misogi.35-171-183-237.sslip.io {
 			roll_size 50MiB
 			roll_keep 5
 		}
+		# Keys in MCP URLs and one-time sign-in tokens never reach the log (Authorization is redacted by default).
+		format filter {
+			wrap json
+			request>uri regexp ^/(api/mcp/u|signin)/[^/?]+ /${1}/REDACTED
+		}
 	}
 }
 
