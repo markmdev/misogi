@@ -640,6 +640,14 @@ const CHALLENGES: ChallengeSpec[] = [
             "Helen's son marries Lí in Chengdu next October, and Helen wants to talk with Lí's parents for twenty minutes in Mandarin, and give a short toast at the wedding. Twenty-five minutes every evening after dinner: tones and phrases first, then shadowing. A lesson with Lin every Saturday morning, and a video call with Lí's mother once a month to practise for real.",
           cadence: "Every evening, 25 min. Lesson with Lin on Saturdays.",
         },
+        replan: {
+          daysAgo: 11,
+          shiftWeeks: 0,
+          reason: "The first video call with Lí's mother went better than planned. Calls go from once a month to every other Sunday, and each evening now ends with one line of the wedding toast. Same camps, same summit.",
+          summary:
+            "Helen's son marries Lí in Chengdu next October, and Helen wants to talk with Lí's parents for twenty minutes in Mandarin, and give a short toast at the wedding. Twenty-five minutes every evening after dinner, ending with one line of the toast. A lesson with Lin every Saturday morning, and a video call with Lí's mother every other Sunday.",
+          cadence: "Every evening, 25 min. Lin on Saturdays, Lí's mother every other Sunday.",
+        },
         space:
           "Make my page a wedding scrapbook in red and gold: a countdown to the wedding in Chengdu on 9 October 2027, my minutes so far toward the 150 hours, my camps as stepping stones with the ones I've reached stamped, this week's quests as a little to-do card, and my newest notes as torn-paper snippets.",
       },
