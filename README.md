@@ -48,7 +48,13 @@ All calls go through `lib/server/ai/client.ts`, which speaks the Responses API t
 | Space codegen (streamed) | `muse-wonder-1.0` | `grok-build-0.1` |
 | Challenge covers | `muse-image-1.0` | `grok-imagine-image-2.0` |
 
-**Switching to Meta when credits land:** set `AI_PROVIDER=meta` and either `GATEWAY_KEY` (Mark's gateway; `GATEWAY_JUDGES_KEY` optional) or `META_API_KEY` (direct to `api.meta.ai`) in `/etc/misogi/env`, then `sudo systemctl restart misogi`. Any model can be overridden with `AI_MODEL_<JOB>` (e.g. `AI_MODEL_CODEGEN`). The final submission must run on Meta models.
+**Switching to Meta when credits land:** set `AI_PROVIDER=meta` and either `GATEWAY_KEY` (Mark's gateway; `GATEWAY_JUDGES_KEY` optional) or `META_API_KEY` (direct to `api.meta.ai`) in `/etc/misogi/env`, then `sudo systemctl restart misogi`. Check every model job in one call before recording:
+
+```sh
+curl -s -X POST https://<host>/api/admin/ai-check -H "x-admin-key: $ADMIN_KEY" -d '{"image":true}'
+```
+
+It runs a plain reply, a structured draft, a tool call (Virgil), a streamed page build and (opt-in) an image, and reports each model, time and result. Any model can be overridden with `AI_MODEL_<JOB>` (e.g. `AI_MODEL_CODEGEN`). The final submission must run on Meta models.
 
 ## Run it
 

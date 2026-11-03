@@ -1,21 +1,12 @@
-import crypto from "node:crypto";
 import { queueCover } from "@/lib/server/covers";
 import { getUser } from "@/lib/server/domain/users";
-import { errorJson, json } from "@/lib/server/http";
+import { adminAuthorized, errorJson, json } from "@/lib/server/http";
 import { heroSpaces, seedDemo, seededChallenges } from "@/lib/server/seed";
 import { requestSpace, spaceStatus } from "@/lib/server/spaces";
 import { AppError } from "@/lib/server/util";
 
 export const dynamic = "force-dynamic";
 
-function authorized(req: Request): boolean {
-  const expected = process.env.ADMIN_KEY;
-  if (!expected) return process.env.NODE_ENV !== "production";
-  const given = req.headers.get("x-admin-key") ?? "";
-  const a = crypto.createHash("sha256").update(given).digest();
-  const b = crypto.createHash("sha256").update(expected).digest();
-  return crypto.timingSafeEqual(a, b);
-}
 
 /**
  * Seeds the demo data. Body: { force?: boolean, covers?: boolean, spaces?: boolean }.
@@ -24,7 +15,7 @@ function authorized(req: Request): boolean {
  * redesign: [{ slug, request }] asks for a new version of a demo challenge's page, built on the current one.
  */
 export async function POST(req: Request) {
-  if (!authorized(req)) return json({ error: { code: "unauthorized", message: "Missing or wrong x-admin-key." } }, { status: 401 });
+  if (!adminAuthorized(req)) return json({ error: { code: "unauthorized", message: "Missing or wrong x-admin-key." } }, { status: 401 });
   try {
     let body: { force?: unknown; covers?: unknown; spaces?: unknown; redesign?: unknown } = {};
     const text = await req.text();

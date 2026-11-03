@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { AppError } from "./util";
 
 export function json(data: unknown, init: ResponseInit = {}) {
@@ -44,4 +45,14 @@ export function rateLimit(key: string, perMinute: number, burst = perMinute) {
   b.tokens -= 1;
   map.set(key, b);
   if (map.size > 20_000) for (const [k, v] of map) if (now - v.at > 10 * 60_000) map.delete(k);
+}
+
+/** Admin routes take the ADMIN_KEY in x-admin-key (open only in development when no key is set). */
+export function adminAuthorized(req: Request): boolean {
+  const expected = process.env.ADMIN_KEY;
+  if (!expected) return process.env.NODE_ENV !== "production";
+  const given = req.headers.get("x-admin-key") ?? "";
+  const a = crypto.createHash("sha256").update(given).digest();
+  const b = crypto.createHash("sha256").update(expected).digest();
+  return crypto.timingSafeEqual(a, b);
 }
