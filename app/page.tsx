@@ -1,22 +1,14 @@
 import Link from "next/link";
 import { ActivityRow, ChallengeCard } from "@/components/challenge";
+import { StartBox } from "@/components/client/start-box";
 import { Footer, TopBar } from "@/components/nav";
-import { Icon, Mascot } from "@/components/ui";
+import { Mascot } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
 import { siteFeed } from "@/lib/server/domain/feed";
 import { SCENES } from "@/lib/shared/art";
 
 export const dynamic = "force-dynamic";
-
-const EXAMPLES = [
-  { icon: "language", text: "Hold a conversation in Mandarin" },
-  { icon: "books", text: "Read 25 books" },
-  { icon: "smarthome", text: "Build a smart home" },
-  { icon: "running", text: "Run 365 miles" },
-  { icon: "writing", text: "Write 52 essays" },
-  { icon: "music", text: "Learn 20 songs on guitar" },
-];
 
 const STEPS = [
   {
@@ -62,28 +54,11 @@ export default async function Home() {
           </div>
           <div className="relative mx-auto -mt-24 max-w-2xl px-4 sm:-mt-32">
             <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">
-              <Mascot pose="wave" size={112} className="absolute -top-[70px] left-1/2 -translate-x-1/2 animate-bob" />
               <h1 className="text-center text-[34px] leading-[40px] text-ink sm:text-[46px] sm:leading-[52px]">One hard thing this year.</h1>
               <p className="mx-auto mt-3 max-w-md text-center text-[16px] leading-6 text-ink-2 sm:text-[17px]">
                 Say it in a line. Your AI plans the year, checks in, and keeps your page up to date. Friends can climb with you.
               </p>
-              <form action="/start" className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <label htmlFor="idea" className="sr-only">
-                  What&apos;s your misogi?
-                </label>
-                <input id="idea" name="idea" required minLength={3} maxLength={200} className="input sm:flex-1" placeholder="What's your misogi this year?" autoComplete="off" />
-                <button className="btn shrink-0" type="submit">
-                  Plan my year
-                </button>
-              </form>
-              <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {EXAMPLES.map((e) => (
-                  <Link key={e.text} href={`/start?idea=${encodeURIComponent(e.text)}`} className="chip">
-                    <Icon name={e.icon} size={24} />
-                    {e.text}
-                  </Link>
-                ))}
-              </div>
+              <StartBox />
             </div>
           </div>
         </section>

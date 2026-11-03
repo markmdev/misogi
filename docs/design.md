@@ -18,7 +18,8 @@ Motion says what just happened, once, then stops.
 - Things arrive with `animate-rise` (lift and fade in) or `animate-pop` (for small round things such as a camp or a check).
 - When the drafted year appears, it builds in order: the measure, then the camps one by one up the trail, then this week's quests (`CampPath`'s `revealAt`).
 - On a live page, what an AI just changed rises in and glows once in the challenge's accent (`Fresh` in `components/client/live.tsx`). Nothing glows on first load.
-- Everything respects reduced motion (the rule at the end of `globals.css`).
+- The home page's wheel (`components/client/start-box.tsx`) is the one longer motion, and it runs only when someone taps "Spin the wheel": a short pull back, a push up to speed, a long slow-down while the pin ticks over the pegs, then the slice it stops on lifts, confetti falls once, and the pick types itself into the box. Light on the wheel stays put while it turns.
+- Everything respects reduced motion (the rule at the end of `globals.css`; the wheel checks it itself and lands at once).
 
 ## Words
 
