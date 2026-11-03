@@ -5,6 +5,7 @@ import path from "node:path";
 import type { Milestone } from "@/lib/shared/types";
 import { generateImage } from "./ai/client";
 import { dataDir, one, run } from "./db";
+import { toWebp } from "./images";
 import { id, nowIso, parseJson } from "./util";
 
 type Job = { challengeId: string; userId: string; milestoneId: string };
@@ -36,8 +37,6 @@ function pump() {
   }
 }
 
-const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
-
 async function make(job: Job) {
   const c = one<{ title: string; theme: string; category: string }>("SELECT title, theme, category FROM challenges WHERE id = ?", job.challengeId);
   const plan = one<{ id: string; milestones_json: string }>(
@@ -52,8 +51,8 @@ async function make(job: Job) {
   const img = await generateImage(prompt, "1:1", { visitor: job.userId });
   const dir = path.join(dataDir(), "media", "badges");
   fs.mkdirSync(dir, { recursive: true });
-  const file = `${job.milestoneId}-${id().slice(0, 6)}.${EXT[img.mime] ?? "png"}`;
-  fs.writeFileSync(path.join(dir, file), img.data);
+  const file = `${job.milestoneId}-${id().slice(0, 6)}.webp`;
+  fs.writeFileSync(path.join(dir, file), await toWebp(img.data, 256));
   const rel = `badges/${file}`;
   run(
     "INSERT INTO media (id, kind, challenge_id, user_id, path, mime, prompt, model, created_at) VALUES (?, 'badge', ?, ?, ?, ?, ?, ?, ?)",
@@ -61,7 +60,7 @@ async function make(job: Job) {
     job.challengeId,
     job.userId,
     rel,
-    img.mime,
+    "image/webp",
     prompt,
     img.model,
     nowIso(),

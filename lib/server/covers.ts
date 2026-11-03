@@ -6,6 +6,7 @@ import path from "node:path";
 import { generateImage } from "./ai/client";
 import { dataDir, one, run } from "./db";
 import { setCover, type ChallengeRow } from "./domain/challenges";
+import { toWebp } from "./images";
 import { AppError, id, nowIso } from "./util";
 
 const CONCURRENCY = 2;
@@ -115,8 +116,6 @@ export function coverPrompt(c: Pick<ChallengeRow, "title" | "category" | "theme"
   );
 }
 
-const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
-
 async function makeCover(challengeId: string) {
   const c = one<ChallengeRow>("SELECT * FROM challenges WHERE id = ?", challengeId);
   if (!c) return;
@@ -132,11 +131,10 @@ async function makeCover(challengeId: string) {
     }
   }
   if (!image) return;
-  const ext = EXT[image.mime] ?? "png";
-  const file = `${challengeId}-${id().slice(0, 8)}.${ext}`;
+  const file = `${challengeId}-${id().slice(0, 8)}.webp`;
   const dir = path.join(dataDir(), "media", "covers");
   await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(path.join(dir, file), image.data);
+  await fs.writeFile(path.join(dir, file), await toWebp(image.data, 1200));
   // The challenge may have been deleted while the image was drawn.
   if (!one("SELECT 1 FROM challenges WHERE id = ?", challengeId)) return;
   run(
@@ -146,7 +144,7 @@ async function makeCover(challengeId: string) {
     challengeId,
     c.creator_id,
     `covers/${file}`,
-    image.mime,
+    "image/webp",
     prompt,
     image.model,
     nowIso(),
