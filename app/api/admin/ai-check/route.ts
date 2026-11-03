@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
   const checks = await Promise.all([
     check("text", "fast", async () => {
-      const r = await respond("fast", { input: [{ role: "user", content: "Reply with the single word: ready" }], max_output_tokens: 20 }, opts);
+      const r = await respond("fast", { input: [{ role: "user", content: "Reply with the single word: ready" }], max_output_tokens: 200 }, opts);
       const out = outputText(r).trim();
       if (!out) throw new Error("Empty reply.");
       return out.slice(0, 60);
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
           input: "One hard thing: run 365 miles this year.",
           schema: z.object({ title: z.string(), unit: z.string() }),
           name: "check",
-          maxTokens: 200,
+          maxTokens: 1500,
         },
         opts,
       );
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
               ...(provider() === "meta" ? { strict: false } : {}),
             },
           ],
-          max_output_tokens: 600,
+          max_output_tokens: 2000,
         },
         opts,
       );
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     check("streaming (page builder)", "codegen", async () => {
       const r = await streamText(
         "codegen",
-        { instructions: "Return only HTML.", input: [{ role: "user", content: "A minimal HTML page that says hello." }], max_output_tokens: 400 },
+        { instructions: "Return only HTML.", input: [{ role: "user", content: "A minimal HTML page that says hello." }], max_output_tokens: 2000 },
         { ...opts, idleMs: 60_000 },
       );
       if (!/<html|<body|<p|<h1/i.test(r.text)) throw new Error(`No HTML in the reply (${r.status}).`);

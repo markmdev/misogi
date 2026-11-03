@@ -31,6 +31,20 @@ const MODELS: Record<Provider, Record<Job, string>> = {
   },
 };
 
+// Muse models always reason first, and their reasoning counts against max_output_tokens: left at
+// the model's own level, a short call can spend its whole budget thinking and return nothing.
+const META_EFFORT: Record<Exclude<Job, "image">, string> = {
+  agent: "low",
+  draft: "minimal",
+  codegen: "medium",
+  fast: "minimal",
+};
+
+function withEffort(job: Job, body: Record<string, unknown>): Record<string, unknown> {
+  if (provider() !== "meta" || job === "image") return body;
+  return { ...body, reasoning: { effort: META_EFFORT[job] } };
+}
+
 export function provider(): Provider {
   return process.env.AI_PROVIDER === "meta" ? "meta" : "xai";
 }
@@ -188,7 +202,7 @@ async function post(pathname: string, body: unknown, job: Job, opts: CallOptions
 
 export async function respond(job: Job, body: Record<string, unknown>, opts: CallOptions = {}): Promise<ResponsesResult> {
   const t = Date.now();
-  const res = await post("/responses", { model: modelFor(job), store: false, ...body }, job, opts);
+  const res = await post("/responses", { model: modelFor(job), store: false, ...withEffort(job, body) }, job, opts);
   const json = (await res.json()) as ResponsesResult;
   if (process.env.AI_DEBUG) console.log(`[ai] ${job} ${modelFor(job)} ${Date.now() - t}ms`, JSON.stringify(json.usage ?? {}));
   return json;
@@ -203,7 +217,7 @@ export async function streamText(
   body: Record<string, unknown>,
   opts: CallOptions & { idleMs?: number; onDelta?: (chars: number) => void } = {},
 ): Promise<{ text: string; status: string }> {
-  const res = await post("/responses", { model: modelFor(job), store: false, ...body, stream: true }, job, opts);
+  const res = await post("/responses", { model: modelFor(job), store: false, ...withEffort(job, body), stream: true }, job, opts);
   if (!res.body) throw new AppError("resting", "The model returned an empty stream.");
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
