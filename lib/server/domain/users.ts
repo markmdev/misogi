@@ -103,6 +103,18 @@ export function updatePreferences(
 }
 
 /** Records that the user's agent just acted, and which kind of agent it is. */
+/** Records which agent last acted. The built-in Virgil never displaces a connected outside agent (seen in the last 30 days). */
 export function touchAgent(userId: string, kind: string) {
+  if (kind === "virgil") {
+    const cutoff = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    run(
+      `UPDATE users SET agent_seen_at = ?, agent_kind = 'virgil'
+       WHERE id = ? AND (agent_kind IS NULL OR agent_kind IN ('virgil', 'web') OR agent_seen_at IS NULL OR agent_seen_at < ?)`,
+      nowIso(),
+      userId,
+      cutoff,
+    );
+    return;
+  }
   run("UPDATE users SET agent_seen_at = ?, agent_kind = ? WHERE id = ?", nowIso(), kind, userId);
 }
