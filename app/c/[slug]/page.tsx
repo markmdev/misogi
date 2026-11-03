@@ -182,22 +182,6 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
               />
             </section>
           )}
-
-          {/* Feed */}
-          {!isTemplate && (
-            <section>
-              <SectionTitle title="Latest" icon="chat" />
-              {feed.length ? (
-                <ul className="card divide-y divide-line px-4">
-                  {feed.map((a) => (
-                    <ActivityRow key={a.id} a={a} showChallenge={false} />
-                  ))}
-                </ul>
-              ) : (
-                <EmptyState pose="sleep" title="Quiet so far" body="Logs, camps and new climbers show up here." />
-              )}
-            </section>
-          )}
         </div>
 
         {/* Side column */}
@@ -206,6 +190,20 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
             <section>
               <SectionTitle title="Leaderboard" icon="crown" />
               <Leaderboard rows={top} metric={metric} slug={c.slug} highlight={viewer?.handle} accent={pal.accent} />
+            </section>
+          )}
+          {!isTemplate && (
+            <section>
+              <SectionTitle title="Latest" icon="chat" />
+              {feed.length ? (
+                <ul className="card divide-y divide-line px-4">
+                  {feed.slice(0, 10).map((a) => (
+                    <ActivityRow key={a.id} a={a} showChallenge={false} />
+                  ))}
+                </ul>
+              ) : (
+                <EmptyState pose="sleep" title="Quiet so far" body="Logs, camps and new climbers show up here." />
+              )}
             </section>
           )}
           <section>
