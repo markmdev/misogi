@@ -110,7 +110,7 @@ export default async function Home() {
             <div className="mb-4 flex items-end justify-between gap-3">
               <div>
                 <h2 className="text-[26px] leading-8 text-ink">On the mountain now</h2>
-                <p className="mt-1 text-[15px] text-ink-2">Real challenges, open to join.</p>
+                <p className="mt-1 text-[15px] text-ink-2">Open to join. The early climbers are demo profiles.</p>
               </div>
               <Link href="/explore" className="btn btn-ghost btn-sm">
                 See all
