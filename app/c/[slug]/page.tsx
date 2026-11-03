@@ -52,7 +52,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
         <div className="relative h-[230px] overflow-hidden sm:h-[300px]" style={{ background: pal.sky }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={sceneFor(c.theme, false)} alt="" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-28 sm:h-36" style={{ background: `linear-gradient(to bottom, transparent, ${pal.tint} 92%)` }} />
         </div>
         <div className="relative mx-auto -mt-20 max-w-6xl px-4 sm:-mt-24 sm:px-6">
           <div className="card flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">

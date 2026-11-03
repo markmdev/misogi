@@ -58,7 +58,7 @@ export default async function Home() {
               alt="A calm mountain at sunrise with a trail of camps leading to the summit"
               className="absolute inset-0 h-full w-full object-cover object-[50%_35%]"
             />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cream/60" />
+            <div className="absolute inset-x-0 bottom-0 h-40 sm:h-56" style={{ background: "linear-gradient(to bottom, transparent, var(--color-cream) 92%)" }} />
           </div>
           <div className="relative mx-auto -mt-24 max-w-2xl px-4 sm:-mt-32">
             <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">

@@ -52,6 +52,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
         <div className="relative h-[180px] overflow-hidden sm:h-[230px]" style={{ background: pal.sky }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={sceneFor(c.theme, false)} alt="" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
+          <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32" style={{ background: `linear-gradient(to bottom, transparent, ${pal.tint} 92%)` }} />
         </div>
         <div className="relative mx-auto -mt-16 max-w-5xl px-4 sm:px-6">
           <div className="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
