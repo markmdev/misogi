@@ -42,9 +42,9 @@ export function weeklyCard(c: ChallengeRow, user: PublicUser, f: Facts, m: Metri
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: pal.tint, fontFamily: "Nunito", position: "relative" }}>
-        <div style={{ display: "flex", position: "relative", height: 470, overflow: "hidden", borderBottomLeftRadius: 56, borderBottomRightRadius: 56 }}>
+        <div style={{ display: "flex", position: "relative", flex: 1, minHeight: 470, overflow: "hidden", borderBottomLeftRadius: 56, borderBottomRightRadius: 56, background: pal.sky }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={ogScene(c.theme)} alt="" width={1080} height={608} style={{ position: "absolute", top: -40, left: 0, width: 1080, height: 608, objectFit: "cover" }} />
+          <img src={ogScene(c.theme)} alt="" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div style={{ display: "flex", position: "absolute", top: 48, left: 56, padding: "12px 24px", borderRadius: 999, background: "rgba(255,255,255,0.92)", fontSize: 28, fontWeight: 800, color: "#2E2A26" }}>
             My week on Misogi
           </div>
@@ -57,10 +57,10 @@ export function weeklyCard(c: ChallengeRow, user: PublicUser, f: Facts, m: Metri
               </div>
               <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                 <div style={{ display: "flex", fontFamily: "Fredoka", fontSize: 44, color: "#2E2A26" }}>{firstName(user.display_name)}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 28, fontWeight: 800, color: pal.deep }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 28, lineHeight: 1.3, fontWeight: 800, color: pal.deep }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={ogIcon(c.emoji)} alt="" width={38} height={38} />
-                  {c.title.length > 38 ? `${c.title.slice(0, 37)}…` : c.title}
+                  <div style={{ display: "block", flex: 1, lineClamp: 2 }}>{c.title}</div>
                 </div>
               </div>
             </div>
@@ -88,7 +88,7 @@ export function weeklyCard(c: ChallengeRow, user: PublicUser, f: Facts, m: Metri
             <Tile icon="camp" value={`${f.milestones_done}/${f.milestones_total}`} label="camps" />
           </div>
         </div>
-        <div style={{ display: "flex", position: "absolute", left: 56, right: 56, bottom: 48, alignItems: "flex-end", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", padding: "0 56px 48px", marginTop: 20, alignItems: "flex-end", justifyContent: "space-between" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 28, fontWeight: 800, color: "#6B635B" }}>
               Day {f.day} of {f.days_total}
