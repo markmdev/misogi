@@ -378,7 +378,8 @@ export function standings(c: ChallengeRow): Standing[] {
     };
   });
   scored.sort((a, b) => b.score - a.score || b.xp - a.xp || a.joined_at.localeCompare(b.joined_at));
-  return scored.map(({ score: _score, ...s }, i) => ({ ...s, rank: i + 1 }));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return scored.map(({ score, ...s }, i) => ({ ...s, rank: i + 1 }));
 }
 
 export function summarize(c: ChallengeRow): ChallengeSummary {

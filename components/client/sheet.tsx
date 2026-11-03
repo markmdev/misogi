@@ -5,20 +5,31 @@ import { useEffect, useRef, type ReactNode } from "react";
 /** A bottom sheet on phones and a centered card on wider screens. Closes on Escape or backdrop click. */
 export function Sheet({ open, onClose, title, children, wide = false }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
   const panel = useRef<HTMLDivElement>(null);
+  // Callers pass a fresh onClose on every render; keep the latest in a ref so typing inside the sheet
+  // doesn't re-run the open/close effect (which would steal focus on each keystroke).
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRef.current();
     document.addEventListener("keydown", onKey);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    setTimeout(() => panel.current?.querySelector<HTMLElement>("input, textarea, button")?.focus(), 30);
+    const timer = setTimeout(() => {
+      const p = panel.current;
+      // Prefer the first text field; fall back to the first button (the close button) for read-only sheets.
+      (p?.querySelector<HTMLElement>("textarea, input:not([type=hidden])") ?? p?.querySelector<HTMLElement>("button"))?.focus();
+    }, 30);
     return () => {
+      clearTimeout(timer);
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = overflow;
       prev?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label={title}>

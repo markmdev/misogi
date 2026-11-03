@@ -19,7 +19,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: pal.sky, fontFamily: "Nunito" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ogScene(theme)} alt="" width={1200} height={675} style={{ position: "absolute", top: 0, left: 0, width: 1200, height: 675, objectFit: "cover" }} />
         <div
           style={{
@@ -40,7 +39,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
               <div style={{ display: "flex", width: 92, height: 92, borderRadius: 26, background: pal.tint, alignItems: "center", justifyContent: "center" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={ogIcon(c?.emoji ?? "summit")} alt="" width={70} height={70} />
               </div>
               <div style={{ display: "flex", padding: "8px 18px", borderRadius: 999, background: pal.tint, color: pal.deep, fontSize: 26, fontWeight: 800 }}>
@@ -57,13 +55,11 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               {s && s.status !== "template" ? `${s.members} climbing · join on Misogi` : "Start it on Misogi"}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "Fredoka", fontSize: 34, color: "#2E2A26" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={ogIcon("summit")} alt="" width={44} height={44} />
               misogi
             </div>
           </div>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ogMascot("flag")} alt="" width={300} height={300} style={{ position: "absolute", right: 70, bottom: 30 }} />
       </div>
     ),

@@ -39,7 +39,7 @@ function pump() {
 const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
 
 async function make(job: Job) {
-  const c = one<{ title: string; theme: string }>("SELECT title, theme FROM challenges WHERE id = ?", job.challengeId);
+  const c = one<{ title: string; theme: string; category: string }>("SELECT title, theme, category FROM challenges WHERE id = ?", job.challengeId);
   const plan = one<{ id: string; milestones_json: string }>(
     "SELECT id, milestones_json FROM plans WHERE challenge_id = ? AND user_id = ? ORDER BY version DESC LIMIT 1",
     job.challengeId,
@@ -48,7 +48,7 @@ async function make(job: Job) {
   if (!c || !plan) return;
   const m = parseJson<Milestone[]>(plan.milestones_json, []).find((x) => x.id === job.milestoneId);
   if (!m || m.badge) return;
-  const prompt = `A round collectible achievement badge, like a soft enamel pin, celebrating the milestone "${m.title}" in a year-long challenge to "${c.title}". One simple, charming symbol of that milestone in the center, a small mountain peak motif on the rim, soft 3D clay render, rounded chunky shapes, pastel ${c.theme} palette with warm cream accents, gentle studio lighting, centered on a plain soft cream background, no text, no letters, no numbers`;
+  const prompt = `A round collectible achievement badge, like a soft enamel pin, for reaching "${m.title}" in a year-long challenge: "${c.title}". In the center, one simple, charming object that shows what this person practices (${c.category}) and this milestone${m.detail ? ` (${m.detail})` : ""}; not a mountain. A tiny mountain peak only as a small detail on the rim. Soft 3D clay render, rounded chunky shapes, pastel ${c.theme} palette with warm cream accents, gentle studio lighting, centered on a plain soft cream background, no text, no letters, no numbers`;
   const img = await generateImage(prompt, "1:1", { visitor: job.userId });
   const dir = path.join(dataDir(), "media", "badges");
   fs.mkdirSync(dir, { recursive: true });

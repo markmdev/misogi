@@ -134,13 +134,13 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white py-1.5 pr-4 pl-1.5 shadow-[var(--shadow-float)] ring-1 ring-line transition hover:-translate-y-0.5"
+        className="fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white p-1.5 shadow-[var(--shadow-float)] ring-1 ring-line transition hover:-translate-y-0.5 sm:pr-4"
         aria-label="Ask Virgil"
       >
         <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-cream-2">
           <Mascot pose="idle" size={40} alt="" />
         </span>
-        <span className="font-display text-[16px] font-semibold text-ink">Ask Virgil</span>
+        <span className="hidden font-display text-[16px] font-semibold text-ink sm:inline">Ask Virgil</span>
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Virgil" wide>
         {!signedIn ? (

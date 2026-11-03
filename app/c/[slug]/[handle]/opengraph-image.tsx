@@ -24,12 +24,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", fontFamily: "Nunito", background: pal.sky }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ogScene(theme)} alt="" width={1200} height={675} style={{ position: "absolute", top: 0, left: 0, width: 1200, height: 675, objectFit: "cover" }} />
         <div style={{ position: "absolute", left: 56, top: 64, bottom: 64, width: 720, display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#FFF8EF", borderRadius: 40, padding: "44px 48px" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 28, fontWeight: 800, color: pal.deep }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={ogIcon(c?.emoji ?? "summit")} alt="" width={48} height={48} />
               {c?.title ?? "Misogi"}
             </div>
@@ -50,7 +48,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             <div style={{ display: "flex", fontFamily: "Fredoka", fontSize: 34, color: "#2E2A26" }}>misogi</div>
           )}
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={ogMascot("climb")} alt="" width={300} height={300} style={{ position: "absolute", right: 70, bottom: 30 }} />
       </div>
     ),

@@ -4,6 +4,10 @@
 
 import { describe, expect, test } from "bun:test";
 
+// Responses are loosely typed JSON; the assertions are the real checks.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Json = Record<string, any>;
+
 const BASE = process.env.BASE_URL ?? "http://localhost:3100";
 const run = Math.random().toString(36).slice(2, 8);
 
@@ -23,7 +27,7 @@ async function tool(key: string, name: string, args: unknown = {}) {
     headers: { authorization: `Bearer ${key}`, "content-type": "application/json", "x-misogi-agent": "test" },
     body: JSON.stringify(args),
   });
-  return { status: r.status, body: (await r.json()) as Record<string, any> };
+  return { status: r.status, body: (await r.json()) as Json };
 }
 
 async function mcp(key: string | null, method: string, params?: unknown, id = 1) {
@@ -36,7 +40,7 @@ async function mcp(key: string | null, method: string, params?: unknown, id = 1)
     },
     body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
   });
-  return { status: r.status, body: (await r.json()) as Record<string, any> };
+  return { status: r.status, body: (await r.json()) as Json };
 }
 
 describe("public endpoints", () => {
