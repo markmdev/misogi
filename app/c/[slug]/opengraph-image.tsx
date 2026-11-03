@@ -16,6 +16,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const theme = c?.theme ?? "teal";
   const pal = palette(theme);
   const s = c ? summarize(c) : null;
+  const title = c?.title ?? "One hard thing this year";
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: pal.sky, fontFamily: "Nunito" }}>
@@ -45,10 +46,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                 {s ? (s.status === "template" ? `${s.template_label} · ${s.template_year}` : metricLine(s.metric)) : "Misogi"}
               </div>
             </div>
-            <div style={{ display: "flex", marginTop: 28, fontFamily: "Fredoka", fontSize: c && c.title.length > 34 ? 56 : 66, lineHeight: 1.08, color: "#2E2A26" }}>
-              {c?.title ?? "One hard thing this year"}
+            <div style={{ display: "block", lineClamp: 3, marginTop: 28, fontFamily: "Fredoka", fontSize: title.length > 56 ? 46 : title.length > 34 ? 56 : 66, lineHeight: 1.08, color: "#2E2A26" }}>
+              {title}
             </div>
-            {c?.tagline ? <div style={{ display: "flex", marginTop: 16, fontSize: 28, lineHeight: 1.35, color: "#6B635B" }}>{c.tagline.slice(0, 110)}</div> : null}
+            {c?.tagline ? <div style={{ display: "block", lineClamp: title.length > 40 ? 1 : 2, marginTop: 16, fontSize: 28, lineHeight: 1.35, color: "#6B635B" }}>{c.tagline}</div> : null}
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", fontSize: 28, fontWeight: 800, color: "#6B635B" }}>
