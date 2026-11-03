@@ -1,0 +1,174 @@
+import type { CSSProperties, ReactNode } from "react";
+import { ICONS, MASCOT } from "@/lib/shared/art";
+
+export function cx(...parts: (string | false | null | undefined)[]) {
+  return parts.filter(Boolean).join(" ");
+}
+
+export function Icon({ name, size = 40, className, alt = "" }: { name: string; size?: number; className?: string; alt?: string }) {
+  const src = (ICONS as Record<string, string>)[name] ?? ICONS.summit;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} width={size} height={size} className={cx("select-none object-contain", className)} draggable={false} />;
+}
+
+export function Mascot({
+  pose = "idle",
+  size = 120,
+  className,
+  alt = "Virgil, the Misogi mountain spirit",
+  style,
+}: {
+  pose?: string;
+  size?: number;
+  className?: string;
+  alt?: string;
+  style?: CSSProperties;
+}) {
+  const src = (MASCOT as Record<string, string>)[pose] ?? MASCOT.idle;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} width={size} height={size} style={style} className={cx("select-none object-contain", className)} draggable={false} />;
+}
+
+/** Icon on a soft rounded tile, like an app's settings row. */
+export function IconTile({ name, size = 44, bg = "var(--color-cream-2)", className }: { name: string; size?: number; bg?: string; className?: string }) {
+  return (
+    <span className={cx("tile shrink-0", className)} style={{ width: size, height: size, background: bg }}>
+      <Icon name={name} size={Math.round(size * 0.72)} />
+    </span>
+  );
+}
+
+const AVATAR_COLORS: Record<string, [string, string]> = {
+  sky: ["#D3E6F9", "#2C6FB3"],
+  mint: ["#D7EFD3", "#2E8B52"],
+  peach: ["#FFD9C9", "#C2502F"],
+  lilac: ["#E2D9F6", "#674EB2"],
+  sand: ["#F6E2C3", "#9A6418"],
+  rose: ["#F9D9E3", "#B0425F"],
+};
+
+export function Avatar({ name, color, size = 40, className, ring }: { name: string; color: string; size?: number; className?: string; ring?: boolean }) {
+  const [bg, fg] = AVATAR_COLORS[color] ?? AVATAR_COLORS.sky;
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+  return (
+    <span
+      className={cx("inline-grid shrink-0 place-items-center rounded-full font-display font-semibold", ring && "ring-[3px] ring-white", className)}
+      style={{ width: size, height: size, background: bg, color: fg, fontSize: Math.round(size * 0.4) }}
+      aria-hidden
+    >
+      {initials || "?"}
+    </span>
+  );
+}
+
+export function ProgressBar({
+  value,
+  color = "var(--color-moss)",
+  height = 12,
+  track = "var(--color-line)",
+  className,
+  children,
+}: {
+  value: number;
+  color?: string;
+  height?: number;
+  track?: string;
+  className?: string;
+  children?: ReactNode;
+}) {
+  const pct = Math.max(0, Math.min(1, value)) * 100;
+  return (
+    <div className={cx("relative w-full overflow-hidden rounded-full", className)} style={{ height, background: track }} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+      <div
+        className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700 ease-out"
+        style={{ width: `${pct}%`, background: color, minWidth: pct > 0 ? height : 0, boxShadow: "inset 0 -2px 0 rgb(0 0 0 / 0.12)" }}
+      />
+      {pct > 0 && pct < 100 && (
+        <div className="absolute top-[3px] h-[3px] rounded-full bg-white/45" style={{ left: 6, width: `calc(${pct}% - 14px)` }} />
+      )}
+      {children && <div className="absolute inset-0 grid place-items-center text-[11px] font-extrabold text-ink">{children}</div>}
+    </div>
+  );
+}
+
+export function Ring({ value, size = 72, stroke = 9, color = "var(--color-moss)", track = "var(--color-line)", children }: { value: number; size?: number; stroke?: number; color?: string; track?: string; children?: ReactNode }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(1, value));
+  return (
+    <div className="relative inline-grid place-items-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90" aria-hidden>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - v)}
+          style={{ transition: "stroke-dashoffset 0.9s cubic-bezier(.2,.8,.2,1)" }}
+        />
+      </svg>
+      <div className="absolute inset-0 grid place-items-center">{children}</div>
+    </div>
+  );
+}
+
+export function Pill({ children, tone = "cream", className, style }: { children: ReactNode; tone?: "cream" | "moss" | "coral" | "gold" | "ink" | "white"; className?: string; style?: CSSProperties }) {
+  const tones = {
+    cream: "bg-cream-2 text-ink-2",
+    moss: "bg-moss-soft text-moss-deep",
+    coral: "bg-coral-soft text-coral-deep",
+    gold: "bg-gold-soft text-gold-deep",
+    ink: "bg-ink text-white",
+    white: "bg-white/90 text-ink shadow-sm",
+  } as const;
+  return (
+    <span className={cx("inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-extrabold", tones[tone], className)} style={style}>
+      {children}
+    </span>
+  );
+}
+
+export function SectionTitle({ title, action, icon, className }: { title: string; action?: ReactNode; icon?: string; className?: string }) {
+  return (
+    <div className={cx("mb-3 flex items-center justify-between gap-3", className)}>
+      <h2 className="flex items-center gap-2 text-[20px] leading-7 text-ink">
+        {icon && <Icon name={icon} size={28} />}
+        {title}
+      </h2>
+      {action}
+    </div>
+  );
+}
+
+export function Stat({ icon, value, label, tint = "var(--color-cream-2)" }: { icon: string; value: ReactNode; label: string; tint?: string }) {
+  return (
+    <div className="card flex items-center gap-3 p-3 pr-4">
+      <IconTile name={icon} size={44} bg={tint} />
+      <div className="min-w-0">
+        <div className="font-display text-[22px] leading-6 font-semibold text-ink tabular-nums">{value}</div>
+        <div className="label mt-0.5 truncate">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+export function EmptyState({ pose = "think", title, body, action }: { pose?: string; title: string; body?: string; action?: ReactNode }) {
+  return (
+    <div className="card flex flex-col items-center px-6 py-8 text-center">
+      <Mascot pose={pose} size={96} className="animate-bob" />
+      <h3 className="mt-3 text-[19px] text-ink">{title}</h3>
+      {body && <p className="mt-1 max-w-sm text-[15px] leading-6 text-ink-2">{body}</p>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}

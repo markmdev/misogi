@@ -1,1 +1,186 @@
 @import "tailwindcss";
+
+/* Misogi design tokens. Warm cream base, soft pastels, chunky rounded shapes. */
+@theme {
+  --font-display: var(--font-fredoka), ui-rounded, system-ui, sans-serif;
+  --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+
+  --color-cream: #fff8ef;
+  --color-cream-2: #fbefe0;
+  --color-paper: #ffffff;
+  --color-ink: #2e2a26;
+  --color-ink-2: #6b635b;
+  --color-ink-3: #a1978c;
+  --color-line: #efe5d8;
+  --color-line-2: #e4d7c6;
+
+  --color-coral: #ff7a59;
+  --color-coral-deep: #db5636;
+  --color-coral-soft: #ffe7df;
+  --color-moss: #4bb873;
+  --color-moss-deep: #2f8c52;
+  --color-moss-soft: #e5f5e9;
+  --color-gold: #ffc23d;
+  --color-gold-deep: #d79b12;
+  --color-gold-soft: #fff3d1;
+  --color-flame: #ff8a3d;
+  --color-sky: #4a98e6;
+  --color-sky-soft: #e7f1fc;
+  --color-lilac: #9479de;
+  --color-lilac-soft: #f1ecfb;
+  --color-teal: #2fa59a;
+  --color-teal-soft: #e4f4f1;
+
+  --radius-tile: 14px;
+  --radius-card: 22px;
+  --radius-sheet: 28px;
+
+  --shadow-card: 0 1px 0 rgb(46 42 38 / 0.04), 0 10px 30px -18px rgb(46 42 38 / 0.25);
+  --shadow-float: 0 18px 50px -20px rgb(46 42 38 / 0.35);
+
+  --animate-pop: pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-bob: bob 3.2s ease-in-out infinite;
+
+  @keyframes pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes rise {
+    0% { transform: translateY(12px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: var(--color-coral-soft);
+  }
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-coral) 55%, transparent);
+    outline-offset: 2px;
+    border-radius: 10px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Small uppercase label above values, like a form field caption. */
+  .label {
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+  .card {
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  /* Chunky button with a darker bottom edge that presses down. */
+  .btn {
+    --btn-bg: var(--color-coral);
+    --btn-edge: var(--color-coral-deep);
+    --btn-fg: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 52px;
+    padding: 0 22px;
+    border-radius: 16px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 0.005em;
+    box-shadow: 0 4px 0 var(--btn-edge);
+    transform: translateY(0);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .btn:hover { filter: brightness(1.04); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--btn-edge); }
+  .btn:disabled { filter: grayscale(0.4) opacity(0.6); cursor: not-allowed; transform: none; }
+  .btn-sm { height: 40px; padding: 0 16px; font-size: 15px; border-radius: 13px; box-shadow: 0 3px 0 var(--btn-edge); }
+  .btn-sm:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--btn-edge); }
+  .btn-moss { --btn-bg: var(--color-moss); --btn-edge: var(--color-moss-deep); }
+  .btn-ghost { --btn-bg: var(--color-paper); --btn-edge: var(--color-line-2); --btn-fg: var(--color-ink); border: 1px solid var(--color-line); }
+  .btn-ink { --btn-bg: var(--color-ink); --btn-edge: #000; }
+
+  .input {
+    width: 100%;
+    height: 56px;
+    border-radius: 16px;
+    border: 1.5px solid var(--color-line-2);
+    background: var(--color-paper);
+    padding: 0 18px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--color-ink);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input::placeholder { color: var(--color-ink-3); font-weight: 600; }
+  .input:focus { outline: none; border-color: var(--color-coral); box-shadow: 0 0 0 4px var(--color-coral-soft); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px 0 8px;
+    border-radius: 999px;
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--color-ink);
+    box-shadow: 0 2px 0 var(--color-line);
+    transition: transform 0.1s ease;
+  }
+  .chip:hover { transform: translateY(-1px); }
+  .chip:active { transform: translateY(1px); box-shadow: none; }
+
+  .tile {
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-tile);
+  }
+  .prose-misogi p { margin: 0 0 0.7em; }
+  .prose-misogi p:last-child { margin-bottom: 0; }
+  .prose-misogi ul { margin: 0.3em 0 0.7em 1.1em; list-style: disc; }
+  .prose-misogi strong { font-weight: 800; }
+}
+
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
