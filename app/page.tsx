@@ -116,7 +116,7 @@ export default async function Home() {
                 See all
               </Link>
             </div>
-            <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
               <div className="grid gap-4 sm:grid-cols-2">
                 {live.map((c) => (
                   <ChallengeCard key={c.slug} c={c} />

@@ -72,10 +72,10 @@ export function ActivityRow({ a, showChallenge = true }: { a: ActivityItem; show
             <span className="font-extrabold">{a.user ? firstName(a.user.display_name) : "Someone"}</span> {activityText(a)}
           </p>
           {note && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">“{note}”</p>}
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[12px] font-bold text-ink-3">
-            <span>{timeAgo(a.created_at)}</span>
+          <div className="mt-1.5 flex items-center gap-2 text-[12px] font-bold text-ink-3">
+            <span className="shrink-0">{timeAgo(a.created_at)}</span>
             {showChallenge && (
-              <Link href={`/c/${a.challenge.slug}`} className="rounded-full px-2 py-0.5 font-extrabold" style={{ background: pal.tint, color: pal.deep }}>
+              <Link href={`/c/${a.challenge.slug}`} title={a.challenge.title} className="min-w-0 truncate rounded-full px-2 py-0.5 font-extrabold" style={{ background: pal.tint, color: pal.deep }}>
                 {a.challenge.title}
               </Link>
             )}
