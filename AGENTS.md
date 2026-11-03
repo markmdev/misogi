@@ -16,3 +16,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Database work runs inside the Next server.** better-sqlite3 doesn't load under Bun, so scripts are HTTP calls to admin routes in `app/api/admin/`, and `bun test` only talks HTTP.
 - **One tool registry** (`lib/server/tools.ts`) drives the HTTP API, MCP and Virgil. Change agent abilities there so all three stay the same.
 - **Ship only merged `main`** with `scripts/deploy.sh`.
+- **Everything reaches `main` by pull request.** Nobody force-pushes `main`.
