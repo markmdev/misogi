@@ -85,3 +85,15 @@ export function pulse(c: Pick<ChallengeRow, "id" | "updated_at">): string {
   const ch = one<{ n: number }>("SELECT COUNT(*) n FROM cheers ch JOIN logs l ON l.id = ch.log_id WHERE l.challenge_id = ?", c.id);
   return [c.updated_at, a?.t, a?.n, s?.t, sp?.t, l?.n, q?.t, ch?.n].join("|");
 }
+
+/** The climber's page the home page shows as proof of what Muse builds: Helen's wedding scrapbook. */
+const SHOWCASE = { slug: "mandarin-conversation", handle: "helennovak" };
+
+export function showcaseView() {
+  const c = findChallenge(SHOWCASE.slug);
+  const user = getUserByHandle(SHOWCASE.handle);
+  if (!c || !user) return null;
+  const page = spaceStatus(c.id, ownerKeyFor("me", user.id)).current;
+  if (!page) return null;
+  return { href: `/c/${c.slug}/${user.handle}`, name: user.display_name, page };
+}

@@ -44,6 +44,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   const [idea, setIdea] = useState(initialIdea);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [draftedBy, setDraftedBy] = useState<string | null>(null);
+  const [draftSeconds, setDraftSeconds] = useState(0);
   const [pairs, setPairs] = useState<Pair[] | null>(null);
   const [choices, setChoices] = useState<("gentle" | "firm")[]>([]);
   const [name, setName] = useState(signedInName ?? "");
@@ -59,11 +60,13 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
     setLine(0);
     setPairs(null);
     try {
+      const began = performance.now();
       const r = await fetch("/api/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idea: text, timezone: tz() }) });
       const d = (await r.json()) as { draft?: Draft; drafted_by?: string | null; error?: { message: string } };
       if (!r.ok || !d.draft) throw new Error(d.error?.message ?? "Couldn't draft that. Try again.");
       setDraft(d.draft);
       setDraftedBy(d.drafted_by ?? null);
+      setDraftSeconds(Math.max(1, Math.round((performance.now() - began) / 1000)));
       setStep("draft");
       // Fetch the style examples in the background while they read the draft.
       void fetch("/api/style-pairs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: d.draft.title }) })
@@ -200,13 +203,13 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
         </section>
       )}
 
-      {step === "draft" && draft && <DraftYear draft={draft} draftedBy={draftedBy} setDraft={setDraft} onRetry={() => void runDraft(idea)} onAccept={() => setStep("style")} />}
+      {step === "draft" && draft && <DraftYear draft={draft} draftedBy={draftedBy} seconds={draftSeconds} setDraft={setDraft} onRetry={() => void runDraft(idea)} onAccept={() => setStep("style")} />}
 
       {step === "style" && (
         <section className="animate-rise">
           <div className="text-center">
             <h2 className="text-[26px] leading-8 text-ink">How should your guide talk to you?</h2>
-            <p className="mt-2 text-[15px] text-ink-2">Pick the message you&apos;d rather get.</p>
+            <p className="mt-2 text-[15px] text-ink-2">Pick one in each, the message you&apos;d rather get.</p>
           </div>
           {!pairs ? (
             <div className="mt-10 flex justify-center">
@@ -313,12 +316,14 @@ const CLIMB_CELL = "lg:col-start-2 lg:row-span-4 lg:row-start-1";
 function DraftYear({
   draft,
   draftedBy,
+  seconds,
   setDraft,
   onRetry,
   onAccept,
 }: {
   draft: Draft;
   draftedBy: string | null;
+  seconds: number;
   setDraft: (d: Draft) => void;
   onRetry: () => void;
   onAccept: () => void;
@@ -337,6 +342,10 @@ function DraftYear({
   return (
     <section className={YEAR_GRID}>
       <div className="card animate-rise overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-line bg-white px-5 py-2.5 text-[14px] font-extrabold text-ink-2">
+          <Icon name="sparkles" size={22} />
+          {draftedBy ?? "Your AI"} drafted this in {seconds} second{seconds === 1 ? "" : "s"}
+        </div>
         <div className="flex items-center gap-4 p-5" style={{ background: pal.tint }}>
           <IconTile name={draft.icon} size={64} bg="#fff" className="animate-pop" />
           <div className="min-w-0 flex-1">
@@ -401,14 +410,7 @@ function DraftYear({
 
       <div className="animate-rise" style={after(at.quests + 80 + draft.first_quests.length * 110 + 60)}>
         <p className="text-[14px] leading-6 text-ink-2">
-          {draftedBy ? (
-            <>
-              Drafted by <b className="text-ink">{draftedBy}</b>.
-            </>
-          ) : (
-            "This is a first draft."
-          )}{" "}
-          Your AI tunes it to your life after a short chat.
+          This is a first draft. Your guide tunes it to your life after a short chat.
         </p>
         <div className="mt-4 flex gap-3">
           <button className="btn btn-ghost flex-1" onClick={onRetry}>

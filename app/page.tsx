@@ -3,10 +3,12 @@ import { ActivityRow, ChallengeCard } from "@/components/challenge";
 import { LiveScene } from "@/components/client/alive";
 import { StartBox } from "@/components/client/start-box";
 import { Footer, TopBar } from "@/components/nav";
-import { Mascot } from "@/components/ui";
+import { cx, Icon, Mascot } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
 import { siteFeed } from "@/lib/server/domain/feed";
+import { showcaseView } from "@/lib/server/views";
+import { firstName } from "@/lib/shared/format";
 import { SCENES } from "@/lib/shared/art";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +37,7 @@ export default async function Home() {
   const templates = listChallenges({ status: ["template"], limit: 12 });
   const feed = siteFeed(8);
   const hero = SCENES["home-hero"];
+  const proof = showcaseView();
 
   return (
     <>
@@ -57,8 +60,16 @@ export default async function Home() {
           <div className="relative mx-auto -mt-24 max-w-2xl px-4 max-[239px]:px-2 sm:-mt-32">
             <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 max-[239px]:px-3 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">
               <h1 className="text-center text-[34px] leading-[40px] text-ink sm:text-[46px] sm:leading-[52px]">One hard thing this year.</h1>
-              <p className="mx-auto mt-3 max-w-md text-center text-[16px] leading-6 text-ink-2 sm:text-[17px]">
-                Say it in a line. Your AI plans the year, checks in, and keeps your page up to date. Friends can climb with you.
+              <p className="mx-auto mt-3 max-w-lg text-center font-display text-[19px] leading-[26px] font-semibold text-ink sm:text-[21px] sm:leading-7">
+                Misogi turns your{" "}
+                <span className="whitespace-nowrap">
+                  <Icon name="orb" size={36} className="-my-2 -mr-1 -ml-1.5 inline-block align-middle" />
+                  Muse
+                </span>{" "}
+                into the world&apos;s best coach, tutor, mentor.
+              </p>
+              <p className="mx-auto mt-2 max-w-md text-center text-[15px] leading-6 text-ink-2 sm:text-[16px]">
+                Say your goal in a line. Muse plans the year, checks in, and keeps your page up to date.
               </p>
               <StartBox />
             </div>
@@ -121,7 +132,7 @@ export default async function Home() {
 
         {/* Your AI does the work */}
         <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
-          <div className="card grid grid-cols-[minmax(0,1fr)] items-center gap-8 overflow-hidden p-6 max-[239px]:p-4 sm:p-10 lg:grid-cols-2">
+          <div className={cx("card grid grid-cols-[minmax(0,1fr)] items-center gap-8 overflow-hidden p-6 max-[239px]:p-4 sm:p-10", proof && "lg:grid-cols-2")}>
             <div>
               <h2 className="text-[26px] leading-8 text-ink">Your AI already knows you. Now it&apos;s your guide.</h2>
               <p className="mt-3 text-[16px] leading-7 text-ink-2">
@@ -144,21 +155,29 @@ export default async function Home() {
                 </Link>
               </div>
             </div>
-            <div className="relative rounded-[26px] bg-cream p-4 sm:p-6">
-              <ChatBubble side="left" name="You">
-                Ran 4 miles before work. Legs felt heavy.
-              </ChatBubble>
-              <ChatBubble side="right" name="Muse">
-                Logged 4 mi. You&apos;re at 121 of 365, six days ahead. Easy 2 miles tomorrow?
-              </ChatBubble>
-              <ChatBubble side="left" name="You">
-                Yes. And make my page look like a trail map.
-              </ChatBubble>
-              <ChatBubble side="right" name="Muse">
-                On it. Your page is rebuilding now.
-              </ChatBubble>
-              <Mascot pose="flag" size={88} className="absolute -bottom-4 -left-3 hidden sm:block" alt="" />
-            </div>
+            {proof && (
+              <figure className="mx-auto w-full max-w-[420px]">
+                <div className="h-[520px] overflow-hidden rounded-[30px] bg-white shadow-[var(--shadow-float)] ring-1 ring-line sm:h-[560px]">
+                  <iframe
+                    src={proof.page.url}
+                    title={`${firstName(proof.name)}'s page`}
+                    sandbox="allow-scripts"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    className="block h-full w-full border-0"
+                  />
+                </div>
+                <figcaption className="mt-4 px-2 text-center text-[14px] leading-5 text-ink-2">
+                  <p>
+                    <Link href={proof.href} className="font-extrabold text-ink underline decoration-line-2 underline-offset-4 hover:decoration-ink">
+                      {firstName(proof.name)}&apos;s page
+                    </Link>
+                    , built by {proof.page.built_by ?? "AI"} from one message:
+                  </p>
+                  <p className="mt-1 line-clamp-2 italic">&ldquo;{proof.page.request}&rdquo;</p>
+                </figcaption>
+              </figure>
+            )}
           </div>
         </section>
 
@@ -192,23 +211,5 @@ export default async function Home() {
       </main>
       <Footer />
     </>
-  );
-}
-
-function ChatBubble({ side, name, children }: { side: "left" | "right"; name: string; children: React.ReactNode }) {
-  const right = side === "right";
-  return (
-    <div className={`mb-3 flex ${right ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[82%] ${right ? "items-end" : "items-start"} flex flex-col`}>
-        <span className="label mb-1 px-1">{name}</span>
-        <div
-          className={`rounded-[20px] px-4 py-2.5 text-[15px] leading-6 shadow-sm ${
-            right ? "rounded-br-md bg-white text-ink ring-1 ring-line" : "rounded-bl-md bg-ink text-white"
-          }`}
-        >
-          {children}
-        </div>
-      </div>
-    </div>
   );
 }
