@@ -59,6 +59,7 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [tucked, setTucked] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   const t = challenge ? `c:${challenge}` : thread;
@@ -70,6 +71,19 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight + 2, 128)}px`;
   }, [input, open]);
+
+  // On phones it covers the right edge of the page, so it steps aside while they read down.
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 8) return;
+      setTucked(y > last && y > 120);
+      last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!open || loaded || !signedIn) return;
@@ -143,7 +157,10 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white p-1.5 shadow-[var(--shadow-float)] ring-1 ring-line transition hover:-translate-y-0.5 sm:pr-4"
+        className={cx(
+          "fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white p-1.5 shadow-[var(--shadow-float)] ring-1 ring-line transition duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] sm:pr-4",
+          tucked ? "pointer-events-none translate-y-24 opacity-0" : "hover:-translate-y-0.5",
+        )}
         aria-label="Ask Virgil"
       >
         <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-cream-2">
