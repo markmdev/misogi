@@ -38,7 +38,7 @@ export function TopBar({ user, transparent = false }: { user: Pick<UserRow, "dis
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-line/80">
+    <footer className="sticky top-[100vh] mt-20 border-t border-line/80">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-[14px] text-ink-2 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex items-center gap-2">
           <Icon name="summit" size={24} />
