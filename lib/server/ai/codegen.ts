@@ -51,6 +51,7 @@ Hard rules:
   viewBox and width: 100%, or CSS bars sized in %, never a fixed pixel width; long words and names wrap or truncate.
 - It's embedded below Misogi's own header (title, join button, leaderboard already shown). Don't add site navigation or repeat the title as a giant banner; lead with the content that's special to this person.
 - Under 60 KB. Respect prefers-reduced-motion.
+- Under 3,000 px tall at 390 px wide; the frame cuts a page off at 6,000 and grows to fit the page, so size nothing with vh. Summarize long collections (what's done, then a count of what's left) instead of drawing a tile for every unit of the target.
 
 Design (unless the request asks for a different feel):
 - Warm, soft and playful, like a well-made mobile app: rounded cards (radius 18–24px), generous spacing on a 4px grid,

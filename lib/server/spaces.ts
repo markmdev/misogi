@@ -264,8 +264,11 @@ async function build(versionId: string, userId: string) {
   }
 }
 
-/** Called when a rendered space reports a runtime error in the browser. */
-export function reportRenderError(versionId: string, message: string) {
+/**
+ * Called when a rendered space reports a runtime error in the browser. A page that `stillShows`
+ * (too tall, say) stays up while it's repaired when there's no earlier version to fall back to.
+ */
+export function reportRenderError(versionId: string, message: string, stillShows = false) {
   const v = getVersion(versionId);
   if (!v || v.status !== "ok") return;
   // Only the newest version can be failed by a report, and only within its first hour,
@@ -281,12 +284,19 @@ export function reportRenderError(versionId: string, message: string) {
   );
   const error = message.slice(0, 300);
   const repairId = tx(() => {
-    run("UPDATE space_versions SET status = 'failed', error = ? WHERE id = ?", `It broke in the browser: ${error}`, v.id);
-    if (prev) run("UPDATE spaces SET current_version_id = ? WHERE challenge_id = ? AND owner_key = ?", prev.id, v.challenge_id, v.owner_key);
-    else run("DELETE FROM spaces WHERE challenge_id = ? AND owner_key = ?", v.challenge_id, v.owner_key);
+    if (prev || !stillShows) {
+      run("UPDATE space_versions SET status = 'failed', error = ? WHERE id = ?", `It broke in the browser: ${error}`, v.id);
+      if (prev) run("UPDATE spaces SET current_version_id = ? WHERE challenge_id = ? AND owner_key = ?", prev.id, v.challenge_id, v.owner_key);
+      else run("DELETE FROM spaces WHERE challenge_id = ? AND owner_key = ?", v.challenge_id, v.owner_key);
+    }
     // Heal once: rebuild the same request with the error fed back to the model.
     if (v.author === "repair" || !v.html) return null;
-    const pending = one("SELECT 1 FROM space_versions WHERE challenge_id = ? AND owner_key = ? AND status IN ('queued','building')", v.challenge_id, v.owner_key);
+    const pending = one(
+      "SELECT 1 FROM space_versions WHERE challenge_id = ? AND owner_key = ? AND (status IN ('queued','building') OR (author = 'repair' AND version > ?))",
+      v.challenge_id,
+      v.owner_key,
+      v.version,
+    );
     if (pending) return null;
     const next = (one<{ n: number | null }>("SELECT MAX(version) n FROM space_versions WHERE challenge_id = ? AND owner_key = ?", v.challenge_id, v.owner_key)!.n ?? 0) + 1;
     const rid = id("spc");

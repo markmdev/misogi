@@ -17,14 +17,14 @@ export function SpaceFrame({ space, title, reloadKey, empty }: { space: SpaceSta
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (!frame.current || e.source !== frame.current.contentWindow) return;
-      const d = e.data as { source?: string; type?: string; height?: number; message?: string; id?: string };
+      const d = e.data as { source?: string; type?: string; height?: number; message?: string; shows?: boolean; id?: string };
       if (d?.source !== "misogi-space") return;
       if (d.type === "height" && typeof d.height === "number") setHeight(Math.min(Math.max(d.height, 240), 6000));
       if (d.type === "error" && current && d.id === current.id) {
         void fetch(`/api/spaces/${current.id}/error`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: d.message }),
+          body: JSON.stringify({ message: d.message, shows: d.shows === true }),
         });
       }
     }
