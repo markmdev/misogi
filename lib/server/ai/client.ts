@@ -330,7 +330,8 @@ export async function structured<T>(
 
 export type Aspect = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 
-const META_SIZES: Record<Aspect, string> = { "1:1": "1024x1024", "16:9": "1792x1024", "9:16": "1024x1792", "4:3": "1536x1152", "3:4": "1152x1536" };
+// Muse Image's image_generation tool takes only these three shapes; anything else is a 400.
+const META_SIZES: Record<Aspect, string> = { "1:1": "1024x1024", "16:9": "1536x1024", "9:16": "1024x1536", "4:3": "1536x1024", "3:4": "1024x1536" };
 
 function sniffMime(data: Buffer): string {
   if (data[0] === 0x89) return "image/png";

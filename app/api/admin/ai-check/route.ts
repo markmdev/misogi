@@ -91,7 +91,7 @@ export async function POST(req: Request) {
     ...(body.image === true
       ? [
           check("image", "image", async () => {
-            const img = await generateImage("A small clay mountain icon on a cream background, no text", "1:1", opts);
+            const img = await generateImage("A small clay mountain icon on a cream background, no text", "4:3", opts);
             return `${img.mime}, ${Math.round(img.data.length / 1024)} KB`;
           }),
         ]
