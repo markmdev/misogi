@@ -220,14 +220,28 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        {l.value != null && <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>}
+                        {l.value != null ? (
+                          <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>
+                        ) : (
+                          (metric.aggregation === "sum" || metric.aggregation === "latest") &&
+                          !l.quest_title && <Pill className="!h-6 !text-[12px]">Practice</Pill>
+                        )}
                         {l.label && <span className="text-[15px] font-extrabold text-ink">{l.label}</span>}
                         {l.quest_title && <Pill tone="moss" className="!h-6 !text-[12px]">✓ {l.quest_title}</Pill>}
                         <span className="text-[12px] font-extrabold text-gold-deep">+{l.xp} XP</span>
                       </div>
                       {l.note && <p className="mt-1 text-[15px] leading-6 text-ink-2">{l.note}</p>}
                       <div className="mt-2 flex items-center gap-2">
-                        <CheerButton logId={l.id} count={l.cheers ?? 0} disabled={!viewer || isOwner || !v.viewerIsMember} />
+                        {isOwner ? (
+                          (l.cheers ?? 0) > 0 && (
+                            <span className="inline-flex h-8 items-center gap-1 rounded-full bg-coral-soft px-2.5 text-[13px] font-extrabold text-coral-deep">
+                              <Icon name="cheer" size={18} />
+                              {l.cheers}
+                            </span>
+                          )
+                        ) : (
+                          <CheerButton logId={l.id} count={l.cheers ?? 0} disabled={!viewer || !v.viewerIsMember} />
+                        )}
                         <span className="text-[12px] font-bold text-ink-3">via {sourceLabel(l.source, user.agent_name)}</span>
                       </div>
                     </div>
