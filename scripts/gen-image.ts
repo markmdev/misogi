@@ -14,7 +14,7 @@ const r = await fetch("https://api.x.ai/v1/images/generations", {
   headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
   body: JSON.stringify({ model, prompt, n: 1, aspect_ratio: aspect, response_format: "b64_json" }),
 });
-const j: any = await r.json();
+const j = (await r.json()) as { data: { b64_json: string }[] };
 if (!r.ok) { console.error(r.status, JSON.stringify(j).slice(0, 400)); process.exit(1); }
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, Buffer.from(j.data[0].b64_json, "base64"));

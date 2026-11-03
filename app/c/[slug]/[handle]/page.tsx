@@ -1,0 +1,301 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { CampPath, sceneFor } from "@/components/challenge";
+import { CheerButton, LogButton, QuestList, ShareButton } from "@/components/client/actions";
+import { ConnectPanel } from "@/components/client/connect";
+import { LivePulse } from "@/components/client/live";
+import { SpaceFrame } from "@/components/client/space-frame";
+import { Virgil } from "@/components/client/virgil";
+import { Footer, TopBar } from "@/components/nav";
+import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, SectionTitle, Stat } from "@/components/ui";
+import { currentUser, publicOrigin } from "@/lib/server/auth";
+import { findChallenge } from "@/lib/server/domain/challenges";
+import { getUserByHandle } from "@/lib/server/domain/users";
+import { memberView, pulse } from "@/lib/server/views";
+import { agentLabel, firstName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { palette } from "@/lib/shared/theme";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(props: PageProps<"/c/[slug]/[handle]">): Promise<Metadata> {
+  const { slug, handle } = await props.params;
+  const c = findChallenge(slug);
+  const u = getUserByHandle(handle);
+  if (!c || !u) return { title: "Not found" };
+  return { title: `${u.display_name} · ${c.title}`, description: `${u.display_name} is climbing “${c.title}” on Misogi.` };
+}
+
+export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">) {
+  const { slug, handle } = await props.params;
+  const sp = await props.searchParams;
+  const viewer = await currentUser();
+  const v = memberView(slug, handle, viewer);
+  if (!v) notFound();
+  const { c, user, facts, plan, quests, logs, space, metric, isOwner, membership, plans } = v;
+  const pal = palette(c.theme);
+  const stamp = pulse(c);
+  const name = firstName(user.display_name);
+  const guide = agentLabel(user.agent_kind, user.agent_name);
+  const welcome = isOwner && sp.welcome === "1";
+  const origin = await publicOrigin();
+  const completed = membership.status === "completed";
+
+  return (
+    <div style={{ background: pal.tint }} className="min-h-dvh">
+      <TopBar user={viewer} />
+      <LivePulse slug={c.slug} />
+
+      <section className="relative">
+        <div className="relative h-[180px] overflow-hidden sm:h-[230px]" style={{ background: pal.sky }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={sceneFor(c.theme, false)} alt="" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
+        </div>
+        <div className="relative mx-auto -mt-16 max-w-5xl px-4 sm:px-6">
+          <div className="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex min-w-0 items-center gap-4">
+              <Avatar name={user.display_name} color={user.avatar} size={68} ring />
+              <div className="min-w-0">
+                <Link href={`/c/${c.slug}`} className="inline-flex items-center gap-1.5 text-[14px] font-extrabold hover:underline" style={{ color: pal.deep }}>
+                  <Icon name={c.emoji} size={20} />
+                  {c.title}
+                </Link>
+                <h1 className="mt-0.5 text-[26px] leading-8 text-ink sm:text-[30px] sm:leading-9">{isOwner ? "Your climb" : `${name}'s climb`}</h1>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] font-bold text-ink-2">
+                  <span>
+                    Day {facts.day} of {facts.days_total}
+                  </span>
+                  {guide && (
+                    <Pill tone="white" className="!h-6 !text-[12px]">
+                      <Icon name={user.agent_kind === "virgil" ? "camp" : "orb"} size={16} />
+                      Guided by {guide}
+                      {user.agent_seen_at && <span className="font-bold text-ink-3">· {timeAgo(user.agent_seen_at)}</span>}
+                    </Pill>
+                  )}
+                  {completed && <Pill tone="gold">Summit reached</Pill>}
+                </div>
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {isOwner && !completed && <LogButton slug={c.slug} metric={metric} quests={quests} today={facts.today} />}
+              <ShareButton url={`/c/${c.slug}/${user.handle}`} text={`${user.display_name} is climbing “${c.title}” on Misogi`} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="mx-auto mt-6 flex max-w-5xl flex-col gap-8 px-4 sm:px-6">
+        {welcome && (
+          <section className="card overflow-hidden p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <Mascot pose="cheer" size={86} alt="" />
+              <div>
+                <h2 className="text-[22px] leading-7 text-ink">You&apos;re on the mountain.</h2>
+                <p className="mt-1 text-[15px] leading-6 text-ink-2">
+                  Connect your AI so it can plan with you and keep this page up to date. Or tap <b>Ask Virgil</b> to start right here.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5">
+              <ConnectPanel
+                origin={origin}
+                slug={c.slug}
+                title={c.title}
+                initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Stats */}
+        <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat icon="streak" value={facts.streak} label={facts.streak === 1 ? "day streak" : "day streak"} tint="#FFEBDD" />
+          <Stat icon="xp" value={facts.xp} label={`XP · level ${facts.level}`} tint="var(--color-gold-soft)" />
+          <Stat
+            icon={c.emoji}
+            value={withUnit(facts.total, metric.unit)}
+            label={facts.target != null ? `of ${withUnit(facts.target, metric.unit)}` : metric.name}
+            tint={pal.tint}
+          />
+          <Stat
+            icon={facts.pace != null && facts.pace >= 1 ? "rocket" : "hourglass"}
+            value={facts.pace != null ? `${facts.pace >= 1 ? "Ahead" : "Behind"}` : `${facts.days_remaining}d`}
+            label={facts.pace != null ? `pace ${Math.round(facts.pace * 100)}%` : "left this year"}
+            tint="var(--color-sky-soft)"
+          />
+        </section>
+
+        {facts.progress != null && (
+          <section className="card p-5">
+            <div className="mb-2 flex items-center justify-between text-[13px] font-extrabold text-ink-2">
+              <span>{Math.round(facts.progress * 100)}% to the summit</span>
+              {facts.expected_by_now != null && facts.day >= 7 && <span className="text-ink-3">Plan says {withUnit(facts.expected_by_now, metric.unit)} by today</span>}
+            </div>
+            <div className="relative">
+              <ProgressBar value={facts.progress} color={pal.accent} height={18} />
+              {facts.expected_by_now != null && facts.target && facts.day >= 7 ? (
+                <span
+                  className="absolute -top-1 h-[26px] w-[3px] rounded-full bg-ink/70"
+                  style={{ left: `${Math.min(100, (facts.expected_by_now / facts.target) * 100)}%` }}
+                  title="Where the plan says you'd be today"
+                />
+              ) : null}
+            </div>
+          </section>
+        )}
+
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          {/* Quests */}
+          <section>
+            <SectionTitle title="This week" icon="quest" action={<span className="text-[13px] font-bold text-ink-3">{quests.filter((q) => q.status === "open").length} open</span>} />
+            {quests.length ? (
+              <QuestList slug={c.slug} quests={quests} metric={metric} owner={isOwner && !completed} today={facts.today} accent={pal.accent} />
+            ) : (
+              <EmptyState pose="read" title="No quests yet" body={isOwner ? "Ask your AI or Virgil for this week's quests." : `${name}'s AI hasn't set quests yet.`} />
+            )}
+          </section>
+
+          {/* Camps */}
+          <section>
+            <SectionTitle
+              title="Camps"
+              icon="camp"
+              action={<span className="text-[13px] font-bold text-ink-3">{facts.milestones_done}/{facts.milestones_total} reached</span>}
+            />
+            {plan && plan.milestones.length ? (
+              <div className="card px-3 py-5">
+                <CampPath milestones={plan.milestones} accent={pal.accent} deep={pal.deep} tint={pal.tint} total={facts.total} unit={metric.unit} />
+              </div>
+            ) : (
+              <EmptyState pose="think" title="No plan yet" body={isOwner ? "Your AI writes the plan after a short chat." : `${name} hasn't made a plan yet.`} />
+            )}
+          </section>
+        </div>
+
+        {/* Personal space */}
+        <section>
+          <SectionTitle
+            title={isOwner ? "Your space" : `${name}'s space`}
+            icon="paintbrush"
+            action={space.current ? <span className="text-[13px] font-bold text-ink-3">v{space.current.version} · built by AI</span> : null}
+          />
+          <SpaceFrame
+            space={space}
+            title={`${user.display_name}'s space for ${c.title}`}
+            reloadKey={stamp}
+            empty={
+              <EmptyState
+                pose="flag"
+                title={isOwner ? "Your space is empty" : "Nothing here yet"}
+                body={
+                  isOwner
+                    ? "Tell your AI what this page should be. Try: “A cozy study notebook with this week's words and my streak.”"
+                    : `${name}'s AI hasn't built a space yet.`
+                }
+              />
+            }
+          />
+        </section>
+
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+          {/* Log */}
+          <section>
+            <SectionTitle title="Log" icon="writing" />
+            {logs.length ? (
+              <ul className="card divide-y divide-line px-4">
+                {logs.slice(0, 30).map((l) => (
+                  <li key={l.id} className="flex gap-3 py-3.5">
+                    <div className="w-12 shrink-0 pt-0.5 text-center">
+                      <div className="font-display text-[13px] font-semibold text-ink-3 uppercase">{shortDate(l.logged_for).split(" ")[0]}</div>
+                      <div className="font-display text-[20px] leading-6 font-semibold text-ink">{shortDate(l.logged_for).split(" ")[1]}</div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {l.value != null && <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>}
+                        {l.label && <span className="text-[15px] font-extrabold text-ink">{l.label}</span>}
+                        {l.quest_title && <Pill tone="moss" className="!h-6 !text-[12px]">✓ {l.quest_title}</Pill>}
+                        <span className="text-[12px] font-extrabold text-gold-deep">+{l.xp} XP</span>
+                      </div>
+                      {l.note && <p className="mt-1 text-[15px] leading-6 text-ink-2">{l.note}</p>}
+                      <div className="mt-2 flex items-center gap-2">
+                        <CheerButton logId={l.id} count={l.cheers ?? 0} disabled={!viewer || isOwner || !v.viewerIsMember} />
+                        <span className="text-[12px] font-bold text-ink-3">via {sourceLabel(l.source, user.agent_name)}</span>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState pose="sleep" title="No logs yet" body={isOwner ? "Log your first session, or tell your AI about it." : `${name} hasn't logged anything yet.`} />
+            )}
+          </section>
+
+          {/* Plan */}
+          <aside className="flex flex-col gap-6">
+            {plan && (
+              <section>
+                <SectionTitle title="The plan" icon="map" />
+                <div className="card p-5">
+                  <p className="text-[15px] leading-7 whitespace-pre-line text-ink">{plan.summary_md}</p>
+                  {plan.cadence && (
+                    <div className="mt-4 flex items-center gap-3 rounded-2xl bg-cream px-3 py-2.5">
+                      <IconTile name="calendar" size={36} bg="#fff" />
+                      <div className="text-[14px] leading-5 font-bold text-ink-2">{plan.cadence}</div>
+                    </div>
+                  )}
+                  {plans.length > 1 && (
+                    <div className="mt-4 border-t border-line pt-4">
+                      <div className="label mb-2">Versions</div>
+                      <ol className="flex flex-col gap-2">
+                        {plans.map((p) => (
+                          <li key={p.version} className="flex items-start gap-2 text-[13px] leading-5">
+                            <span className="rounded-md bg-cream-2 px-1.5 font-extrabold text-ink-2">v{p.version}</span>
+                            <span className="text-ink-2">{p.reason || "Updated"}</span>
+                            <span className="ml-auto shrink-0 font-bold text-ink-3">{timeAgo(p.created_at)}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+            {isOwner && !welcome && (
+              <section>
+                <SectionTitle title="Your AI" icon="orb" />
+                <div className="card p-4">
+                  <ConnectPanel
+                    origin={origin}
+                    slug={c.slug}
+                    title={c.title}
+                    initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
+                  />
+                </div>
+              </section>
+            )}
+          </aside>
+        </div>
+      </main>
+      <Footer />
+      {isOwner && <Virgil signedIn challenge={c.slug} />}
+      {!isOwner && <Virgil signedIn={!!viewer} />}
+    </div>
+  );
+}
+
+function sourceLabel(source: string, agentName: string | null) {
+  switch (source) {
+    case "muse":
+      return agentName ? `${agentName} (Muse)` : "Muse";
+    case "mcp":
+      return agentName ?? "MCP agent";
+    case "agent":
+      return agentName ?? "AI agent";
+    case "virgil":
+      return "Virgil";
+    case "web":
+      return "web";
+    default:
+      return source;
+  }
+}

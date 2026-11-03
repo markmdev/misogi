@@ -1,6 +1,6 @@
 import { currentUser } from "@/lib/server/auth";
-import { runVirgil, type VirgilEvent } from "@/lib/server/ai/virgil";
-import { errorJson, originOf, rateLimit } from "@/lib/server/http";
+import { runVirgil, threadHistory, type VirgilEvent } from "@/lib/server/ai/virgil";
+import { errorJson, json, originOf, rateLimit } from "@/lib/server/http";
 import { AppError } from "@/lib/server/util";
 
 export const dynamic = "force-dynamic";
@@ -34,4 +34,12 @@ export async function POST(req: Request) {
   } catch (e) {
     return errorJson(e);
   }
+}
+
+/** Past messages in a thread, for when the drawer opens. */
+export async function GET(req: Request) {
+  const user = await currentUser();
+  if (!user) return json({ messages: [] });
+  const thread = (new URL(req.url).searchParams.get("thread") || "main").slice(0, 80);
+  return json({ messages: threadHistory(user.id, thread, 40) });
 }

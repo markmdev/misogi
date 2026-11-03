@@ -155,6 +155,10 @@ export function completeMilestone(user: UserRow, slug: string, milestoneId: stri
 
 type QuestRow = Quest & { challenge_id: string; user_id: string; log_id: string | null };
 
+function stripQuest(r: QuestRow): Quest {
+  return { id: r.id, title: r.title, detail: r.detail, kind: r.kind, xp: r.xp, due_on: r.due_on, status: r.status, completed_at: r.completed_at };
+}
+
 export function listQuests(challengeId: string, userId: string, status?: Quest["status"][]): Quest[] {
   const st = status ?? ["open", "done", "skipped"];
   return all<QuestRow>(
@@ -163,7 +167,7 @@ export function listQuests(challengeId: string, userId: string, status?: Quest["
     challengeId,
     userId,
     ...st,
-  ).map(({ challenge_id: _c, user_id: _u, log_id: _l, ...q }) => q);
+  ).map(stripQuest);
 }
 
 export type QuestInput = { title: string; detail?: string; kind?: Quest["kind"]; xp?: number; due_on?: string | null };
@@ -196,9 +200,7 @@ export function addQuests(user: UserRow, slug: string, quests: QuestInput[], rep
         nowIso(),
       );
     }
-    return all<QuestRow>(`SELECT * FROM quests WHERE id IN (${ids.map(() => "?").join(",")})`, ...ids).map(
-      ({ challenge_id: _c, user_id: _u, log_id: _l, ...q }) => q,
-    );
+    return all<QuestRow>(`SELECT * FROM quests WHERE id IN (${ids.map(() => "?").join(",")})`, ...ids).map(stripQuest);
   });
 }
 

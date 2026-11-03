@@ -1,3 +1,235 @@
-export default function Home() {
-  return <main>Coming soon.</main>;
+import Link from "next/link";
+import { ActivityRow, ChallengeCard } from "@/components/challenge";
+import { Footer, TopBar } from "@/components/nav";
+import { Icon, Mascot } from "@/components/ui";
+import { currentUser } from "@/lib/server/auth";
+import { listChallenges } from "@/lib/server/domain/challenges";
+import { listActivity } from "@/lib/server/domain/feed";
+import { SCENES } from "@/lib/shared/art";
+
+export const dynamic = "force-dynamic";
+
+const EXAMPLES = [
+  { icon: "language", text: "Hold a conversation in Mandarin" },
+  { icon: "books", text: "Read 25 books" },
+  { icon: "smarthome", text: "Build a smart home" },
+  { icon: "running", text: "Run 365 miles" },
+  { icon: "writing", text: "Write 52 essays" },
+  { icon: "music", text: "Learn 20 songs on guitar" },
+];
+
+const STEPS = [
+  {
+    pose: "think",
+    title: "Say it in one line",
+    body: "Misogi drafts your year: the camps to reach, this week's quests, and how you'll measure it.",
+  },
+  {
+    pose: "climb",
+    title: "Bring your own AI",
+    body: "Connect Muse or any agent. It checks in, logs what you did, and rebuilds your page as you talk.",
+  },
+  {
+    pose: "cheer",
+    title: "Climb together",
+    body: "Anyone can join your challenge. Same summit, their own path, one leaderboard.",
+  },
+];
+
+export default async function Home() {
+  const user = await currentUser();
+  const live = listChallenges({ status: ["active"], limit: 6 });
+  const templates = listChallenges({ status: ["template"], limit: 12 });
+  const feed = listActivity({ limit: 8 });
+  const hero = SCENES["home-hero"];
+
+  return (
+    <>
+      <TopBar user={user} />
+      <main>
+        {/* Hero: an illustrated scene with a rounded sheet rising over it. */}
+        <section className="relative">
+          <div className="relative h-[300px] overflow-hidden sm:h-[420px] lg:h-[480px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={hero.src}
+              srcSet={`${hero.sm} 800w, ${hero.src} 1600w`}
+              sizes="100vw"
+              alt="A calm mountain at sunrise with a trail of camps leading to the summit"
+              className="absolute inset-0 h-full w-full object-cover object-[50%_35%]"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cream/60" />
+          </div>
+          <div className="relative mx-auto -mt-24 max-w-2xl px-4 sm:-mt-32">
+            <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">
+              <Mascot pose="wave" size={112} className="absolute -top-[70px] left-1/2 -translate-x-1/2 animate-bob" />
+              <h1 className="text-center text-[34px] leading-[40px] text-ink sm:text-[46px] sm:leading-[52px]">One hard thing this year.</h1>
+              <p className="mx-auto mt-3 max-w-md text-center text-[16px] leading-6 text-ink-2 sm:text-[17px]">
+                Say it in a line. Your AI plans the year, checks in, and keeps your page up to date. Friends can climb with you.
+              </p>
+              <form action="/start" className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <label htmlFor="idea" className="sr-only">
+                  What&apos;s your misogi?
+                </label>
+                <input id="idea" name="idea" required minLength={3} maxLength={200} className="input flex-1" placeholder="What's your misogi this year?" autoComplete="off" />
+                <button className="btn shrink-0" type="submit">
+                  Plan my year
+                </button>
+              </form>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {EXAMPLES.map((e) => (
+                  <Link key={e.text} href={`/start?idea=${encodeURIComponent(e.text)}`} className="chip">
+                    <Icon name={e.icon} size={24} />
+                    {e.text}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <div key={s.title} className="card relative overflow-hidden p-5 pt-4">
+                <div className="flex items-start justify-between">
+                  <span className="font-display text-[15px] font-semibold text-ink-3">0{i + 1}</span>
+                  <Mascot pose={s.pose} size={84} alt="" />
+                </div>
+                <h3 className="mt-1 text-[20px] leading-7 text-ink">{s.title}</h3>
+                <p className="mt-1.5 text-[15px] leading-6 text-ink-2">{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Live challenges + feed */}
+        {live.length > 0 && (
+          <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+            <div className="mb-4 flex items-end justify-between gap-3">
+              <div>
+                <h2 className="text-[26px] leading-8 text-ink">On the mountain now</h2>
+                <p className="mt-1 text-[15px] text-ink-2">Real challenges, open to join.</p>
+              </div>
+              <Link href="/explore" className="btn btn-ghost btn-sm">
+                See all
+              </Link>
+            </div>
+            <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {live.map((c) => (
+                  <ChallengeCard key={c.slug} c={c} />
+                ))}
+              </div>
+              {feed.length > 0 && (
+                <aside className="card h-fit p-4 pb-2">
+                  <h3 className="flex items-center gap-2 text-[17px] text-ink">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-moss opacity-60" />
+                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-moss" />
+                    </span>
+                    Just now
+                  </h3>
+                  <ul className="divide-y divide-line">
+                    {feed.map((a) => (
+                      <ActivityRow key={a.id} a={a} />
+                    ))}
+                  </ul>
+                </aside>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Your AI does the work */}
+        <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+          <div className="card grid items-center gap-8 overflow-hidden p-6 sm:p-10 lg:grid-cols-2">
+            <div>
+              <h2 className="text-[26px] leading-8 text-ink">Your AI already knows you. Now it&apos;s your guide.</h2>
+              <p className="mt-3 text-[16px] leading-7 text-ink-2">
+                Connect Meta&apos;s Muse with one message. It reads your plan, checks in when you go quiet, logs what you tell it, and
+                redesigns your page when you ask. No new app to remember.
+              </p>
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {["Muse", "Claude", "ChatGPT", "Any MCP agent"].map((n) => (
+                  <span key={n} className="rounded-full border border-line bg-cream px-3 py-1.5 text-[13px] font-extrabold text-ink-2">
+                    {n}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/start" className="btn">
+                  Start yours
+                </Link>
+                <Link href="/agent.md" className="btn btn-ghost">
+                  Agent guide
+                </Link>
+              </div>
+            </div>
+            <div className="relative rounded-[26px] bg-cream p-4 sm:p-6">
+              <ChatBubble side="left" name="You">
+                Ran 4 miles before work. Legs felt heavy.
+              </ChatBubble>
+              <ChatBubble side="right" name="Muse">
+                Logged 4 mi. You&apos;re at 121 of 365, six days ahead. Easy 2 miles tomorrow?
+              </ChatBubble>
+              <ChatBubble side="left" name="You">
+                Yes. And make my page look like a trail map.
+              </ChatBubble>
+              <ChatBubble side="right" name="Muse">
+                On it. Your page is rebuilding now.
+              </ChatBubble>
+              <Mascot pose="flag" size={88} className="absolute -right-2 -bottom-4 hidden sm:block" alt="" />
+            </div>
+          </div>
+        </section>
+
+        {/* Templates */}
+        {templates.length > 0 && (
+          <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+            <h2 className="text-[26px] leading-8 text-ink">Ten years of Zuckerberg&apos;s challenges</h2>
+            <p className="mt-1 max-w-2xl text-[15px] leading-6 text-ink-2">
+              From 2009 to 2019, Mark Zuckerberg picked one hard thing each year. Start from one of his, or make your own.
+            </p>
+            <div className="scrollbar-none -mx-4 mt-5 flex snap-x gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6">
+              {templates.map((c) => (
+                <ChallengeCard key={c.slug} c={c} className="w-[260px] shrink-0 snap-start" />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="mx-auto mt-14 max-w-6xl px-4 sm:px-6">
+          <div className="flex flex-col items-center rounded-[32px] bg-coral-soft px-6 py-10 text-center">
+            <Mascot pose="cheer" size={110} className="animate-bob" alt="" />
+            <h2 className="mt-2 text-[28px] leading-9 text-ink">What&apos;s your misogi?</h2>
+            <p className="mt-2 max-w-md text-[16px] text-ink-2">The year goes by either way. Pick the one thing you&apos;ll be glad you did.</p>
+            <Link href="/start" className="btn mt-6">
+              Plan my year
+            </Link>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function ChatBubble({ side, name, children }: { side: "left" | "right"; name: string; children: React.ReactNode }) {
+  const right = side === "right";
+  return (
+    <div className={`mb-3 flex ${right ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[82%] ${right ? "items-end" : "items-start"} flex flex-col`}>
+        <span className="label mb-1 px-1">{name}</span>
+        <div
+          className={`rounded-[20px] px-4 py-2.5 text-[15px] leading-6 shadow-sm ${
+            right ? "rounded-br-md bg-white text-ink ring-1 ring-line" : "rounded-bl-md bg-ink text-white"
+          }`}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
 }

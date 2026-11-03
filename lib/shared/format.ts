@@ -35,7 +35,8 @@ export function withUnit(n: number | null | undefined, unit: string): string {
   if (n == null) return "–";
   if (!unit) return num(n);
   if (/^(level|hsk|lvl)$/i.test(unit)) return `${unit.toUpperCase() === "HSK" ? "HSK" : "Level"} ${num(n)}`;
-  return `${num(n)} ${unit}`;
+  const singular = Math.abs(n) === 1 && unit.length > 3 && unit.endsWith("s") ? unit.slice(0, -1) : unit;
+  return `${num(n)} ${singular}`;
 }
 
 export function metricLine(m: Metric): string {
@@ -69,6 +70,8 @@ export function activityText(a: ActivityItem): string {
       const label = d.label as string | null;
       if (label) return `logged ${label}`;
       if (v != null) return `logged ${withUnit(v, String(d.unit ?? ""))}`;
+      const unit = String(d.unit ?? "");
+      if (unit && unit !== "days") return `logged 1 ${unit.replace(/s$/, "")}`;
       return "checked in";
     }
     case "quest_done":

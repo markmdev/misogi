@@ -217,7 +217,11 @@ export async function streamText(
     ]);
   try {
     for (;;) {
-      const { done, value } = await readWithIdle();
+      const { done, value } = await readWithIdle().catch((e: unknown) => {
+        if (e instanceof AppError) throw e;
+        const timeout = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
+        throw new AppError("resting", timeout ? "The model took too long to finish." : "The connection to the model dropped.");
+      });
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
       let nl: number;
