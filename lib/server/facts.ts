@@ -67,10 +67,11 @@ export function progressOf(total: number, logs: FactLog[], metric: MetricDef): n
   if (metric.target == null || metric.target === 0) return null;
   if (metric.direction === "down") {
     // Lower is better (a 5k time): reaching the target is 100%; before that, measure from the first try.
-    if (logs.length === 0) return 0;
-    if (total <= metric.target) return 1;
+    // Check-ins without a number don't count as a try.
     const base = baseline(logs);
-    if (base == null || base <= metric.target) return 0;
+    if (base == null) return 0;
+    if (total <= metric.target) return 1;
+    if (base <= metric.target) return 0;
     return clamp((base - total) / (base - metric.target), 0, 1);
   }
   return clamp(total / metric.target, 0, 1);

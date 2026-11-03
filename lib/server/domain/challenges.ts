@@ -374,12 +374,17 @@ export function standings(c: ChallengeRow): Standing[] {
       status: r.status,
       role: r.role,
       joined_at: r.joined_at,
-      score: logs.length ? standingScore(total, progress, metric) : Number.NEGATIVE_INFINITY,
+      score: ranked(logs, metric) ? standingScore(total, progress, metric) : Number.NEGATIVE_INFINITY,
     };
   });
   scored.sort((a, b) => b.score - a.score || b.xp - a.xp || a.joined_at.localeCompare(b.joined_at));
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return scored.map(({ score, ...s }, i) => ({ ...s, rank: i + 1 }));
+}
+
+/** Whether someone has logged enough to place. For level/time metrics, check-ins without a number don't count (a 0 would win "lower is better"). */
+function ranked(logs: FactLog[], metric: Metric): boolean {
+  return metric.aggregation === "latest" ? logs.some((l) => l.value != null) : logs.length > 0;
 }
 
 export function summarize(c: ChallengeRow): ChallengeSummary {

@@ -155,9 +155,10 @@ export function QuickLog({
                 min={0}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                required={needsValue(metric)}
+                required={needsValue(metric) && !note.trim() && !quest}
                 placeholder={metric.aggregation === "count" ? "1" : "How much?"}
               />
+              {needsValue(metric) && <p className="mt-1.5 text-[13px] font-bold text-ink-3">Practiced without a number? Leave it empty and add a note.</p>}
             </div>
           )}
           {metric.aggregation === "distinct" && (

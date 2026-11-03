@@ -2,6 +2,7 @@
 // Virgil (the built-in guide) are thin adapters over this list.
 
 import { z } from "zod";
+import { activityText } from "@/lib/shared/format";
 import { AGGREGATIONS, THEMES } from "@/lib/shared/types";
 import { createSignInToken, type UserRow } from "./auth";
 import { agentContext } from "./context";
@@ -213,7 +214,7 @@ export const TOOLS = [
     label: "Logging progress",
     writes: true,
     description:
-      "Record what the person actually did. `value` is a number in the metric's unit (required for sum/latest metrics). `label` names the thing for distinct metrics (e.g. a state). Backdate with `date`. Pass quest_id to complete a quest. Returns updated facts.",
+      "Record what the person actually did. `value` is a number in the metric's unit (needed for sum/latest metrics; leave it out only for a practice check-in that doesn't change the number, and then add a note). `label` names the thing for distinct metrics (e.g. a state). Backdate with `date`. Pass quest_id to complete a quest. Returns updated facts.",
     input: z.object({
       challenge: challengeArg,
       value: z.number().nullable().optional(),
@@ -353,6 +354,7 @@ export const TOOLS = [
           at: i.created_at,
           who: i.user?.display_name ?? null,
           challenge: i.challenge.slug,
+          text: activityText(i),
           data: i.data,
         })),
       };

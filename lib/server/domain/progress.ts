@@ -244,16 +244,22 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
   // One day of slack: a time zone change can move "today" to the day before the start.
   if (date < addDays(m.starts_on, -1)) throw new AppError("invalid", `This challenge started on ${m.starts_on}; you can't log before that.`);
   const agg = c.metric_aggregation;
-  let value = input.value ?? null;
+  const value = input.value ?? null;
   if (value != null && !Number.isFinite(value)) throw new AppError("invalid", "value must be a number.");
-  if ((agg === "sum" || agg === "latest") && value == null)
-    throw new AppError("invalid", `This challenge counts ${c.metric_name}, so include a number in "value" (in ${c.metric_unit || "units"}).`);
-  if (agg === "sum" && value! < 0) throw new AppError("invalid", "value can't be negative.");
-  if (agg === "days") value = value ?? null;
+  const note = (input.note ?? "").trim().slice(0, 2000);
+  // Practice that doesn't move the number (tone drills toward a conversation goal) still counts as a
+  // check-in: it keeps the streak and earns XP. It needs a note or a quest so it says what happened.
+  const checkin = (agg === "sum" || agg === "latest") && value == null;
+  if (checkin && !note && !input.quest_id)
+    throw new AppError(
+      "invalid",
+      `This challenge counts ${c.metric_name}, so include a number in "value" (in ${c.metric_unit || "units"}).`,
+      "For practice that doesn't change the number, leave value out and add a note saying what was done.",
+    );
+  if (agg === "sum" && value != null && value < 0) throw new AppError("invalid", "value can't be negative.");
   const label = (input.label ?? "").trim().slice(0, 80) || null;
   if (agg === "distinct" && !label)
     throw new AppError("invalid", `This challenge counts distinct ${c.metric_name}, so include which one in "label".`);
-  const note = (input.note ?? "").trim().slice(0, 2000);
   if (input.evidence_url && !/^https?:\/\//.test(input.evidence_url)) throw new AppError("invalid", "evidence_url must be an http(s) URL.");
 
   let quest: QuestRow | undefined;
@@ -300,6 +306,7 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
         metric: c.metric_name,
         note: note.slice(0, 140),
         xp,
+        ...(checkin ? { checkin: true } : {}),
       });
     }
     const reached = autoReachMilestones(c, user.id);

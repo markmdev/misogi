@@ -137,11 +137,21 @@ describe("a full climb over the HTTP API", () => {
     const noValue = await tool(alice.key, "log_progress", { challenge: slug });
     expect(noValue.status).toBe(400);
     expect(noValue.body.error.message).toContain("value");
+    expect(noValue.body.error.hint).toContain("note");
     const future = await tool(alice.key, "log_progress", { challenge: slug, value: 1, date: "2099-01-01" });
     expect(future.status).toBe(400);
     const missing = await tool(alice.key, "get_challenge", { challenge: `nope-${run}` });
     expect(missing.status).toBe(404);
     expect(missing.body.error.hint).toBeTruthy();
+  });
+
+  test("a practice check-in keeps the streak without moving the total", async () => {
+    const r = await tool(alice.key, "log_progress", { challenge: slug, note: "Stretching and mobility, no running today" });
+    expect(r.status).toBe(200);
+    expect(r.body.facts.total).toBe(11);
+    expect(r.body.xp).toBe(15);
+    const feed = await tool(alice.key, "get_feed", { challenge: slug });
+    expect(JSON.stringify(feed.body)).toContain("checked in");
   });
 
   test("permissions: outsiders can't log, members can't change the shared page", async () => {

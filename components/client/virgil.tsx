@@ -60,7 +60,16 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
   const t = challenge ? `c:${challenge}` : thread;
+
+  // Grow the message box with its text, up to its max height.
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight + 2, 128)}px`;
+  }, [input, open]);
 
   useEffect(() => {
     if (!open || loaded || !signedIn) return;
@@ -230,6 +239,7 @@ export function Virgil({ signedIn, challenge, thread = "main", autoOpen = false 
               }}
             >
               <textarea
+                ref={box}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {

@@ -70,6 +70,7 @@ export function activityText(a: ActivityItem): string {
       const label = d.label as string | null;
       if (label) return `logged ${label}`;
       if (v != null) return `logged ${withUnit(v, String(d.unit ?? ""))}`;
+      if (d.checkin) return "checked in";
       const unit = String(d.unit ?? "");
       if (unit && unit !== "days") return `logged 1 ${unit.replace(/s$/, "")}`;
       return "checked in";
