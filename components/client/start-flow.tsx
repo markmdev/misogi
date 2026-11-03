@@ -223,12 +223,18 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                         key={k}
                         onClick={() => setChoices((c) => Object.assign([...c], { [i]: k }))}
                         className={cx(
-                          "rounded-[20px] p-4 text-left text-[15px] leading-6 ring-2 transition",
-                          choices[i] === k ? "bg-white text-ink shadow-[var(--shadow-card)]" : "bg-white/60 text-ink-2 ring-transparent hover:bg-white",
+                          "flex flex-col rounded-[22px] bg-white px-4 pt-3 pb-4 text-left ring-2 shadow-[var(--shadow-card)] transition",
+                          choices[i] === k ? "" : "ring-transparent hover:-translate-y-0.5",
+                          choices[i] && choices[i] !== k && "opacity-55",
                         )}
                         style={choices[i] === k ? { ["--tw-ring-color" as string]: pal.accent } : undefined}
                       >
-                        “{p[k]}”
+                        <span className="flex h-6 items-center gap-2 text-[12px] font-extrabold tracking-wide text-ink-3 uppercase">
+                          <Icon name="summit" size={20} />
+                          Your guide
+                          {choices[i] === k ? <Icon name="check" size={22} className="ml-auto animate-pop" /> : <span className="ml-auto font-bold tracking-normal normal-case">now</span>}
+                        </span>
+                        <span className="mt-1.5 block text-[15px] leading-6 text-ink">{p[k]}</span>
                       </button>
                     ))}
                   </div>
