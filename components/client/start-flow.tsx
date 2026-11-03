@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import { startChallenge } from "@/app/actions";
-import { shortDate, withUnit } from "@/lib/shared/format";
+import { withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
-import type { Theme } from "@/lib/shared/types";
+import type { Milestone, Theme } from "@/lib/shared/types";
+import { CAMP_STEP_MS, CampPath, sceneFor, trailX } from "../challenge";
 import { cx, Icon, IconTile, Mascot } from "../ui";
 import { ConnectPanel } from "./connect";
 import { Spinner } from "./space-frame";
@@ -107,9 +108,10 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   }
 
   const pal = palette(draft?.theme ?? "teal");
+  const wide = step === "drafting" || step === "draft";
 
   return (
-    <div className="mx-auto w-full max-w-xl px-4 pt-6 pb-24">
+    <div className={cx("mx-auto w-full px-4 pt-6 pb-24", wide ? "max-w-xl lg:max-w-5xl" : "max-w-xl")}>
       <Progress step={step} />
 
       {step === "idea" && (
@@ -150,104 +152,53 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
       )}
 
       {step === "drafting" && (
-        <section className="flex flex-col items-center pt-10 text-center">
-          <Mascot pose="think" size={140} className="animate-bob" />
-          <h2 className="mt-4 text-[24px] leading-8 text-ink">Drafting your year</h2>
-          <p className="mt-2 text-[16px] font-bold text-ink-2" aria-live="polite">
-            {DRAFTING_LINES[line]}
-          </p>
-          <p className="mt-6 max-w-sm text-[14px] leading-6 text-ink-3">“{idea}”</p>
-        </section>
-      )}
-
-      {step === "draft" && draft && (
-        <section className="animate-rise">
+        <section className={YEAR_GRID}>
           <div className="card overflow-hidden">
-            <div className="flex items-center gap-4 p-5" style={{ background: pal.tint }}>
-              <IconTile name={draft.icon} size={64} bg="#fff" />
+            <div className="flex items-center gap-4 p-5" style={{ background: "var(--color-cream-2)" }}>
+              <span className="tile h-16 w-16 shrink-0 bg-white">
+                <Icon name="sparkles" size={40} className="animate-bob" />
+              </span>
               <div className="min-w-0">
-                <div className="label" style={{ color: pal.deep }}>
-                  Your misogi
+                <div className="label flex items-center gap-1.5">
+                  <Spinner className="h-3 w-3 border-2" />
+                  Drafting your year
                 </div>
-                <textarea
-                  value={draft.title}
-                  onChange={(e) => setDraft({ ...draft, title: e.target.value.replace(/\n/g, " ").slice(0, 60) })}
-                  rows={draft.title.length > 26 ? 2 : 1}
-                  className="mt-0.5 w-full resize-none bg-transparent font-display text-[22px] leading-7 font-semibold text-ink outline-none"
-                  aria-label="Challenge title"
-                />
-                <p className="mt-0.5 text-[14px] leading-5 text-ink-2">{draft.tagline}</p>
+                <p className="mt-0.5 font-display text-[22px] leading-7 font-semibold text-ink">{idea}</p>
+                <p key={line} className="mt-1 animate-rise text-[14px] leading-5 font-bold text-ink-2" aria-live="polite">
+                  {DRAFTING_LINES[line]}
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-px bg-line">
-              <div className="bg-white p-4">
-                <div className="label">Measured by</div>
-                <div className="mt-1 text-[15px] font-extrabold text-ink first-letter:uppercase">{draft.metric.name}</div>
-              </div>
-              <div className="bg-white p-4">
-                <div className="label">Summit</div>
-                <div className="mt-1 text-[15px] font-extrabold text-ink">
-                  {draft.metric.target != null ? withUnit(draft.metric.target, draft.metric.unit) : "Your call"}
+              {["Measured by", "Summit"].map((l, i) => (
+                <div key={l} className="bg-white p-4">
+                  <div className="label">{l}</div>
+                  <span className={cx("skel mt-2 h-3.5", i === 0 ? "w-3/4" : "w-1/3", line === 1 && "skel-live")} />
                 </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          <h3 className="mt-7 mb-3 text-[18px] text-ink">Camps on the way up</h3>
-          <ol className="relative flex flex-col gap-3 pl-7">
-            <span className="absolute top-3 bottom-3 left-[13px] w-[3px] rounded-full" style={{ background: pal.tint }} />
-            {draft.camps.map((c, i) => (
-              <li key={i} className="relative">
-                <span
-                  className="absolute top-4 -left-7 grid h-7 w-7 place-items-center rounded-full font-display text-[13px] font-semibold text-white"
-                  style={{ background: i === draft.camps.length - 1 ? pal.deep : pal.accent }}
-                >
-                  {i + 1}
-                </span>
-                <div className="card flex items-center gap-3 p-3">
-                  <IconTile name={c.icon} size={44} bg={pal.tint} />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[15px] leading-5 font-extrabold text-ink">{c.title}</div>
-                    <div className="mt-0.5 text-[13px] leading-5 text-ink-2">{c.detail}</div>
-                  </div>
-                  <div className="shrink-0 text-right text-[12px] font-extrabold text-ink-3">
-                    {c.target != null && <div className="text-ink-2">{withUnit(c.target, draft.metric.unit)}</div>}
-                    {shortDate(c.due_on)}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ol>
+          <GhostClimb active={line >= 2} className={CLIMB_CELL} />
 
-          <h3 className="mt-7 mb-3 text-[18px] text-ink">This week</h3>
-          <div className="flex flex-col gap-2">
-            {draft.first_quests.map((q, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-[18px] bg-white p-3 ring-1 ring-line" style={{ boxShadow: "0 3px 0 var(--color-line)" }}>
-                <IconTile name={q.kind === "boss" ? "trophy" : "quest"} size={40} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-[15px] leading-5 font-extrabold text-ink">{q.title}</div>
-                  {q.detail && <div className="text-[13px] leading-5 text-ink-2">{q.detail}</div>}
+          <div>
+            <h3 className="mb-3 text-[18px] text-ink-3">This week</h3>
+            <div className="flex flex-col gap-2">
+              {[0.62, 0.48, 0.7].map((w, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-[18px] bg-white p-3 ring-1 ring-line" style={{ boxShadow: "0 3px 0 var(--color-line)" }}>
+                  <span className="tile h-10 w-10 bg-cream-2" />
+                  <div className="flex min-w-0 flex-1 flex-col gap-2 py-1">
+                    <span className={cx("skel", line === 3 && "skel-live")} style={{ width: `${w * 100}%` }} />
+                    <span className={cx("skel h-2.5", line === 3 && "skel-live")} style={{ width: `${(w + 0.25) * 100}%` }} />
+                  </div>
                 </div>
-                <span className="flex items-center gap-0.5 font-display text-[14px] font-semibold text-gold-deep">
-                  {q.xp}
-                  <Icon name="xp" size={16} />
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-5 rounded-2xl bg-white/70 px-4 py-3 text-[14px] leading-6 text-ink-2 ring-1 ring-line">
-            This is a first draft. Your AI tunes it to your life after a short chat.
-          </p>
-          <div className="mt-6 flex gap-3">
-            <button className="btn btn-ghost flex-1" onClick={() => void runDraft(idea)}>
-              Try again
-            </button>
-            <button className="btn flex-[2]" onClick={() => setStep("style")}>
-              Looks good
-            </button>
+              ))}
+            </div>
           </div>
         </section>
       )}
+
+      {step === "draft" && draft && <DraftYear draft={draft} setDraft={setDraft} onRetry={() => void runDraft(idea)} onAccept={() => setStep("style")} />}
 
       {step === "style" && (
         <section className="animate-rise">
@@ -347,6 +298,173 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   );
 }
 
+const YEAR_GRID = "grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:grid-rows-[auto_auto_auto_1fr] lg:gap-x-8";
+const CLIMB_CELL = "lg:col-start-2 lg:row-span-4 lg:row-start-1";
+
+/** The drafted year arrives in order: the misogi, how it's measured, the camps from base to summit, then this week. */
+function DraftYear({ draft, setDraft, onRetry, onAccept }: { draft: Draft; setDraft: (d: Draft) => void; onRetry: () => void; onAccept: () => void }) {
+  const pal = palette(draft.theme);
+  const camps: Milestone[] = draft.camps.map((c, i) => ({ id: String(i), title: c.title, target: c.target, due_on: c.due_on, emoji: c.icon }));
+  const at = { metric: 200, camps: 450, quests: 450 + camps.length * CAMP_STEP_MS + 150 };
+  const after = (ms: number) => ({ animationDelay: `${ms}ms` });
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const t = titleRef.current;
+    if (!t) return;
+    t.style.height = "auto";
+    t.style.height = `${t.scrollHeight}px`;
+  }, [draft.title]);
+  return (
+    <section className={YEAR_GRID}>
+      <div className="card animate-rise overflow-hidden">
+        <div className="flex items-center gap-4 p-5" style={{ background: pal.tint }}>
+          <IconTile name={draft.icon} size={64} bg="#fff" className="animate-pop" />
+          <div className="min-w-0 flex-1">
+            <div className="label" style={{ color: pal.deep }}>
+              Your misogi
+            </div>
+            <textarea
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value.replace(/\n/g, " ").slice(0, 60) })}
+              ref={titleRef}
+              rows={1}
+              className="mt-0.5 w-full resize-none overflow-hidden bg-transparent font-display text-[22px] leading-7 font-semibold text-ink outline-none"
+              aria-label="Challenge title"
+            />
+            <p className="mt-0.5 text-[14px] leading-5 text-ink-2">{draft.tagline}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-px bg-line">
+          <div className="bg-white p-4">
+            <div className="label">Measured by</div>
+            <div className="mt-1 animate-rise text-[15px] font-extrabold text-ink first-letter:uppercase" style={after(at.metric)}>
+              {draft.metric.name}
+            </div>
+          </div>
+          <div className="bg-white p-4">
+            <div className="label">Summit</div>
+            <div className="mt-1 animate-rise text-[15px] font-extrabold text-ink" style={after(at.metric + 90)}>
+              {draft.metric.target != null ? withUnit(draft.metric.target, draft.metric.unit) : "Your call"}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ClimbCard theme={draft.theme} className={CLIMB_CELL}>
+        <CampPath milestones={camps} accent={pal.accent} deep={pal.deep} tint={pal.tint} total={0} unit={draft.metric.unit} revealAt={at.camps} />
+      </ClimbCard>
+
+      <div>
+        <h3 className="mb-3 animate-rise text-[18px] text-ink" style={after(at.quests)}>
+          This week
+        </h3>
+        <div className="flex flex-col gap-2">
+          {draft.first_quests.map((q, i) => (
+            <div
+              key={i}
+              className="flex animate-rise items-center gap-3 rounded-[18px] bg-white p-3 ring-1 ring-line"
+              style={{ boxShadow: "0 3px 0 var(--color-line)", ...after(at.quests + 80 + i * 110) }}
+            >
+              <IconTile name={q.kind === "boss" ? "trophy" : "quest"} size={40} />
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] leading-5 font-extrabold text-ink">{q.title}</div>
+                {q.detail && <div className="text-[13px] leading-5 text-ink-2">{q.detail}</div>}
+              </div>
+              <span className="flex items-center gap-0.5 font-display text-[14px] font-semibold text-gold-deep">
+                {q.xp}
+                <Icon name="xp" size={16} />
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="animate-rise" style={after(at.quests + 80 + draft.first_quests.length * 110 + 60)}>
+        <p className="text-[14px] leading-6 text-ink-2">This is a first draft. Your AI tunes it to your life after a short chat.</p>
+        <div className="mt-4 flex gap-3">
+          <button className="btn btn-ghost flex-1" onClick={onRetry}>
+            Try again
+          </button>
+          <button className="btn flex-[2]" onClick={onAccept}>
+            Looks good
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The mountain behind the camps: the challenge's own scene, fading into the card. */
+function ClimbCard({ theme, className, children }: { theme: Theme | null; className?: string; children: ReactNode }) {
+  return (
+    <div className={cx("card relative overflow-hidden", className)}>
+      <div className="absolute inset-x-0 top-0 h-[250px]" style={{ background: theme ? palette(theme).sky : "var(--color-cream-2)" }} aria-hidden>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {theme && <img src={sceneFor(theme, false)} alt="" className="h-full w-full animate-fade object-cover object-top" />}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgb(255 255 255 / 0) 40%, #fff 92%)" }} />
+      </div>
+      <div className="relative px-3 pt-[124px] pb-4">{children}</div>
+    </div>
+  );
+}
+
+/** The trail before the camps are known: empty camps from base to summit, lighting up while they're placed. */
+function GhostClimb({ active, className }: { active: boolean; className?: string }) {
+  const n = 4;
+  return (
+    <ClimbCard theme={null} className={className}>
+      <div className="relative mx-auto flex max-w-md flex-col items-center py-2" aria-hidden>
+        {Array.from({ length: n }, (_, k) => {
+          const i = n - 1 - k;
+          const x = trailX(i, n);
+          const above = trailX(i + 1, n);
+          const base = i === 0;
+          return (
+            <div key={i} className="relative flex w-full flex-col items-center">
+              {k > 0 && (
+                <svg width="240" height="34" className="-my-1 overflow-visible">
+                  <path
+                    d={`M ${120 + above} 0 C ${120 + above} 17, ${120 + x} 17, ${120 + x} 34`}
+                    fill="none"
+                    stroke="var(--color-line-2)"
+                    strokeWidth="5"
+                    strokeDasharray="2 10"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+              <div className="relative flex items-center" style={{ translate: `${x}px 0` }}>
+                <div
+                  className="relative grid place-items-center rounded-full bg-white/70 text-line-2"
+                  style={{ width: base ? 84 : 68, height: base ? 84 : 68, animation: active ? `ghost 1.6s ease-in-out ${i * 0.22}s infinite` : undefined }}
+                >
+                  <svg viewBox="0 0 68 68" className="absolute inset-0 h-full w-full overflow-visible">
+                    <circle cx="34" cy="34" r="32" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="1 8" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                  </svg>
+                  {k === 0 && <Icon name="summit" size={40} className="opacity-25 grayscale" />}
+                </div>
+                {base && (
+                  <Mascot
+                    pose="think"
+                    size={72}
+                    alt=""
+                    className="absolute top-1/2 -translate-y-1/2 animate-bob"
+                    style={x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }}
+                  />
+                )}
+              </div>
+              <div className="mt-2.5 mb-1 flex flex-col items-center gap-1.5" style={{ translate: `${x}px 0` }}>
+                <span className={cx("skel h-3.5 w-28", active && "skel-live")} />
+                <span className={cx("skel h-2.5 w-20", active && "skel-live")} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </ClimbCard>
+  );
+}
+
 function CreatingEffect({ onReady, signedIn }: { onReady: () => void; signedIn: boolean }) {
   const ran = useRef(false);
   useEffect(() => {
@@ -370,7 +488,7 @@ function Progress({ step }: { step: Step }) {
   const map: Partial<Record<Step, Step>> = { drafting: "idea", creating: "name" };
   const idx = ORDER.indexOf(map[step] ?? step);
   return (
-    <div className="mb-8 flex items-center gap-1.5" aria-hidden>
+    <div className="mx-auto mb-8 flex max-w-xl items-center gap-1.5" aria-hidden>
       {ORDER.map((s, i) => (
         <span key={s} className="h-2 flex-1 rounded-full transition-colors duration-500" style={{ background: i <= idx ? "var(--color-coral)" : "var(--color-line)" }} />
       ))}

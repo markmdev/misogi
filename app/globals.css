@@ -41,6 +41,8 @@
   --animate-pop: pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-bob: bob 3.2s ease-in-out infinite;
+  --animate-fade: fade 0.9s ease both;
+  --animate-trail: trail 0.4s ease-out both;
 
   @keyframes pop {
     0% { transform: scale(0.6); opacity: 0; }
@@ -54,6 +56,24 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
   }
+  @keyframes fade {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  /* A trail segment drawing itself upward. */
+  @keyframes trail {
+    0% { clip-path: inset(100% 0 0 0); }
+    100% { clip-path: inset(0 0 0 0); }
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@keyframes ghost {
+  0%, 100% { color: var(--color-line-2); transform: scale(1); }
+  50% { color: var(--color-coral); transform: scale(1.06); }
 }
 
 @layer base {
@@ -83,6 +103,7 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0s !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
@@ -170,6 +191,19 @@
   }
   .chip:hover { transform: translateY(-1px); }
   .chip:active { transform: translateY(1px); box-shadow: none; }
+
+  /* Placeholder for text that is still being written; .skel-live while it's being worked on. */
+  .skel {
+    display: block;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--color-line);
+  }
+  .skel-live {
+    background: linear-gradient(90deg, var(--color-line) 30%, var(--color-coral-soft) 50%, var(--color-line) 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s linear infinite;
+  }
 
   .tile {
     display: grid;

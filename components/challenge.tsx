@@ -140,26 +140,61 @@ export function Leaderboard({ rows, metric, slug, highlight, accent }: { rows: S
   );
 }
 
+const TRAIL_OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
+export const CAMP_STEP_MS = 220;
+
+/** How far camp i of n sits from the middle, with the whole zig-zag centered. */
+export function trailX(i: number, n: number): number {
+  const used = TRAIL_OFFSETS.slice(0, Math.min(n, TRAIL_OFFSETS.length));
+  return TRAIL_OFFSETS[i % TRAIL_OFFSETS.length] - (Math.max(...used) + Math.min(...used)) / 2;
+}
+
 /**
  * The climb: camps from base (bottom) to summit (top), like a trail up a mountain.
  * Done camps are filled, the next one is highlighted with Virgil standing beside it.
+ * With `revealAt` (ms), camps appear one by one from the base up, starting then.
  */
-export function CampPath({ milestones, accent, deep, tint, total, unit }: { milestones: Milestone[]; accent: string; deep: string; tint: string; total: number; unit: string }) {
+export function CampPath({
+  milestones,
+  accent,
+  deep,
+  tint,
+  total,
+  unit,
+  revealAt,
+}: {
+  milestones: Milestone[];
+  accent: string;
+  deep: string;
+  tint: string;
+  total: number;
+  unit: string;
+  revealAt?: number;
+}) {
   if (milestones.length === 0) return null;
   const nextIdx = milestones.findIndex((m) => !m.done_at);
   const items = milestones.map((m, i) => ({ m, i, state: m.done_at ? "done" : i === nextIdx ? "next" : "later" })).reverse();
-  const offsets = [0, 56, 84, 56, 0, -56, -84, -56];
+  const n = milestones.length;
+  const reveal = revealAt != null;
   return (
     <div className="relative mx-auto flex max-w-md flex-col items-center py-2">
       {items.map(({ m, i, state }, k) => {
-        const x = offsets[i % offsets.length];
-        const isSummit = i === milestones.length - 1;
+        const x = trailX(i, n);
+        const above = trailX(i + 1, n);
+        const isSummit = i === n - 1;
+        const at = (revealAt ?? 0) + i * CAMP_STEP_MS;
         return (
-          <div key={m.id} className="relative flex w-full flex-col items-center" style={{ animationDelay: `${k * 60}ms` }}>
+          <div key={m.id} className="relative flex w-full flex-col items-center">
             {k > 0 && (
-              <svg width="240" height="34" className="-my-1 overflow-visible" aria-hidden>
+              <svg
+                width="240"
+                height="34"
+                className={cx("-my-1 overflow-visible", reveal && "animate-trail")}
+                style={reveal ? { animationDelay: `${at + CAMP_STEP_MS * 0.55}ms` } : undefined}
+                aria-hidden
+              >
                 <path
-                  d={`M ${120 + offsets[(i + 1) % offsets.length]} 0 C ${120 + offsets[(i + 1) % offsets.length]} 17, ${120 + x} 17, ${120 + x} 34`}
+                  d={`M ${120 + above} 0 C ${120 + above} 17, ${120 + x} 17, ${120 + x} 34`}
                   fill="none"
                   stroke={state === "done" ? accent : "var(--color-line-2)"}
                   strokeWidth="5"
@@ -168,13 +203,15 @@ export function CampPath({ milestones, accent, deep, tint, total, unit }: { mile
                 />
               </svg>
             )}
-            <div className="relative flex items-center" style={{ transform: `translateX(${x}px)` }}>
+            <div className="relative flex items-center" style={{ translate: `${x}px 0` }}>
               <div
                 className={cx(
                   "relative grid place-items-center rounded-full transition",
+                  reveal && "animate-pop",
                   state === "next" ? "h-[84px] w-[84px]" : "h-[68px] w-[68px]",
                 )}
                 style={{
+                  animationDelay: reveal ? `${at}ms` : undefined,
                   background: state === "later" ? "var(--color-cream-2)" : state === "done" ? accent : "#fff",
                   boxShadow: state === "later" ? "0 5px 0 var(--color-line-2)" : `0 5px 0 ${deep}`,
                   border: state === "next" ? `4px solid ${accent}` : "none",
@@ -202,13 +239,16 @@ export function CampPath({ milestones, accent, deep, tint, total, unit }: { mile
                 <Mascot
                   pose="climb"
                   size={72}
-                  className="absolute top-1/2 -translate-y-1/2 animate-bob"
+                  className={cx("absolute top-1/2 -translate-y-1/2", reveal ? "animate-[rise_0.5s_both,bob_3.2s_ease-in-out_0.5s_infinite]" : "animate-bob")}
                   alt=""
-                  style={x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }}
+                  style={{ ...(x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }), animationDelay: reveal ? `${at + 120}ms, ${at + 620}ms` : undefined }}
                 />
               )}
             </div>
-            <div className="mt-2 mb-1 max-w-[260px] text-center" style={{ transform: `translateX(${x}px)` }}>
+            <div
+              className={cx("mt-2 mb-1 max-w-[260px] text-center", reveal && "animate-rise")}
+              style={{ translate: `${x}px 0`, animationDelay: reveal ? `${at + 80}ms` : undefined }}
+            >
               <div className={cx("font-display text-[16px] leading-5 font-semibold", state === "later" ? "text-ink-2" : "text-ink")}>{m.title}</div>
               <div className="mt-0.5 text-[12px] font-bold text-ink-3">
                 {m.target != null ? withUnit(m.target, unit) : ""}
