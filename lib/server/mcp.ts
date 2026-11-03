@@ -3,15 +3,15 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { bearerFrom, userForApiKey, type UserRow } from "./auth";
+import { bearerFrom, callerForApiKey, type UserRow } from "./auth";
 import { originOf, rateLimit } from "./http";
 import { PLAYBOOK } from "./playbook";
-import { runTool, TOOLS } from "./tools";
+import { runTool, TOOLS, type ToolSource } from "./tools";
 import { AppError } from "./util";
 
 
 
-function server(user: UserRow, origin: string) {
+function server(user: UserRow, source: ToolSource, origin: string) {
   const mcp = new McpServer(
     { name: "misogi", version: "1.0.0" },
     {
@@ -28,7 +28,7 @@ function server(user: UserRow, origin: string) {
         annotations: { readOnlyHint: !t.writes, destructiveHint: false, openWorldHint: false },
       },
       async (args: unknown) => {
-        const r = await runTool(t.name, { user, source: "mcp", origin }, args);
+        const r = await runTool(t.name, { user, source, origin }, args);
         if (!r.ok) return { isError: true, content: [{ type: "text" as const, text: JSON.stringify({ error: r.error }) }] };
         return { content: [{ type: "text" as const, text: JSON.stringify(r.result) }] };
       },
@@ -47,8 +47,9 @@ function unauthorized(message: string) {
 export async function handleMcp(req: Request, keyFromPath?: string) {
   const key = keyFromPath ?? bearerFrom(req);
   if (!key) return unauthorized("Missing Misogi key. Send Authorization: Bearer msk_...");
-  const user = userForApiKey(key);
-  if (!user) return unauthorized("This Misogi key isn't valid.");
+  const caller = callerForApiKey(key);
+  if (!caller) return unauthorized("This Misogi key isn't valid.");
+  const user = caller.user;
   try {
     rateLimit(`mcp:${user.id}`, 120, 60);
   } catch (e) {
@@ -56,7 +57,7 @@ export async function handleMcp(req: Request, keyFromPath?: string) {
     throw e;
   }
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
-  const mcp = server(user, originOf(req));
+  const mcp = server(user, caller.client?.toLowerCase().includes("muse") ? "muse" : "mcp", originOf(req));
   await mcp.connect(transport);
   try {
     return await transport.handleRequest(req);

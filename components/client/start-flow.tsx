@@ -49,7 +49,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   const [choices, setChoices] = useState<("gentle" | "firm")[]>([]);
   const [name, setName] = useState(signedInName ?? "");
   const [error, setError] = useState<string | null>(null);
-  const [created, setCreated] = useState<{ slug: string; key: string; handle: string } | null>(null);
+  const [created, setCreated] = useState<{ slug: string; connectCode: string; handle: string } | null>(null);
   const [line, setLine] = useState(0);
   const [, start] = useTransition();
   const started = useRef(false);
@@ -286,15 +286,15 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
               Now bring your AI. It reads your plan, asks a few questions, and keeps your page up to date from now on.
             </p>
           </div>
-          <div className="mt-6">
-            <ConnectPanel origin={origin} slug={created.slug} title={draft?.title} initialKey={created.key} initialStatus={null} />
-          </div>
           <button className="btn btn-moss mt-6 w-full" onClick={() => router.push(`/c/${created.slug}/${created.handle}`)}>
             See my page
           </button>
           <p className="mt-3 text-center text-[13px] text-ink-3">
             No AI handy? Tap <b>Ask Virgil</b> on your page and Misogi&apos;s own guide takes it from there.
           </p>
+          <div className="mt-6">
+            <ConnectPanel origin={origin} title={draft?.title} connectCode={created.connectCode} initialStatus={null} />
+          </div>
         </section>
       )}
 

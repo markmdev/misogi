@@ -16,6 +16,8 @@ export type UserRow = {
   agent_name: string | null;
   agent_kind: string | null;
   agent_seen_at: string | null;
+  /** How many times an agent has connected with a Connect message; it signs the current one (lib/server/oauth.ts). */
+  connect_epoch: number;
   is_demo: number;
   created_at: string;
 };
@@ -27,7 +29,7 @@ function secret(): string {
   return "dev-only-session-secret-change-me-0123456789";
 }
 
-function sign(payload: string): string {
+export function sign(payload: string): string {
   return crypto.createHmac("sha256", secret()).update(payload).digest("base64url");
 }
 
@@ -79,37 +81,44 @@ export async function endSession() {
 
 // ---------- API keys (for agents) ----------
 
-export function createApiKey(userId: string): { key: string; prefix: string } {
+/** A new agent key; `clientId` when an OAuth client (such as Muse) got it by signing in. */
+export function createApiKey(userId: string, clientId: string | null = null): { key: string; prefix: string } {
   const key = `msk_${randomToken(24)}`;
   const prefix = key.slice(0, 10);
   run(
-    "INSERT INTO api_keys (id, user_id, key_hash, prefix, created_at) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO api_keys (id, user_id, key_hash, prefix, created_at, client_id) VALUES (?, ?, ?, ?, ?, ?)",
     id("key"),
     userId,
     sha256(key),
     prefix,
     nowIso(),
+    clientId,
   );
   return { key, prefix };
 }
 
-/** Replaces all of a user's keys with a fresh one. */
+/** Replaces all of a user's keys with a fresh one: every agent is cut off, Muse included, and any Connect message stops working. */
 export function rotateApiKey(userId: string): { key: string; prefix: string } {
   return tx(() => {
     run("UPDATE api_keys SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL", nowIso(), userId);
+    run("UPDATE users SET connect_epoch = connect_epoch + 1 WHERE id = ?", userId);
     return createApiKey(userId);
   });
 }
 
-export function userForApiKey(key: string): UserRow | null {
+export type ApiCaller = { user: UserRow; /** The OAuth client's name when the key came from signing in. */ client: string | null };
+
+export function callerForApiKey(key: string): ApiCaller | null {
   if (!key.startsWith("msk_")) return null;
-  const row = one<{ id: string; user_id: string }>(
-    "SELECT id, user_id FROM api_keys WHERE key_hash = ? AND revoked_at IS NULL",
+  const row = one<{ id: string; user_id: string; client: string | null }>(
+    `SELECT k.id, k.user_id, c.name AS client FROM api_keys k LEFT JOIN oauth_clients c ON c.id = k.client_id
+     WHERE k.key_hash = ? AND k.revoked_at IS NULL`,
     sha256(key),
   );
   if (!row) return null;
   run("UPDATE api_keys SET last_used_at = ? WHERE id = ?", nowIso(), row.id);
-  return one<UserRow>("SELECT * FROM users WHERE id = ?", row.user_id) ?? null;
+  const user = one<UserRow>("SELECT * FROM users WHERE id = ?", row.user_id);
+  return user ? { user, client: row.client } : null;
 }
 
 export function bearerFrom(req: Request): string | null {
@@ -120,17 +129,17 @@ export function bearerFrom(req: Request): string | null {
   return x ? x.trim() : null;
 }
 
-export function requireApiUser(req: Request): UserRow {
+export function requireApiCaller(req: Request): ApiCaller {
   const key = bearerFrom(req);
-  if (!key) throw new AppError("unauthorized", "Missing API key.", "Send your Misogi key as `Authorization: Bearer msk_...`.");
-  const user = userForApiKey(key);
-  if (!user) throw new AppError("unauthorized", "This Misogi key isn't valid anymore.", "Ask the person for a new key from misogi's Connect page.");
-  return user;
+  if (!key) throw new AppError("unauthorized", "Missing Misogi credential.", "Connect first: the person's Connect message links your setup steps.");
+  const caller = callerForApiKey(key);
+  if (!caller) throw new AppError("unauthorized", "This Misogi credential isn't valid anymore.", "Connect again: ask the person to copy a fresh message from Misogi's Connect page.");
+  return caller;
 }
 
 export function keyStatus(userId: string): { has_key: boolean; last_used_at: string | null } {
   const rows = all<{ last_used_at: string | null }>(
-    "SELECT last_used_at FROM api_keys WHERE user_id = ? AND revoked_at IS NULL ORDER BY created_at DESC",
+    "SELECT last_used_at FROM api_keys WHERE user_id = ? AND revoked_at IS NULL AND client_id IS NULL ORDER BY created_at DESC",
     userId,
   );
   const used = rows.map((r) => r.last_used_at).filter(Boolean).sort().reverse();

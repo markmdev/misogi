@@ -9,6 +9,7 @@ import { Avatar, EmptyState, Icon, IconTile, ProgressBar } from "@/components/ui
 import { currentUser, keyStatus, publicOrigin } from "@/lib/server/auth";
 import { getChallenge, getMembership, myChallenges } from "@/lib/server/domain/challenges";
 import { memberFacts } from "@/lib/server/domain/progress";
+import { connectCode } from "@/lib/server/oauth";
 import { firstName, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
@@ -95,8 +96,8 @@ export default async function Me() {
           <div className="card p-4">
             <ConnectPanel
               origin={origin}
-              slug={mine[0]?.c.slug ?? null}
               title={mine[0]?.c.title}
+              connectCode={connectCode(user)}
               initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
               hasKey={keyStatus(user.id).has_key}
             />

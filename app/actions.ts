@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { createApiKey, currentUser, endSession, rotateApiKey, startSession } from "@/lib/server/auth";
+import { createApiKey, currentUser, endSession, keyStatus, rotateApiKey, startSession } from "@/lib/server/auth";
 import { normalizeDraft, DraftSchema, styleFromChoices } from "@/lib/server/ai/draft";
 import { createChallenge, getChallenge, joinChallenge } from "@/lib/server/domain/challenges";
 import { addQuests, cheer, logProgress, setPlan, skipQuest } from "@/lib/server/domain/progress";
 import { createUser } from "@/lib/server/domain/users";
+import { connectCode } from "@/lib/server/oauth";
 import { requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
 import { queueCover } from "@/lib/server/covers";
 import { queueStarterPlan } from "@/lib/server/starter";
@@ -47,8 +48,8 @@ const StartInput = z.object({
   idea: z.string().max(300),
 });
 
-/** Creates the account, the challenge, its first plan and quests, and an agent key. */
-export async function startChallenge(input: unknown): Promise<ActionResult<{ slug: string; key: string; handle: string }>> {
+/** Creates the account, the challenge, its first plan and quests, and the code for its Connect message. */
+export async function startChallenge(input: unknown): Promise<ActionResult<{ slug: string; connectCode: string; handle: string }>> {
   try {
     await limitByIp("start", 2, 6);
     const parsed = StartInput.safeParse(input);
@@ -81,13 +82,12 @@ export async function startChallenge(input: unknown): Promise<ActionResult<{ slu
         "system",
       );
       addQuests(user, c.slug, draft.first_quests.map((q) => ({ title: q.title, detail: q.detail, kind: q.kind, xp: q.xp })));
-      const { key } = createApiKey(user.id);
-      return { user, slug: c.slug, key, challengeId: c.id };
+      return { user, slug: c.slug, connectCode: connectCode(user), challengeId: c.id };
     });
     if (!existing) await startSession(result.user.id);
     queueCover(result.challengeId);
     queueVirgil(result.challengeId);
-    return { ok: true, data: { slug: result.slug, key: result.key, handle: result.user.handle } };
+    return { ok: true, data: { slug: result.slug, connectCode: result.connectCode, handle: result.user.handle } };
   } catch (e) {
     return failure(e);
   }
@@ -178,7 +178,9 @@ export async function restoreSpaceAction(slug: string, target: SpaceTarget, vers
 export async function newKeyAction(): Promise<ActionResult<{ key: string }>> {
   try {
     const user = await requireUser();
-    return { ok: true, data: { key: rotateApiKey(user.id).key } };
+    // A first key leaves Muse connected; a new one replaces every key, so it can cut off an agent you no longer trust.
+    const key = keyStatus(user.id).has_key ? rotateApiKey(user.id).key : createApiKey(user.id).key;
+    return { ok: true, data: { key } };
   } catch (e) {
     return failure(e);
   }

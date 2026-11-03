@@ -13,6 +13,7 @@ import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, SectionT
 import { currentUser, publicOrigin } from "@/lib/server/auth";
 import { findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { getUserByHandle } from "@/lib/server/domain/users";
+import { connectCode } from "@/lib/server/oauth";
 import { memberView, pulse } from "@/lib/server/views";
 import { agentLabel, firstName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
@@ -113,8 +114,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
             <div className="mt-5">
               <ConnectPanel
                 origin={origin}
-                slug={c.slug}
                 title={c.title}
+                connectCode={connectCode(viewer!)}
                 initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
                 hasKey={v.keys?.has_key ?? false}
               />
@@ -313,8 +314,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                 <div className="card p-4">
                   <ConnectPanel
                     origin={origin}
-                    slug={c.slug}
                     title={c.title}
+                    connectCode={connectCode(viewer!)}
                     initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
                     hasKey={v.keys?.has_key ?? false}
                   />
