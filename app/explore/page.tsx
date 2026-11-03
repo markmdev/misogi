@@ -18,6 +18,10 @@ const FILTERS = [
   { id: "writing", label: "Writing", icon: "writing" },
   { id: "music", label: "Music", icon: "music" },
   { id: "travel", label: "Travel", icon: "travel" },
+  { id: "mindful", label: "Mindful", icon: "mindful" },
+  { id: "money", label: "Money", icon: "money" },
+  { id: "cooking", label: "Cooking", icon: "cooking" },
+  { id: "social", label: "Together", icon: "handshake" },
 ];
 
 export default async function Explore(props: PageProps<"/explore">) {

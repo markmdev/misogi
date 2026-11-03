@@ -13,7 +13,7 @@ import { addDays, addYear, dateIn, id, randomToken, sha256 } from "./util";
 
 type AgentKind = "muse" | "mcp" | "virgil" | "agent";
 type Avatar = "sky" | "mint" | "peach" | "lilac" | "sand" | "rose";
-type Aggregation = "sum" | "count" | "distinct";
+type Aggregation = "sum" | "count" | "distinct" | "latest";
 
 type DemoUser = {
   handle: string;
@@ -40,7 +40,9 @@ type MemberSpec = {
   replan?: { daysAgo: number; reason: string; shiftWeeks: number; summary?: string; cadence?: string };
   /** Windows with no logs: [fromDaysAgo, toDaysAgo], inclusive. */
   gaps?: [number, number][];
-  // Daily logging (sum metrics)
+  /** Local hour windows when they log in this challenge, when it isn't their usual time (a day's steps get logged at night). */
+  hours?: [number, number][];
+  // Daily logging (sum metrics, and count metrics logged once a day)
   pace?: number;
   weekdays?: number[]; // chance per weekday, Sunday first
   amount?: [number, number];
@@ -49,7 +51,7 @@ type MemberSpec = {
   ritual?: { weekday: number; amount: number; hour: number; notes: string[]; every?: number };
   beats?: Beat[];
   noteRate?: number;
-  // Running notes
+  // Running and walking notes
   paceSec?: number;
   places?: string[];
   km?: boolean;
@@ -140,6 +142,11 @@ const USERS: DemoUser[] = [
   { handle: "anacosta", name: "Ana Costa", tz: "Europe/Lisbon", avatar: "rose", agent: "virgil", style: "Sweet and patient. I'm a total beginner.", hours: [[20, 22]] },
   { handle: "rohank", name: "Rohan Kapoor", tz: "Asia/Kolkata", avatar: "peach", agent: "mcp", agentName: "Claude", style: "Technical. Treat practice like training.", hours: [[6, 7], [21, 22]] },
   { handle: "helennovak", name: "Helen Novak", tz: "America/Chicago", avatar: "rose", agent: "muse", agentName: "Bao", style: "Warm and steady. Remind me who it's for.", hours: [[7, 8], [19, 22]] },
+  { handle: "waltjensen", name: "Walt Jensen", tz: "America/Chicago", avatar: "sand", agent: "virgil", style: "Old school. Short messages. Just tell me the number.", hours: [[6, 7], [19, 20]] },
+  { handle: "jadedraws", name: "Jade Thompson", tz: "America/New_York", avatar: "lilac", agent: "muse", agentName: "Olive", style: "Practical. Freelance money is lumpy, so plan for lumpy months.", hours: [[9, 10], [20, 22]] },
+  { handle: "joannareyes", name: "Joanna Reyes", tz: "America/Chicago", avatar: "peach", agent: "virgil", style: "Warm, but keep me organized. Two teenagers, four calendars.", hours: [[6, 7], [20, 22]] },
+  { handle: "paolosantos", name: "Paolo Santos", tz: "Asia/Dubai", avatar: "sky", agent: "muse", agentName: "Tala", style: "Warm. I miss home, so help me keep the calls going.", hours: [[21, 23]] },
+  { handle: "debcollins", name: "Deb Collins", tz: "America/New_York", avatar: "rose", agent: "virgil", style: "Straightforward. I'm 52 and stubborn, use it.", hours: [[6, 7], [18, 20]] },
 ];
 
 // ---------- Templates (Zuckerberg's yearly challenges) ----------
@@ -411,6 +418,183 @@ function runNote({ m, value, hour, long, rng }: NoteCtx): string {
   if (r < 0.88) return `${title} · ${mmss(pace)}/mi · ${phrase}`;
   return phrase.charAt(0).toUpperCase() + phrase.slice(1) + ".";
 }
+
+const STEP_PHRASES = [
+  "walked to the shops",
+  "lunch walk",
+  "two laps of the park after dinner",
+  "the long way home",
+  "rain jacket, worth it",
+  "podcast walk",
+  "took the stairs all day",
+  "missed the bus, walked instead",
+  "out with a friend",
+  "paced the hallway for the last 900",
+  "errands on foot",
+  "walked through a long phone call",
+  "late loop around the block to make it",
+  "slow walk, sore legs",
+  "sunset walk",
+  "headphones off, just walking",
+];
+
+function stepsNote({ m, rng }: NoteCtx): string {
+  const r = rng.next();
+  if (r < 0.35) return "";
+  const steps = (rng.chance(0.12) ? rng.int(15000, 23000) : rng.int(10050, 14500)).toLocaleString("en-US");
+  const phrase = m.places && rng.chance(0.5) ? rng.pick(m.places) : rng.pick(STEP_PHRASES);
+  if (r < 0.6) return `${steps} steps`;
+  if (r < 0.9) return `${steps} · ${phrase}`;
+  return phrase.charAt(0).toUpperCase() + phrase.slice(1) + ".";
+}
+
+const SCREEN_PHRASES = [
+  "phone charged in the hallway",
+  "read instead of scrolling",
+  "mostly maps and messages",
+  "left it at home for the walk",
+  "grayscale is weirdly effective",
+  "deleted the app again",
+  "picked it up out of habit, put it back",
+  "long call home, worth every minute",
+  "news on the laptop instead",
+  "app limit kicked in at 9, let it",
+  "cooked from a paper recipe",
+  "quiet evening, good evening",
+  "alarm clock by the bed, phone in the kitchen",
+  "lots of photos at a birthday, still under",
+  "group chat muted after 8",
+];
+
+function screenNote({ rng }: NoteCtx): string {
+  const r = rng.next();
+  if (r < 0.3) return "";
+  const min = rng.int(35, 118);
+  const time = min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ""}` : `${min} min`;
+  const phrase = rng.pick(SCREEN_PHRASES);
+  if (r < 0.55) return time;
+  if (r < 0.9) return `${time} · ${phrase}`;
+  return phrase.charAt(0).toUpperCase() + phrase.slice(1) + ".";
+}
+
+const MEDITATION_NOTES = [
+  "Ten minutes before coffee. My mind was a pinball machine the whole time.",
+  "Body scan in bed. Made it to the knees awake.",
+  "Counted breaths to ten and started over about thirty times. Apparently that's the practice.",
+  "Sat by the open window. Birds, a scooter, a neighbour's radio.",
+  "Walking meditation to the station. Felt every step on the cold pavement.",
+  "Kept planning tomorrow's meeting. Noticed it, came back. Again and again.",
+  "First time the ten minutes felt short.",
+  "Sat in the car before going into work.",
+  "Headache today. Just breathed and didn't try to fix anything.",
+  "Loving-kindness for the first time. Wishing myself well felt awkward.",
+  "Late. Ten minutes on the bathroom floor because it was the only quiet room.",
+  "Noticed my jaw was clenched. It's always clenched.",
+  "Twelve minutes. The timer went and I kept going.",
+  "Restless. Opened my eyes three times to check the timer.",
+  "Tried noting: thinking, hearing, thinking, itching.",
+  "Sat after an argument. Didn't fix it, but I went back calmer.",
+  "Rain on the window the whole time. Easiest sit in weeks.",
+  "Dozed off for a minute, so I did the last five again.",
+  "Box breathing before a hard phone call.",
+  "Sat on a bench in the park. Cold, clear, good.",
+  "Guided session on sleep. Long exhale, longer than the inhale.",
+  "Mind was quiet for maybe three breaths in a row. A record.",
+  "Hotel room. Folded the duvet into a cushion.",
+  "Noticed the urge to grab my phone the second the timer ended.",
+  "One word on each out-breath: here. Worked better than counting.",
+  "Sat right after waking, before the day could get in.",
+  "Sadness came up. Let it. Ten minutes felt long.",
+  "Couldn't settle until minute seven. Then it was fine.",
+  "Second sit of the day, just because.",
+  "Eyes open, looking at a candle. Easier than closing them.",
+  "Breath at the nostrils: cool in, warm out.",
+  "Long day. Those ten minutes were the only part that was mine.",
+  "Heard the fridge hum for the first time in years.",
+  "No app today, just a kitchen timer.",
+  "Sore back. Did it lying on the floor.",
+  "Thought about nothing for a moment. Then thought about how I'd thought about nothing.",
+  "Sat before a job interview. Hands stopped shaking.",
+  "The neighbours were drilling. Made the drill the thing I paid attention to.",
+];
+
+const DINNER_NOTES = [
+  "Nobody rushed off. We sat for an hour after the plates were empty.",
+  "Leftovers, and the best conversation of the week.",
+  "Soup and bread. Quiet, in a good way.",
+  "Everyone was tired. Ate together anyway and felt better for it.",
+  "Talked about the news for a bit, then about nothing, which was better.",
+  "Somebody told a story I'd never heard before.",
+  "Late dinner, almost nine. Worth waiting for.",
+  "Long argument about the best pasta shape. No winner.",
+  "Tried a new recipe. Mixed reviews, empty plates.",
+  "Candles on the table for no reason. Stayed for dessert.",
+  "Short dinner, but everyone was there.",
+  "Laughed about an old holiday photo until the food went cold.",
+  "Went around the table: best and worst part of the day.",
+  "Ate outside while it was still warm enough.",
+  "A hard topic came up. We stayed with it.",
+  "Phones in a basket by the door. Nobody asked for them back.",
+  "Planned the next one before this one was over.",
+  "Breakfast for dinner. Pancakes at 7pm feel like breaking a rule.",
+];
+
+const SPANISH_NOTES = [
+  "Rolled my first r. Then couldn't do it again for an hour.",
+  "Ser vs estar. I'm told it gets easier.",
+  "Duolingo at lunch. The owl is relentless.",
+  "An episode of a Spanish show with Spanish subtitles. Caught maybe a fifth.",
+  "Learned the days of the week. Miércoles is my favourite word now.",
+  "Flashcards before bed. The food words are sticking.",
+  "Talked through my day out loud on the way home. Lots of eh, bueno.",
+  "Coffee Break Spanish while making dinner.",
+  "Wrote five sentences about my family. The app marked two of them right.",
+  "Numbers to a hundred. Sesenta and setenta keep swapping places.",
+  "Read a menu out loud at a Mexican place. They answered in Spanish. I nodded a lot.",
+  "Shadowed a 2-minute podcast clip until I sounded less like a robot.",
+  "Learned me gustaría. I would like. Polite and useful.",
+  "Noun genders. La mano, el día. Who decided this.",
+  "Past tense review. Fui, fuiste, fue.",
+  "Looked up every word of a song a coworker likes.",
+  "Directions: a la derecha, a la izquierda, todo recto.",
+  "Changed my phone's language to Spanish. Regret it a little.",
+  "Estoy aprendiendo español. I'm learning Spanish. Said it to the mirror ten times.",
+  "The subjunctive turned up in a podcast. Closed the app.",
+  "Read a children's book with my coffee. Understood the whole plot, which was about a duck.",
+  "Wrote my shopping list in Spanish.",
+  "Slow news podcast on the commute. Got the weather and one headline.",
+  "Tongue twister practice. Tres tristes tigres.",
+  "Verb drills. Tener, poder, querer.",
+  "Ordered at the Colombian bakery in Spanish. Café con leche, por favor. It worked.",
+  "Listened to the same dialogue five times. The fifth time it slowed down.",
+  "Learned embarazada means pregnant, not embarrassed. Glad it was the app that taught me.",
+  "Practiced booking a table on the phone. Lots of numbers.",
+  "False friends today: actual means current.",
+  "Long session. Went back through every note from the month.",
+  "Only had time for flashcards. Did them in line at the pharmacy.",
+  "Described my morning in five sentences without notes.",
+  "Tried thinking in Spanish on a walk. Ran out of words at the corner.",
+  "Reflexive verbs. Me levanto, me ducho, me voy.",
+  "Cooking video from Mexico City. Understood the ingredients, mostly.",
+  "Por vs para. Read three explanations. Still guessing.",
+];
+
+const SAVINGS_NOTES = [
+  "Skipped takeout twice this week and moved what it would have cost.",
+  "Sold a jacket I never wore.",
+  "Cashback from the card, straight in.",
+  "Brought lunch every day this week.",
+  "Birthday money from my aunt. In before I could spend it.",
+  "Returned something I didn't need. The refund goes here.",
+  "Cancelled a streaming service I forgot I had.",
+  "No-spend weekend. Walked, cooked, read. Moved the difference.",
+  "Sold my old phone.",
+  "Coffee at home all week.",
+  "Found a cheaper phone plan. The difference comes here every month now.",
+  "Electric bill came in under budget.",
+  "What was left of the grocery budget.",
+  "Library instead of buying books this month.",
+];
 
 const CHALLENGES: ChallengeSpec[] = [
   // ----- Mandarin -----
@@ -1547,6 +1731,1441 @@ const CHALLENGES: ChallengeSpec[] = [
     space:
       "A gig poster on a night stage: deep navy with warm stage-light accents. Lead with the number of songs learned together, then each player's setlist (song names and the date they learned them), and each player's progress to 20 as a guitar fretboard where frets light up.",
   },
+
+  // ----- Steps -----
+  {
+    key: "steps",
+    slug: "walk-10-000-steps-a-day",
+    title: "Walk 10,000 steps a day",
+    tagline: "Ten thousand steps on 300 days of the year. Every step counts, not just the walks.",
+    description:
+      "Walk 10,000 steps a day, and count the days you make it. The summit is 300 days: that leaves room for sick days, long flights and the odd day on the sofa.\n\n" +
+      "Log once a day, after your phone or watch passes 10,000. Errands, stairs and pacing through phone calls all count. Put the number in the note if you like.",
+    emoji: "running",
+    theme: "teal",
+    category: "fitness",
+    metric: { name: "10,000-step days", unit: "days", target: 300, aggregation: "count" },
+    camps: [
+      { title: "First week of 10,000s", detail: "Seven days over 10,000. They don't have to be in a row.", target: 7, week: 2, emoji: "running" },
+      { title: "A route of your own", detail: "30 days, and one regular walk you look forward to.", target: 30, week: 6, emoji: "map" },
+      { title: "100 days", detail: "A hundred days over 10,000.", target: 100, week: 18, emoji: "flag" },
+      { title: "Halfway: 150 days", detail: "Walking is just what you do now.", target: 150, week: 27, emoji: "camp" },
+      { title: "225 days", detail: "Three quarters of the way, on foot.", target: 225, week: 40, emoji: "trophy" },
+      { title: "300 days", detail: "Three hundred days of 10,000 steps.", target: 300, week: 52, emoji: "summit" },
+    ],
+    noteFor: stepsNote,
+    members: [
+      {
+        handle: "graceoc",
+        daysAgo: 74,
+        pace: 0.84,
+        gaps: [[44, 40]],
+        places: ["the canal from Portobello to Baggot Street", "Sandymount Strand", "the pier at Dún Laoghaire", "Phoenix Park", "the Herbert Park loop"],
+        beats: [
+          { daysAgo: 74, note: "Day one. 10,312, and most of it was walking to the shop twice because I forgot the milk." },
+          { daysAgo: 47, note: "Walking is the only thing that's helped this week. Out to the Bull Wall and back." },
+          { daysAgo: 39, note: "Back after a few days I couldn't. Small loop, just over." },
+          { daysAgo: 12, note: "The pier at Dún Laoghaire twice with my sister. 16,000, and we talked the whole way." },
+        ],
+        plan: {
+          summary:
+            "Grace sits at a desk all day and wants walking to be the one thing that happens no matter what. A walk on her lunch break most days, the canal on the way home, and a long one by the sea on Sundays. Missed days don't need making up: the summit has room for them.",
+          cadence: "Every day. Lunch walk, and the canal home.",
+        },
+      },
+      {
+        handle: "weizhang",
+        daysAgo: 66,
+        pace: 0.88,
+        hours: [[21, 23]],
+        places: ["East Coast Park at 6:30", "the Rail Corridor", "the MacRitchie boardwalk", "the Marina Bay loop", "the Bishan park connector"],
+        beats: [
+          { daysAgo: 66, note: "10,480. Walked from Tanjong Pagar to the office instead of changing lines." },
+          { daysAgo: 30, note: "Rain all day. 10,050, from laps of the office floor at lunch." },
+          { daysAgo: 8, note: "Rail Corridor, Buona Vista to Hillview. 21,300." },
+        ],
+        plan: {
+          summary:
+            "Wei works long days at a desk, and Singapore's heat rules out a midday walk. The plan is a 6:30 walk at East Coast Park before work, getting off the MRT one stop early, and a long walk on Sundays along the Rail Corridor.",
+          cadence: "Daily. 6:30 walk, and one stop early on the MRT.",
+        },
+      },
+      {
+        handle: "waltjensen",
+        daysAgo: 52,
+        pace: 0.93,
+        gaps: [[21, 19]],
+        hours: [[19, 21]],
+        places: ["around Lake Nokomis", "the Minnehaha Creek trail", "my old route on 38th Street", "the skyway downtown", "the mall loop at Southdale"],
+        beats: [
+          { daysAgo: 52, note: "Carried mail for 31 years. Retired in June. Turns out my legs still want the route." },
+          { daysAgo: 33, note: "Walked my old route on 38th Street. Three people waved. One asked if I was back." },
+          { daysAgo: 18, note: "Head cold, three days off. Back out. Short and slow." },
+          { daysAgo: 4, note: "First morning in the mall at Southdale with the 7am walkers. They have a club. I'm in it now." },
+        ],
+        plan: {
+          summary:
+            "Walt walked 15 miles a day with a mailbag for 31 years and retired in June. He wants to keep his legs and his routine. Two walks a day, one in the morning and one after supper, around Lake Nokomis while the weather holds, and the indoor mall loop once it doesn't.",
+          cadence: "Twice a day. Mall loop in deep winter.",
+        },
+      },
+      {
+        handle: "marcob",
+        daysAgo: 44,
+        pace: 0.74,
+        gaps: [[33, 17]],
+        places: ["along the Naviglio Grande", "Parco Sempione", "the walk home from Porta Venezia", "Monte Stella", "Città Studi to the Duomo"],
+        beats: [
+          { daysAgo: 44, note: "Joined to stop taking the tram for four stops. 10,400, mostly the walk home." },
+          { daysAgo: 16, note: "Deadline over. Walked from the office to the Duomo and kept going." },
+        ],
+        plan: {
+          summary:
+            "Marco wants to stop taking the tram for short trips. He walks home from work most evenings and takes a long walk along the canals on Sundays. Busy weeks are allowed to be busy.",
+          cadence: "Walk home from work. Long walk on Sundays.",
+        },
+        replan: {
+          daysAgo: 16,
+          shiftWeeks: 2,
+          reason: "A work deadline took two and a half weeks, and the walks with it. Camps moved back two weeks; the walk home stays the base.",
+        },
+      },
+      {
+        handle: "samwhit",
+        daysAgo: 33,
+        pace: 0.7,
+        places: ["the stroller loop around Echo Park Lake", "the farmers market and back on foot", "around the block twice after bedtime"],
+        beats: [
+          { daysAgo: 33, note: "The stroller walk after dinner is official now." },
+          { daysAgo: 10, note: "She walked the last block herself. Slowest 400 steps of my life." },
+        ],
+        plan: {
+          summary:
+            "Sam has a toddler and a long commute, so the walks fit around both: a stroller walk after dinner, a lunch walk on office days, and the farmers market on foot on Saturdays.",
+          cadence: "Most days. Stroller walk after dinner.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Get off one stop early", "Bus, train or tram. Every day this week.", "daily", 10),
+      q("A 10-minute walk after dinner", "Before the sofa. Every evening this week.", "daily", 10),
+      q("Walk somewhere you'd normally drive", "The shop, the post office, a friend's place. Leave the keys at home.", "weekly", 20),
+      q("Find a rainy-day route", "A mall, a museum, a covered market or an office stairwell. Walk it once.", "one_off", 15),
+      q("Take one call on foot", "Any call that doesn't need a screen.", "weekly", 15),
+      q("Check your steps at 6pm", "Under 6,000? Plan the evening walk now, not at 10.", "daily", 10),
+      q("Walk with someone", "A friend, a neighbour, your kid, a dog.", "one_off", 15),
+      q("Map a 5 km loop from your door", "One you can walk in 45 minutes without thinking.", "one_off", 15),
+      q("Walk somewhere new", "A street, a park or a path you've never walked. An hour, no destination.", "weekly", 20),
+      q("Walk 20,000 steps in one day", "A half-day walk somewhere new, with a lunch stop.", "boss", 70),
+      q("Seven days in a row over 10,000", "No gaps this week, even if the last one is laps of the kitchen.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Walk one errand you'd normally drive to", "The shop, the post office, the library.", "weekly", 20),
+        q("Lunch walk, three days this week", "Twenty minutes, phone in your pocket.", "weekly", 20),
+        q("Get off one stop early", "Every day this week.", "daily", 10),
+        q("Evening loop after dinner", "Ten minutes before the sofa.", "daily", 10),
+        q("Walk with someone", "A friend, a neighbour, your kid, a dog.", "one_off", 15),
+        q("Take the stairs all day", "Every flight, every time.", "daily", 10),
+        q("Find a rainy-day route", "Somewhere indoors you can walk 3,000 steps.", "one_off", 15),
+        q("A long walk this weekend", "Two hours somewhere new, no rush.", "weekly", 25),
+        q("Take one call on foot", "Any call that doesn't need a screen.", "weekly", 15),
+        q("Five days over 10,000 this week", "Plan the walks on Sunday night.", "weekly", 25),
+        q("Walk 20,000 steps in one day", "A half-day walk with a lunch stop.", "boss", 70),
+      ]),
+    space:
+      "A park map at dawn in teal and soft green: winding footpaths, a pond, a few trees. Lead with the days everyone together has made 10,000 steps, as one big number. Then a 6-week strip of small footprints, one per day, darker when more people made it that day. Give each member a footpath across the map with their days toward 300 marked along it. End with the newest notes as little signposts: they often carry the day's step count and where people walked.",
+  },
+
+  // ----- Savings -----
+  {
+    key: "savings",
+    slug: "save-three-months-of-expenses",
+    title: "Save three months of expenses",
+    tagline: "A cushion of three months, built one transfer at a time.",
+    description:
+      "Build an emergency fund that covers three months of rent, food and bills, kept in its own account and touched only for real emergencies.\n\n" +
+      "The summit is $9,000: three months at $3,000. If your months cost more, keep going past it. Log each deposit in dollars, converting at the day's rate if you save in another currency.",
+    emoji: "money",
+    theme: "sand",
+    category: "money",
+    metric: { name: "amount saved", unit: "dollars", target: 9000, aggregation: "sum" },
+    camps: [
+      { title: "A $500 buffer", detail: "Enough for a car repair or a vet bill, in its own account.", target: 500, week: 4, emoji: "money" },
+      { title: "Transfers on autopilot", detail: "$1,500 saved, and a transfer that runs on payday without you.", target: 1500, week: 10, emoji: "calendar" },
+      { title: "One month covered", detail: "$3,000: rent, food and bills for a month.", target: 3000, week: 18, emoji: "shield" },
+      { title: "Halfway: $4,500", detail: "Six weeks of breathing room.", target: 4500, week: 26, emoji: "camp" },
+      { title: "Two months covered", detail: "$6,000. Time to think if work goes wrong.", target: 6000, week: 35, emoji: "flag" },
+      { title: "Three months covered", detail: "$9,000 that's there when you need it.", target: 9000, week: 52, emoji: "summit" },
+    ],
+    notes: SAVINGS_NOTES,
+    shortNotes: ["Round-ups", "Cashback", "No-spend day", "Brought lunch", "Skipped takeout"],
+    members: [
+      {
+        handle: "tylerb",
+        daysAgo: 70,
+        weekdays: [0.04, 0.02, 0.02, 0.02, 0.02, 0.03, 0.08],
+        amount: [20, 75],
+        ritual: {
+          weekday: 5,
+          every: 2,
+          amount: 300,
+          hour: 18,
+          notes: [
+            "Payday. Rent and bills paid, the rest moved.",
+            "Payday transfer.",
+            "",
+            "Payday. Didn't even have to think about it.",
+            "Payday transfer.",
+            "",
+          ],
+        },
+        beats: [
+          { daysAgo: 70, value: 250, note: "The transmission went in March and lived on a credit card until August. Never again. Opened a separate account today." },
+          { daysAgo: 41, value: 180, note: "Sold the old mountain bike on Marketplace." },
+          { daysAgo: 17, value: 120, note: "Refereed two youth games on the weekend. That money comes here now." },
+        ],
+        plan: {
+          summary:
+            "Tyler's car died in March and the repair sat on a credit card for five months. Every other Friday, when he's paid, whatever is left after rent and bills (usually about $300) moves to a separate account, and anything extra goes in too: refereeing money, things he sells. Road trips come out of a different pot.",
+          cadence: "Every other Friday, on payday. Extras when they come.",
+        },
+      },
+      {
+        handle: "jordanruns",
+        daysAgo: 63,
+        weekdays: [0.03, 0, 0.03, 0.03, 0.03, 0.03, 0.05],
+        amount: [25, 90],
+        ritual: {
+          weekday: 1,
+          amount: 150,
+          hour: 6,
+          notes: ["Monday sweep.", "", "What was left of last week's budget.", "Monday sweep. Spreadsheet says on pace.", "", "Monday sweep.", "Monday sweep. Checked the gap to the next camp."],
+        },
+        beats: [
+          { daysAgo: 63, value: 400, note: "Moved what was sitting in checking to start. Spreadsheet built, obviously." },
+          { daysAgo: 35, value: 165, note: "Swept what was left in checking at the end of the month." },
+          { daysAgo: 28, value: 210, note: "Sold my old GPS watch." },
+          { daysAgo: 5, value: 140, note: "Month-end sweep." },
+        ],
+        plan: {
+          summary:
+            "Jordan likes a spreadsheet and hates surprises. Every Monday before he's awake, whatever is left of last week's budget (usually about $150) moves to a high-yield account, and at the end of each month he sweeps in what's left in checking. He checks the gap to the next camp on Sundays.",
+          cadence: "Every Monday. Month-end sweep.",
+        },
+      },
+      {
+        handle: "jadedraws",
+        daysAgo: 55,
+        weekdays: [0.04, 0.05, 0.05, 0.05, 0.05, 0.05, 0.04],
+        amount: [20, 60],
+        beats: [
+          { daysAgo: 55, value: 300, note: "Freelance means some months are great and some are scary. New rule from today: 20% of every invoice goes straight to savings." },
+          { daysAgo: 47, value: 440, note: "The bakery rebrand invoice cleared. Moved 20% before I could think about it." },
+          { daysAgo: 31, value: 160, note: "Slow month. Small invoice, same rule." },
+          { daysAgo: 22, value: 900, note: "The big one cleared. Brochure and website for a dental practice." },
+          { daysAgo: 9, value: 360, note: "Paid late, but paid." },
+          { daysAgo: 2, value: 240, note: "Logo job for a friend's coffee cart. 20% in." },
+        ],
+        plan: {
+          summary:
+            "Jade is a freelance designer, so her income comes in lumps. Twenty percent of every invoice moves to savings the day it clears, and in months with no invoices she aims for $100 from trimming spending. Quiet months are expected and planned for.",
+          cadence: "The day each invoice clears.",
+        },
+        replan: {
+          daysAgo: 30,
+          shiftWeeks: 2,
+          reason: "A client paid six weeks late. Camps moved back two weeks; the 20% rule stays.",
+        },
+      },
+      {
+        handle: "sofiam",
+        daysAgo: 48,
+        weekdays: [0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03],
+        amount: [20, 50],
+        ritual: {
+          weekday: 1,
+          every: 4,
+          amount: 540,
+          hour: 13,
+          notes: ["Salary in. €500 to the fund, converted at today's rate.", "Payday. €500 moved.", "€500 to the fund. The dollar moved again, so a slightly different number."],
+        },
+        beats: [{ daysAgo: 48, value: 650, note: "I save in euros and log dollars at the day's rate, so the group's numbers add up. €600 to start." }],
+        plan: {
+          summary:
+            "Sofía lives in Madrid and saves in euros. €500 moves to a separate account on payday each month, plus whatever is left of her monthly budget at the end. She logs dollars at the day's rate so the group's numbers add up.",
+          cadence: "Monthly, on payday.",
+        },
+      },
+      {
+        handle: "benlarsen",
+        daysAgo: 12,
+        pace: 0,
+        beats: [
+          { daysAgo: 12, value: 400, note: "Starting with $400." },
+          { daysAgo: 5, value: 200, note: "Payday. $200." },
+        ],
+        plan: {
+          summary: "Ben's furnace is 22 years old and he'd rather be ready when it goes. $200 every payday. Nothing fancy.",
+          cadence: "Every payday.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Open a separate savings account", "One with no card attached. Name it after what it's for.", "one_off", 20),
+      q("Set up an automatic transfer for payday", "Even $25. The point is that it happens without you.", "one_off", 25),
+      q("Add up one month of real spending", "Rent, food, bills, transport. From last month's statements, not a guess.", "one_off", 25),
+      q("Sell one thing you don't use", "Marketplace, a yard sale, a friend. Straight into the fund.", "weekly", 20),
+      q("A no-spend weekend", "Only what's already in the fridge. Move what you'd have spent.", "weekly", 25),
+      q("Cancel one subscription", "Move this month's price into savings.", "one_off", 15),
+      q("Compare your account's interest rate", "Check two other banks. Switch if yours pays almost nothing.", "one_off", 15),
+      q("Cook every dinner this week", "No delivery. Move the difference on Sunday.", "weekly", 25),
+      q("Round up this week's spending", "Round every purchase to the next $10 and move the difference.", "weekly", 15),
+      q("Write down what counts as an emergency", "Job loss, health, car, home. A sale isn't one.", "one_off", 15),
+      q("Save $1,000 in one month", "Payday transfer plus every extra. Plan it on the 1st.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Move money the day it comes in", "Before anything else gets paid.", "weekly", 20),
+        q("Sell one thing you don't use", "Straight into the fund.", "weekly", 20),
+        q("A no-spend weekend", "Move what you'd have spent.", "weekly", 25),
+        q("Cancel one subscription", "Move this month's price into savings.", "one_off", 15),
+        q("Cook every dinner this week", "Move the difference on Sunday.", "weekly", 25),
+        q("Round up this week's spending", "To the next $10, and move the difference.", "weekly", 15),
+        q("Bring lunch four days this week", "Move what the café would have cost.", "weekly", 20),
+        q("Put a windfall straight in", "A refund, a gift, a bonus: in before it's spent.", "one_off", 20),
+        q("Save $1,000 in one month", "Payday transfer plus every extra.", "boss", 80),
+      ]),
+    space:
+      "A kitchen shelf of glass jars in warm sand and honey tones, one jar per member, filling with gold coins toward their own $9,000, with faint lines on the glass at one, two and three months. Above the shelf, the total everyone has saved together as one big number, with no progress bar: three months is each person's own goal, not the group's. Below, a bar chart of deposits per week for the last 10 weeks, and the newest notes as small paper tags tied to the jars.",
+  },
+
+  // ----- Meditation -----
+  {
+    key: "meditate",
+    slug: "meditate-10-minutes-a-day",
+    title: "Meditate 10 minutes a day",
+    tagline: "Ten minutes, most days of the year. Any style, any app, any chair.",
+    description:
+      "Sit for ten minutes a day. Breathing, a body scan, a guided app, a slow walk: any practice counts if it's ten minutes and your attention is on it.\n\n" +
+      "Log once on each day you've done your ten minutes. The summit is 330 days, which leaves about a month for the days life wins.",
+    emoji: "mindful",
+    theme: "lilac",
+    category: "mindful",
+    metric: { name: "days meditated", unit: "days", target: 330, aggregation: "count" },
+    camps: [
+      { title: "Seven sits", detail: "Seven days with ten minutes. The same time each day helps.", target: 7, week: 2, emoji: "mindful" },
+      { title: "A spot of your own", detail: "30 days, and one place at home that's just for sitting.", target: 30, week: 5, emoji: "seedling" },
+      { title: "100 days", detail: "A hundred days of ten minutes.", target: 100, week: 17, emoji: "flag" },
+      { title: "Halfway: 165 days", detail: "Try one longer sit: twenty minutes.", target: 165, week: 26, emoji: "camp" },
+      { title: "250 days", detail: "Ten minutes is just part of the day now.", target: 250, week: 40, emoji: "sparkles" },
+      { title: "330 days", detail: "Three hundred and thirty days of sitting still.", target: 330, week: 52, emoji: "summit" },
+    ],
+    notes: MEDITATION_NOTES,
+    shortNotes: ["Breath counting", "Body scan", "Guided, 10 min", "Insight Timer", "Headspace", "Walking meditation", "Before coffee", "Before bed", "Box breathing"],
+    members: [
+      {
+        handle: "yukitanaka",
+        daysAgo: 73,
+        pace: 0.9,
+        ritual: {
+          weekday: 6,
+          amount: 1,
+          hour: 8,
+          notes: [
+            "Saturday zazen at the temple near my station.",
+            "Zazen. Forty minutes, legs asleep by the end.",
+            "Temple zazen. The monk straightened my back with one finger.",
+            "",
+            "Zazen in the rain. Only four of us came.",
+            "Zazen. The bell at the end sounded different today. Or I did.",
+            "",
+          ],
+        },
+        beats: [
+          { daysAgo: 73, note: "Starting small. Ten minutes after my bath, before bed." },
+          { daysAgo: 40, note: "Falling asleep has been easier since I started this." },
+          { daysAgo: 11, note: "Sat on the train home with my eyes closed and missed my stop. Worth it." },
+        ],
+        plan: {
+          summary:
+            "Yuki wants a calmer end to long workdays. Ten minutes after her bath each night, on a folded blanket by the window, with a timer and no app. On Saturday mornings, zazen at the temple near her station.",
+          cadence: "Nightly, 10 min after the bath. Zazen on Saturdays.",
+        },
+      },
+      {
+        handle: "nadiah",
+        daysAgo: 61,
+        pace: 0.82,
+        beats: [
+          { daysAgo: 61, note: "Ten minutes on the 7:42 to La Défense, eyes closed, headphones in, nothing playing." },
+          { daysAgo: 30, note: "Tried sitting at home instead of on the train. Harder. The train has a better rhythm." },
+          { daysAgo: 6, note: "My mother asked what I do every morning with my eyes shut. Taught her the breath count." },
+        ],
+        plan: {
+          summary:
+            "Nadia meditates on the train to work, ten minutes with headphones in and nothing playing, and sits longer at home on weekends. She writes one line about each sit in her commonplace book.",
+          cadence: "Weekdays on the train, weekends at home.",
+        },
+      },
+      {
+        handle: "emmal",
+        daysAgo: 50,
+        weekdays: [0.95, 0.7, 0.75, 0.7, 0.75, 0.65, 0.7],
+        beats: [
+          { daysAgo: 50, note: "Candle, blanket, ten minutes. Very me." },
+          { daysAgo: 20, note: "Dark by four now. Sitting by candlelight feels right." },
+        ],
+        plan: {
+          summary:
+            "Emma wants ten quiet minutes at the end of the day. She sits on the sofa with a candle and a guided session from Insight Timer, and on Sundays she does twenty minutes with tea after.",
+          cadence: "Evenings, 10 min. Twenty on Sundays.",
+        },
+      },
+      {
+        handle: "chloedubois",
+        daysAgo: 36,
+        pace: 0.74,
+        gaps: [[20, 17]],
+        beats: [
+          { daysAgo: 36, note: "Night-shift brain needs this. Ten minutes in the car before I drive home." },
+          { daysAgo: 16, note: "Four nights in a row and no sits. Back. Did it on the bedroom floor before sleeping." },
+          { daysAgo: 5, note: "Body scan after a rough shift. Slept six hours straight, which never happens." },
+        ],
+        plan: {
+          summary:
+            "Chloé works night shifts. On shift days she sits for ten minutes in her car before driving home; on days off she sits in the morning before coffee. Shift weeks are allowed to be patchy.",
+          cadence: "After every shift, and mornings off.",
+        },
+        replan: {
+          daysAgo: 16,
+          shiftWeeks: 0,
+          reason: "Four night shifts in a row and the car sits kept getting skipped. Moved the shift-day sit to the bedroom floor before sleep. Same camps.",
+          summary:
+            "Chloé works night shifts. On shift days she sits for ten minutes on the bedroom floor before she sleeps; on days off she sits in the morning before coffee. Shift weeks are allowed to be patchy.",
+          cadence: "Before sleep on shift days, mornings off.",
+        },
+      },
+      {
+        handle: "arjunm",
+        daysAgo: 15,
+        pace: 0.72,
+        noteRate: 0.15,
+        beats: [
+          { daysAgo: 15, note: "Can I sit still for ten minutes? We're about to find out." },
+          { daysAgo: 4, note: "First sit without checking the timer. Disproportionately proud of this." },
+        ],
+        plan: {
+          summary:
+            "Arjun is fidgety and knows it. Ten minutes with a guided session every night right after brushing his teeth, so it hangs on a habit he already has, and no timer-free sits until guided ones feel easy.",
+          cadence: "Nightly, after brushing teeth.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Same time, same place, all week", "Pick a spot and a time that already exist in your day.", "weekly", 20),
+      q("Sit without an app once", "Just a timer. Notice what's different.", "one_off", 15),
+      q("Try a body scan", "Toes to head, ten minutes. Lying down is fine.", "weekly", 15),
+      q("Count breaths to ten", "Start over each time you lose count. Every day this week.", "daily", 10),
+      q("A walking meditation", "Ten minutes, slow, attention on your feet.", "weekly", 15),
+      q("Sit before you check your phone", "First thing after waking, every day this week.", "daily", 10),
+      q("Write one line after each sit", "What was loud today? One line, then close the notebook.", "weekly", 15),
+      q("Try loving-kindness", "Ten minutes: yourself, someone you love, someone difficult.", "weekly", 20),
+      q("Set up a corner for sitting", "A cushion or a chair, a blanket, nothing else.", "one_off", 15),
+      q("A 20-minute sit", "Once this week. Notice where it gets hard.", "boss", 60),
+      q("Seven days in a row", "Ten minutes, every day this week, no exceptions.", "boss", 70),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Same time, same place, all week", "Hang it on something you already do.", "weekly", 20),
+        q("Sit without an app once", "Just a timer.", "one_off", 15),
+        q("Try a body scan", "Toes to head. Lying down is fine.", "weekly", 15),
+        q("Count breaths to ten", "Start over each time you lose count.", "daily", 10),
+        q("A walking meditation", "Ten minutes, attention on your feet.", "weekly", 15),
+        q("Sit before you check your phone", "First thing after waking.", "daily", 10),
+        q("Write one line after each sit", "What was loud today?", "weekly", 15),
+        q("Try loving-kindness", "Yourself, someone you love, someone difficult.", "weekly", 20),
+        q("A 20-minute sit", "Once this week.", "boss", 60),
+      ]),
+    space:
+      "A quiet room at twilight in soft lilac: a cushion, a low window, one candle, lots of empty space. Lead with the days everyone has sat together as one calm number, with no progress bar: 330 days is each person's own goal, not the group's. Then a 6-week grid of small circles, one per day, glowing brighter the more people sat that day. Give each member a string of beads, one bead per day sat, toward their own 330. Show the newest notes as journal lines in a light serif.",
+  },
+
+  // ----- Family dinners -----
+  {
+    key: "dinners",
+    slug: "share-100-dinners-with-family",
+    title: "Share 100 dinners with family",
+    tagline: "About two a week. Sit down together and stay for the whole meal.",
+    description:
+      "Have 100 dinners with family this year, about two a week. A dinner counts when you sit down together and stay for the whole meal, with no other screens at the table. Takeout counts. Video dinners with family far away count. Family is whoever you call family.\n\n" +
+      "Log each dinner, with a line about who was there or what you talked about.",
+    emoji: "cheer",
+    theme: "peach",
+    category: "social",
+    metric: { name: "family dinners", unit: "dinners", target: 100, aggregation: "count" },
+    camps: [
+      { title: "First five dinners", detail: "Five dinners together, phones in another room.", target: 5, week: 3, emoji: "cooking" },
+      { title: "A standing night", detail: "15 dinners, and one night a week that's always family dinner.", target: 15, week: 8, emoji: "calendar" },
+      { title: "Invite someone you miss", detail: "25 dinners, one of them with a grandparent, a cousin or an old friend who's family.", target: 25, week: 13, emoji: "letter" },
+      { title: "Halfway: 50 dinners", detail: "Fifty evenings around a table.", target: 50, week: 26, emoji: "camp" },
+      { title: "Someone else cooks", detail: "75 dinners. One cooked by a kid, a partner, or a parent who never cooks.", target: 75, week: 39, emoji: "highfive" },
+      { title: "100 dinners", detail: "A hundred dinners together.", target: 100, week: 52, emoji: "summit" },
+    ],
+    notes: DINNER_NOTES,
+    shortNotes: ["Pasta night", "Soup and bread", "Leftovers", "Takeout, on real plates", "Tacos", "Rice and stew", "Roast chicken", "Curry"],
+    members: [
+      {
+        handle: "joannareyes",
+        daysAgo: 77,
+        weekdays: [0, 0.2, 0.35, 0.12, 0.3, 0.35, 0.25],
+        hours: [[20, 22]],
+        ritual: {
+          weekday: 0,
+          amount: 1,
+          hour: 20,
+          notes: [
+            "Sunday dinner. Maddie made the rice, Eli made a mess.",
+            "Sunday. Enchiladas, and Eli told us about his science project without being asked.",
+            "Sunday dinner with Dan's mom. She brought pan dulce for after.",
+            "",
+            "Sunday. Phones in the basket. Maddie lasted the whole meal and didn't complain once.",
+            "Sunday caldo. First cold evening of the year.",
+            "Sunday. Eli asked if a friend could stay for dinner. Of course.",
+            "",
+            "Sunday. We planned the holidays and nobody fought about it.",
+            "Sunday dinner. Dan told the story of how we met, badly, and the kids corrected him.",
+            "Sunday. Tamales from the place on Zarzamora, and a long talk about colleges.",
+          ],
+        },
+        beats: [
+          { daysAgo: 77, note: "Two teenagers, a volleyball schedule and a husband on night shifts. We were eating in four different rooms. Starting with Sundays." },
+          { daysAgo: 52, note: "First weeknight with all four of us since school started. Tacos. Nobody looked at a phone." },
+          { daysAgo: 29, note: "Maddie cooked for the first time. Spaghetti, slightly crunchy. We ate every bite." },
+          { daysAgo: 7, note: "Dan switched to day shifts. Weeknight dinners are suddenly easy." },
+        ],
+        after: { daysAgo: 7, weekdays: [0, 0.4, 0.55, 0.3, 0.5, 0.45, 0.3], amount: [1, 1] },
+        plan: {
+          summary:
+            "Joanna's family eats in four different rooms most nights: two teenagers with practice and part-time jobs, and a husband on shifts. The plan starts with Sunday dinner every week, no exceptions, then adds one weeknight that fits everyone's schedule, with the kids picking the menu on that one.",
+          cadence: "Every Sunday, plus one weeknight.",
+        },
+        replan: {
+          daysAgo: 7,
+          shiftWeeks: 0,
+          reason: "Dan moved to day shifts, so weeknights are open. Two weeknights instead of one, same camps.",
+          summary:
+            "Joanna's family used to eat in four different rooms. Now Dan is on day shifts, so the plan is Sunday dinner every week, no exceptions, plus two weeknights that fit around volleyball and work, with the kids picking the menu on one of them.",
+          cadence: "Every Sunday, plus two weeknights.",
+        },
+      },
+      {
+        handle: "helennovak",
+        daysAgo: 58,
+        weekdays: [0.35, 0.1, 0.1, 0.12, 0, 0.2, 0.85],
+        hours: [[19, 22]],
+        ritual: {
+          weekday: 4,
+          amount: 1,
+          hour: 21,
+          notes: [
+            "Thursday dinner with Peter and Lí. Lí taught me to say this is delicious: hǎo chī.",
+            "Peter and Lí came over. We talked about the wedding guest list for two hours.",
+            "Thursday. Lí brought her dad's chili oil. Frank's eyes watered and he kept eating.",
+            "",
+            "Thursday dinner. Peter did the dishes without being asked.",
+            "Thursday. We looked at venue photos from Chengdu on the laptop after dessert.",
+            "",
+            "Thursday. Lí and I made dumplings together. Mine looked like small potatoes.",
+          ],
+        },
+        beats: [
+          { daysAgo: 58, note: "Peter and Lí moved twenty minutes away. Thursdays are ours now, and I'm counting them." },
+          { daysAgo: 20, note: "Dinner by video with Lí's parents in Chengdu. Our dinner, their breakfast. Everyone waved a lot." },
+        ],
+        plan: {
+          summary:
+            "Helen wants her son Peter and his fiancée Lí at her table every week in the year before their wedding. Thursday dinner is fixed, Frank cooks on Saturdays, and once a month the whole family eats by video with Lí's parents in Chengdu: dinner in Chicago, breakfast in Chengdu.",
+          cadence: "Thursdays with Peter and Lí. Saturdays at home.",
+        },
+      },
+      {
+        handle: "marcob",
+        daysAgo: 41,
+        weekdays: [0, 0.05, 0.1, 0.12, 0.05, 0.1, 0.15],
+        gaps: [[31, 25]],
+        ritual: {
+          weekday: 0,
+          amount: 1,
+          hour: 22,
+          notes: [
+            "Sunday at my parents' in Monza. Risotto, and my father's opinions on the government.",
+            "Sunday dinner. My sister brought her new boyfriend. He survived.",
+            "Sunday. Mamma made ossobuco and sent me home with two containers.",
+            "",
+            "Sunday at my parents'. Papà fell asleep at the table at ten. Tradition.",
+            "Sunday. Nonna came too. She asked twice when I'm getting married.",
+          ],
+        },
+        beats: [
+          { daysAgo: 41, note: "Joined because I eat at my parents' most Sundays and I want that to stay true." },
+          { daysAgo: 18, note: "Cooked for my sister in my tiny flat. Two chairs, one of them is a stool." },
+        ],
+        plan: {
+          summary: "Marco has dinner at his parents' in Monza most Sundays and wants to keep it that way. Sundays are the base, plus a weeknight with his sister when their schedules line up.",
+          cadence: "Sundays in Monza. A weeknight with his sister when it works.",
+        },
+      },
+      {
+        handle: "paolosantos",
+        daysAgo: 46,
+        weekdays: [0, 0.08, 0.05, 0.25, 0.05, 0.15, 0.2],
+        noteRate: 0,
+        ritual: {
+          weekday: 0,
+          amount: 1,
+          hour: 16,
+          notes: [
+            "Sunday video dinner with home. Their dinner, my late lunch. Mama made sinigang and showed me the pot.",
+            "Video dinner. My niece fell asleep on Papa's shoulder halfway through.",
+            "Sunday call. Everybody talked at once. Perfect.",
+            "",
+            "Video dinner. Lola joined from her room on my sister's tablet.",
+            "Sunday. I cooked adobo from Mama's recipe while she cooked hers, and we ate together.",
+            "Video dinner. Brownout in Quezon City halfway through, so they finished by candlelight.",
+          ],
+        },
+        beats: [
+          { daysAgo: 46, note: "I work in Dubai and my family is in Manila. We've done Sunday video calls for years. Now we eat during them, and I'm counting them." },
+          { daysAgo: 25, note: "Dinner with my cousin Jun in Karama. Kare-kare from the Filipino place, almost like home." },
+          { daysAgo: 12, note: "Booked my flight home for Christmas. Real dinners at a real table coming." },
+        ],
+        plan: {
+          summary:
+            "Paolo works in Dubai and his family lives in Manila. Sunday is a video dinner with everyone (their dinner, his late lunch), and his cousin Jun, who also lives in Dubai, comes over during the week when their shifts allow.",
+          cadence: "Sunday video dinner. A weeknight with Jun.",
+        },
+      },
+      {
+        handle: "mianguyen",
+        daysAgo: 20,
+        weekdays: [0.6, 0.1, 0.15, 0.1, 0.1, 0.2, 0.3],
+        hours: [[20, 22]],
+        noteRate: 0.2,
+        beats: [
+          { daysAgo: 20, note: "Twelve-hour shifts mean I mostly eat in the car. My parents are 25 minutes away. Starting there." },
+          { daysAgo: 6, note: "Phở at my parents'. Mom sent me home with the leftover broth, as always." },
+        ],
+        plan: {
+          summary:
+            "Mia works twelve-hour shifts, three or four a week. On her days off she drives to her parents' in Sugar Land for dinner, and once a week she eats with her brother in Austin over video.",
+          cadence: "Days off, at her parents'.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pick a standing dinner night", "One night a week that's always family dinner. Put it in everyone's calendar.", "one_off", 20),
+      q("Phones in a basket", "By the door, every dinner this week.", "weekly", 20),
+      q("Ask one question nobody's asked before", "Like: what did you change your mind about this year? Then listen to the whole answer.", "weekly", 15),
+      q("Let someone else plan the menu", "A kid, a partner, a parent. You do the shopping.", "weekly", 20),
+      q("Eat at the table, not the sofa", "Every dinner this week.", "weekly", 20),
+      q("Two weeknight dinners this week", "Look at everyone's schedule on Sunday and find two nights.", "weekly", 25),
+      q("Stay for dessert", "Even if dessert is an orange. Ten more minutes at the table.", "weekly", 15),
+      q("Start a dinner question jar", "Everyone writes three questions. Pull one at each dinner.", "one_off", 15),
+      q("Cook a recipe from your family", "Call whoever makes it best and ask them to talk you through it.", "boss", 50),
+      q("Invite someone you haven't eaten with in a year", "A grandparent, a cousin, an aunt. Video counts if they're far.", "boss", 60),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Phones in a basket", "By the door, every dinner this week.", "weekly", 20),
+        q("Two weeknight dinners this week", "Find two nights everyone is home.", "weekly", 25),
+        q("Let someone else plan the menu", "You do the shopping.", "weekly", 20),
+        q("Eat at the table, not the sofa", "Every dinner this week.", "weekly", 20),
+        q("Ask one question nobody's asked before", "And listen to the whole answer.", "weekly", 15),
+        q("Stay for dessert", "Ten more minutes at the table.", "weekly", 15),
+        q("Start a dinner question jar", "Three questions each.", "one_off", 15),
+        q("Cook a recipe from your family", "Call whoever makes it best and ask how.", "boss", 50),
+        q("Invite someone you haven't eaten with in a year", "Video counts if they're far.", "boss", 60),
+      ]),
+    space:
+      "A long dinner table seen from above in warm peach and candlelight: one place setting per member, with a small stack of plates by each one for the dinners they've logged. Lead with the dinners everyone has shared together as one big number, with no progress bar: 100 is each family's own goal, not the group's. Then a 6-week strip of tiny plates, one row per day, and the newest notes as handwritten place cards. Keep it warm and unhurried.",
+  },
+
+  // ----- New places -----
+  {
+    key: "places",
+    slug: "visit-12-places-you-ve-never-been",
+    title: "Visit 12 places you've never been",
+    tagline: "One new place a month. A town, a trail, a neighbourhood, a country.",
+    description:
+      "Go somewhere you've never been, once a month. It can be far away or forty minutes from home: a town, a park, a neighbourhood, an island, a museum. A place counts when you've never been there before and you spend at least a few hours in it.\n\n" +
+      "Log each place by name, with a line about what you found.",
+    emoji: "pin",
+    theme: "lilac",
+    category: "travel",
+    metric: { name: "new places", unit: "places", target: 12, aggregation: "distinct" },
+    camps: [
+      { title: "First new place", detail: "Somewhere within an hour of home that you've never been.", target: 1, week: 3, emoji: "pin" },
+      { title: "Three new places", detail: "One of them a place you've always driven past.", target: 3, week: 11, emoji: "map" },
+      { title: "A night away", detail: "Four places, one far enough to sleep there.", target: 4, week: 17, emoji: "camp" },
+      { title: "Halfway: six places", detail: "Go to one of them alone.", target: 6, week: 26, emoji: "compass" },
+      { title: "Nine places", detail: "One you've been saying you'd go to for years.", target: 9, week: 39, emoji: "flag" },
+      { title: "Twelve places", detail: "A year of new places.", target: 12, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "amara",
+        daysAgo: 80,
+        items: [
+          { label: "Dia Beacon", note: "Train up the Hudson, then hours in those huge quiet rooms. Brought a book for the ride back and never opened it.", daysAgo: 72 },
+          { label: "Storm King Art Center", note: "Stayed the night at an inn nearby to be there when it opened. Giant sculptures in a valley of trees just turning.", daysAgo: 51 },
+          { label: "The Morgan Library", note: "Twenty minutes from my office and I'd never been. Three floors of books with hidden staircases.", daysAgo: 30 },
+          { label: "City Island", note: "A fishing village in the Bronx. Fried clams on a bench by the water.", daysAgo: 9 },
+        ],
+        plan: {
+          summary:
+            "Amara wants to stop saying 'one day I'll go'. One new place a month, most of them a train ride from New York, with a trip abroad in spring. She takes a book set in or near each place.",
+          cadence: "One place a month, usually on a weekend.",
+        },
+      },
+      {
+        handle: "anacosta",
+        daysAgo: 63,
+        items: [
+          { label: "Sintra", note: "My whole life in Lisbon and I'd never gone. Pena Palace in the fog, like a cake in a cloud.", daysAgo: 58 },
+          { label: "Comporta", note: "Rice fields and an empty beach in October. Ate clams with my sister.", daysAgo: 33 },
+          { label: "Évora", note: "A Roman temple in the middle of town, and a chapel lined with bones. My sister wouldn't go in.", daysAgo: 6 },
+        ],
+        plan: {
+          summary:
+            "Ana has lived in Lisbon all her life and has seen very little of Portugal. One place a month by train or in her sister's car, and the Azores in summer if she saves enough.",
+          cadence: "One trip a month.",
+        },
+      },
+      {
+        handle: "olliegrant",
+        daysAgo: 47,
+        items: [
+          { label: "Margate", note: "Chips on the sea wall until a gull took one. Turner Contemporary was free and excellent.", daysAgo: 41 },
+          { label: "Hastings", note: "Old town, fishing huts and the steepest funicular in Britain. Bought a smoked fish I don't know how to eat.", daysAgo: 20 },
+          { label: "Whitstable", note: "Oysters for the first time. Tastes like the sea, chewier.", daysAgo: 3 },
+        ],
+        plan: {
+          summary:
+            "Ollie has lived in London for eight years and only knows it and his parents' town. One new place a month, a day trip by train, and he has to eat something local each time, even if it scares him.",
+          cadence: "A day trip a month, by train.",
+        },
+      },
+      {
+        handle: "rachelkim",
+        daysAgo: 35,
+        items: [
+          { label: "Jiufen", note: "A free afternoon after the Taipei meetings. A teahouse on the hill, lanterns, rain. Finally saw something besides the office.", daysAgo: 21 },
+          { label: "Joshua Tree", note: "Drove out the weekend I got back. Slept under the stars, which I now recommend over hotels.", daysAgo: 11 },
+        ],
+        plan: {
+          summary:
+            "Rachel travels for work two weeks a month and has seen the inside of a lot of hotels. The plan is one new place on each trip, even if it's only an afternoon, and one near home on the weeks she's back.",
+          cadence: "One per trip, one near home each month.",
+        },
+      },
+    ],
+    openQuests: [
+      q("List ten places within two hours of home", "Ones you've never been to. Star the easiest one.", "one_off", 15),
+      q("Book the next one", "A train ticket, a free Saturday, a friend if you want one.", "one_off", 20),
+      q("Ask a local what you shouldn't miss", "Then go there first.", "weekly", 15),
+      q("Eat one thing you can only get there", "Ask in a shop, not online.", "weekly", 15),
+      q("Take one photo that isn't the famous view", "A door, a sign, a breakfast.", "weekly", 10),
+      q("Walk a part of your own city you've never seen", "A park, a neighbourhood, a market. Two hours, on foot.", "weekly", 20),
+      q("Send a postcard from the next place", "To yourself, or to someone who'd like it.", "weekly", 10),
+      q("Go somewhere alone", "A day trip with nobody to agree with.", "boss", 60),
+      q("Spend a night somewhere new", "A guesthouse, a campsite, a friend's sofa.", "boss", 70),
+    ],
+    doneQuest: (log) => q(`Go to ${log.label}`, "A few hours at least, and eat something local.", "weekly", 30),
+    space:
+      "A traveller's passport opened flat, on soft lilac paper with faded ink stamps. Every place anyone has logged becomes a stamp with its name, the date and who went. Lead with how many new places the group has been to together. Then each member's own passport page, with twelve stamp boxes that fill as they go. Show the newest notes as short postcard backs.",
+  },
+
+  // ----- Screen time -----
+  {
+    key: "screentime",
+    slug: "keep-screen-time-under-2-hours-a-day",
+    title: "Keep screen time under 2 hours a day",
+    tagline: "Two hours of phone a day, tops. Get your evenings back.",
+    description:
+      "Keep your phone's screen time under two hours a day. A work computer doesn't count; your phone does, all of it, maps and messages included.\n\n" +
+      "Check your phone's screen time before bed and log the day if you're under two hours. The summit is 300 days: the other 65 are flights, sick days and days when the phone was the right tool.",
+    emoji: "hourglass",
+    theme: "night",
+    category: "mindful",
+    metric: { name: "days under 2 hours", unit: "days", target: 300, aggregation: "count" },
+    camps: [
+      { title: "Three days under two hours", detail: "Turn on the screen time report and see where the hours go.", target: 3, week: 1, emoji: "hourglass" },
+      { title: "Phone sleeps outside the bedroom", detail: "30 days, and a charger in the hallway.", target: 30, week: 6, emoji: "sleep" },
+      { title: "100 days", detail: "A hundred days under two hours.", target: 100, week: 18, emoji: "flag" },
+      { title: "Halfway: 150 days", detail: "Delete the app you open without thinking.", target: 150, week: 27, emoji: "camp" },
+      { title: "225 days", detail: "Most days the phone is just a tool now.", target: 225, week: 40, emoji: "lock" },
+      { title: "300 days", detail: "Three hundred days under two hours.", target: 300, week: 52, emoji: "summit" },
+    ],
+    noteFor: screenNote,
+    members: [
+      {
+        handle: "elenap",
+        daysAgo: 68,
+        weekdays: [0.55, 0.85, 0.85, 0.8, 0.85, 0.7, 0.5],
+        hours: [[21, 23]],
+        beats: [
+          { daysAgo: 68, note: "Last week's average was 5 hours 12 minutes. Writing it down so I can't pretend." },
+          { daysAgo: 45, note: "Turned the phone grayscale. It's so much less interesting in grey." },
+          { daysAgo: 15, note: "Deleted Instagram for the third time. This time my sister changed the password." },
+        ],
+        plan: {
+          summary:
+            "Elena's phone was taking five hours a day, mostly in bed and on the subway. The phone charges in the kitchen overnight, the subway is for paper books, and social apps live only on the laptop.",
+          cadence: "Check screen time every night at 10.",
+        },
+      },
+      {
+        handle: "raviiyer",
+        daysAgo: 60,
+        pace: 0.8,
+        hours: [[22, 23]],
+        beats: [
+          { daysAgo: 60, note: "The phone already goes in another room while I read. Now it stays there all evening." },
+          { daysAgo: 27, note: "Back under after a weekend wedding with photos everywhere. Worth it." },
+          { daysAgo: 7, note: "Muted the office group chat after 7pm. Huge." },
+        ],
+        plan: {
+          summary:
+            "Ravi already keeps his phone in another room while he reads. Now it stays there all evening, work chat is muted after 7, and the commute is for essays and books, not feeds.",
+          cadence: "Every evening. Phone in the hallway from 8.",
+        },
+      },
+      {
+        handle: "aidenm",
+        daysAgo: 39,
+        pace: 0.62,
+        gaps: [[24, 18]],
+        hours: [[21, 23]],
+        beats: [
+          { daysAgo: 39, note: "Six hours a day, on average. Mostly sports. Ouch." },
+          { daysAgo: 17, note: "Lost a week to the playoffs. Back. Scores once, then the phone goes in a drawer." },
+        ],
+        plan: {
+          summary:
+            "Aiden averages six hours a day, most of it sports apps and highlights. Games get watched on the TV with other people, not alone on the phone, and the phone lives in a kitchen drawer after dinner.",
+          cadence: "Every night. Phone in the drawer after dinner.",
+        },
+        replan: {
+          daysAgo: 17,
+          shiftWeeks: 1,
+          reason: "A week of playoff games blew the budget every day. Camps moved back a week, and one new rule: check the scores once after dinner, then the drawer.",
+          cadence: "Every night. Scores once, then the drawer.",
+        },
+      },
+      {
+        handle: "hannahlevi",
+        daysAgo: 26,
+        pace: 0.72,
+        hours: [[21, 22]],
+        beats: [
+          { daysAgo: 26, note: "Grading on paper again. The phone keeps sneaking in between essays." },
+          { daysAgo: 9, note: "Left the phone in the car at the farmers market. Didn't miss it once." },
+        ],
+        plan: {
+          summary:
+            "Hannah wants her evenings back for herself. The phone goes on the charger by the front door when she gets home, grading happens on paper, and the two apps she opens most get 30 minutes a day.",
+          cadence: "Evenings. Phone by the door.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Find your top three apps", "Open the screen time report and write down where the hours go.", "one_off", 15),
+      q("Charge the phone outside the bedroom", "Every night this week. Get a cheap alarm clock.", "weekly", 25),
+      q("Set a limit on your worst app", "30 minutes a day. Don't raise it when it runs out.", "one_off", 20),
+      q("Turn on grayscale", "For a week. Colour is half the pull.", "weekly", 15),
+      q("Move social apps off the home screen", "Into a folder on the last page.", "one_off", 10),
+      q("Leave the phone at home for one walk", "Twenty minutes, nothing in your pocket.", "weekly", 15),
+      q("Mute every group chat after 8pm", "They'll still be there in the morning.", "one_off", 15),
+      q("Read on paper before bed", "Ten pages, every night this week.", "daily", 10),
+      q("A phone-free Saturday morning", "Phone in a drawer until noon.", "boss", 50),
+      q("A whole day under one hour", "Plan it the night before: route written down, calls only.", "boss", 70),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Charge the phone outside the bedroom", "Every night this week.", "weekly", 25),
+        q("Turn on grayscale", "For a week.", "weekly", 15),
+        q("Leave the phone at home for one walk", "Nothing in your pocket.", "weekly", 15),
+        q("Read on paper before bed", "Ten pages, every night this week.", "daily", 10),
+        q("Set a limit on your worst app", "30 minutes a day.", "one_off", 20),
+        q("Move social apps off the home screen", "Into a folder on the last page.", "one_off", 10),
+        q("Mute every group chat after 8pm", "They'll still be there in the morning.", "one_off", 15),
+        q("Check screen time before bed", "Every night this week. Just look.", "daily", 10),
+        q("A phone-free Saturday morning", "Phone in a drawer until noon.", "boss", 50),
+      ]),
+    space:
+      "A quiet town under a night sky in deep navy: each member is a lit window, and every day they've logged under two hours adds a star above their roof. Lead with the evenings everyone has won back together, as one big number with no progress bar: 300 days is each person's own goal, not the group's. Then a 6-week strip of moons, fuller on the days more people made it. End with the newest notes, which often carry the day's screen time and what people did instead.",
+  },
+
+  // ----- Spanish -----
+  {
+    key: "spanish",
+    slug: "hold-a-15-minute-conversation-in-spanish",
+    title: "Hold a 15-minute conversation in Spanish",
+    tagline: "About 20 minutes a day, from hola to a real 15-minute chat.",
+    description:
+      "Start Spanish from zero, or from school Spanish you've forgotten, and end the year with a 15-minute conversation with a native speaker, all in Spanish.\n\n" +
+      "Practice time is the shared yardstick: about 20 minutes a day adds up to 120 hours. Lessons, apps, flashcards, podcasts, shows and talking to yourself in the car all count. Log minutes.",
+    emoji: "chat",
+    theme: "rose",
+    category: "language",
+    metric: { name: "practice minutes", unit: "min", target: 7200, aggregation: "sum" },
+    step: 5,
+    camps: [
+      { title: "Sounds and greetings", detail: "The five vowels, the tapped r, and introducing yourself in four sentences.", target: 300, week: 3, emoji: "language" },
+      { title: "Order a whole meal", detail: "Food, numbers and please. Start to finish, without English.", target: 1000, week: 9, emoji: "cooking" },
+      { title: "Tell a story in the past", detail: "One minute about what you did last weekend.", target: 2400, week: 18, emoji: "pencil" },
+      { title: "First 5-minute chat", detail: "Five minutes with a tutor or a partner, no English.", target: 3600, week: 26, emoji: "chat" },
+      { title: "10 minutes about your life", detail: "Work, family and plans, with someone who won't slow down much.", target: 5400, week: 39, emoji: "microphone" },
+      { title: "15 minutes, all in Spanish", detail: "A real 15-minute conversation with a native speaker.", target: 7200, week: 52, emoji: "summit" },
+    ],
+    notes: SPANISH_NOTES,
+    shortNotes: ["Duolingo", "Flashcards", "Podcast on the commute", "Verb drills", "Anki review", "Shadowing", "Quick review before bed"],
+    members: [
+      {
+        handle: "mianguyen",
+        daysAgo: 64,
+        pace: 0.75,
+        amount: [10, 30],
+        ritual: {
+          weekday: 1,
+          amount: 50,
+          hour: 19,
+          notes: [
+            "Lesson with Marisol. Body parts, for work. Me duele aquí: it hurts here.",
+            "Marisol lesson: asking about pain on a scale of one to ten.",
+            "Lesson with Marisol. We role-played a mother asking about her son's medicine.",
+            "",
+            "Marisol: the past tense, so patients can tell me what happened.",
+            "Lesson with Marisol. Only Spanish for the first fifteen minutes.",
+            "Marisol lesson: numbers and times, for medication schedules.",
+            "",
+            "Lesson with Marisol. She talked at normal speed for a whole minute and I followed it.",
+          ],
+        },
+        beats: [
+          { daysAgo: 64, value: 20, note: "Half my patients' families speak Spanish, and I'm tired of waiting for the interpreter line. Day one: greetings and the five vowels." },
+          { daysAgo: 37, value: 25, note: "Asked a patient's mom in Spanish if she wanted water. She smiled and said yes. Small, and huge." },
+          { daysAgo: 10, value: 30, note: "Understood a whole question from a patient's grandfather without asking him to repeat it." },
+        ],
+        plan: {
+          summary:
+            "Mia is a nurse in Houston, and many of her patients' families speak Spanish. Short sessions on the drive and between shifts, a lesson with Marisol every Monday on what she actually says at work, and one longer session on each day off.",
+          cadence: "Most days, 15–25 min. Marisol every Monday.",
+        },
+      },
+      {
+        handle: "tomasherrera",
+        daysAgo: 55,
+        pace: 0.7,
+        amount: [15, 30],
+        noteRate: 0.2,
+        ritual: {
+          weekday: 0,
+          amount: 40,
+          hour: 20,
+          notes: [
+            "Sunday call with Abuela in San Antonio. Mostly her talking, mostly me understanding.",
+            "Called Abuela. Answered in Spanish the whole time. She noticed, and went quiet for a second.",
+            "Abuela told the story of crossing at Laredo in 1961. Understood all of it.",
+            "",
+            "Call with Abuela. She's correcting my grammar now, which means she thinks I can take it.",
+            "Abuela: recipes. Wrote down her tamales in Spanish.",
+            "",
+          ],
+        },
+        beats: [
+          { daysAgo: 55, value: 25, note: "I've understood my grandmother's Spanish my whole life and always answered in English. Fixing that." },
+          { daysAgo: 20, value: 30, note: "Read the Spanish half of a device manual to see if I could. I could." },
+        ],
+        plan: {
+          summary:
+            "Tomás grew up understanding Spanish and answering in English. He understands far more than he can say, so the plan is mostly speaking: shadowing, talking through his day out loud on the drive, and a Sunday call with his grandmother where he only answers in Spanish.",
+          cadence: "Daily on the drive, 20 min. Abuela every Sunday.",
+        },
+      },
+      {
+        handle: "benlarsen",
+        daysAgo: 42,
+        pace: 0.65,
+        amount: [10, 20],
+        noteRate: 0.1,
+        ritual: {
+          weekday: 6,
+          amount: 20,
+          hour: 12,
+          notes: ["Practice. Talked to two parents in Spanish.", "Practice. Said bien hecho about forty times.", "", "Practice. Asked Diego's dad about the tournament. Got most of it.", ""],
+        },
+        beats: [
+          { daysAgo: 42, value: 15, note: "I coach my son's soccer team. Half the parents speak Spanish. I want to talk to them." },
+          { daysAgo: 14, value: 20, note: "Gave the whole halftime talk in Spanish. A short one." },
+        ],
+        plan: {
+          summary:
+            "Ben coaches his son's under-10 soccer team, and half the parents speak Spanish. Fifteen minutes of an app at lunch on weekdays, and on Saturdays he practises what he'll say at the field.",
+          cadence: "Weekdays at lunch, 15 min. Saturdays at the field.",
+        },
+      },
+      {
+        handle: "kwame",
+        daysAgo: 11,
+        pace: 0.85,
+        amount: [10, 20],
+        noteRate: 0.15,
+        beats: [
+          { daysAgo: 11, value: 15, note: "Moving to Valencia for work next summer. Starting from nothing." },
+          { daysAgo: 3, value: 20, note: "Ordered at the Spanish café near work. The barista answered in Spanish and I understood her." },
+        ],
+        plan: {
+          summary: "Kwame moves to Valencia for work next summer. Fifteen minutes a day on the bus to start, and a tutor from January once the basics are in.",
+          cadence: "Daily on the bus, 15 min.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Vowels and the tapped r: 10 minutes a day", "Record pero and perro. Compare them with a native speaker's recording.", "daily", 10),
+      q("Introduce yourself without notes", "Name, city, work and one thing you like. Out loud.", "weekly", 20),
+      q("Learn 20 food words", "Enough to read the top of a menu.", "weekly", 20),
+      q("Shadow one podcast clip", "Pick 60 seconds. Repeat it five times until you sound like the speaker.", "weekly", 20),
+      q("Describe your morning in 5 sentences", "Present tense. Say them out loud without reading.", "weekly", 20),
+      q("Watch one episode with Spanish subtitles", "Pause and write down three words you hear more than once.", "weekly", 20),
+      q("Clear the flashcard backlog", "Zero due cards before Sunday.", "one_off", 15),
+      q("Ser or estar: 15 sentences", "Write them, then check them with a tutor or an app.", "weekly", 20),
+      q("Talk through your day out loud", "Two minutes in the car or on a walk, no English. Mistakes are fine.", "daily", 10),
+      q("Order something in Spanish", "Coffee, tacos, anything. Count it even if they answer in English.", "boss", 60),
+      q("5-minute chat, no English", "With a tutor or a language partner. Ask them to stop you if you switch.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Learn the numbers 1 to 100", "Then read five prices out loud.", "weekly", 20),
+        q("Introduce yourself without notes", "Name, city, work, one hobby.", "weekly", 20),
+        q("Learn 15 food words", "Enough to order a meal.", "weekly", 20),
+        q("Shadow a podcast clip five times", "60 seconds, same clip.", "weekly", 20),
+        q("Review every flashcard due this week", "Little and often.", "weekly", 15),
+        q("Ask for directions in a role play", "Left, right, straight on, how far.", "weekly", 20),
+        q("Present tense of ten common verbs", "Ser, estar, tener, ir, hacer and five more.", "weekly", 25),
+        q("Describe your home in 6 sentences", "Rooms, furniture, the view.", "weekly", 20),
+        q("Listen to one slow podcast episode", "No pausing. Note what you understood.", "weekly", 15),
+        q("Write five sentences in the past tense", "What you did last weekend.", "weekly", 20),
+        q("Change your phone to Spanish for a day", "Notice which words you guess right.", "one_off", 15),
+        q("Order coffee in Spanish", "Count it even if they reply in English.", "boss", 60),
+      ]),
+    space:
+      "A whitewashed street in a Spanish town, rose and terracotta, with bougainvillea over the doors. Lead with the group's combined practice hours as one big number, with no progress bar under it: 120 hours is each learner's own goal, not the group's. Then a 6-week strip of painted tiles, one per day, deeper in colour the more people practiced. Show the newest notes as chalk on little café boards (they mention lessons with Marisol, calls with family and practice in the car). End with each member's minutes toward their own 7,200 as a row of tiles that fill in.",
+  },
+
+  // ----- Cooking -----
+  {
+    key: "cook",
+    slug: "cook-100-meals-from-scratch",
+    title: "Cook 100 meals from scratch",
+    tagline: "Two meals a week from raw ingredients. Simple counts. Jars don't.",
+    description:
+      "Cook 100 meals from scratch this year, about two a week. A meal counts when you made it yourself from raw ingredients: chopped, seasoned and cooked. Dried pasta, stock and spices are fine; a jar of sauce or a meal kit isn't.\n\n" +
+      "Log each meal with the dish's name and a line about how it went.",
+    emoji: "cooking",
+    theme: "mint",
+    category: "cooking",
+    metric: { name: "meals cooked", unit: "meals", target: 100, aggregation: "count" },
+    camps: [
+      { title: "First five meals", detail: "Five meals from raw ingredients. Simple is fine.", target: 5, week: 3, emoji: "cooking" },
+      { title: "Five dishes from memory", detail: "15 meals, and five dishes you can cook without a recipe.", target: 15, week: 8, emoji: "pencil" },
+      { title: "Cook for someone else", detail: "25 meals, one of them for friends or family.", target: 25, week: 13, emoji: "highfive" },
+      { title: "Halfway: 50 meals", detail: "Bake your own bread for one of them.", target: 50, week: 26, emoji: "camp" },
+      { title: "A dish you've only ever ordered", detail: "75 meals, one of them a takeout favourite made at home.", target: 75, week: 39, emoji: "sparkles" },
+      { title: "100 meals", detail: "A hundred meals from scratch.", target: 100, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "femi",
+        daysAgo: 76,
+        items: [
+          { label: "Jollof rice", note: "My mum's recipe over the phone. She said it needs more pepper. It always needs more pepper." },
+          { label: "Shakshuka", note: "Easiest thing I've ever made that looks impressive." },
+          { label: "Spaghetti aglio e olio", note: "" },
+          { label: "Egusi soup", note: "Found egusi at the African shop in Wedding. Took two hours. Worth it." },
+          { label: "Chicken stir-fry", note: "Cut everything before turning on the heat this time. Game changer." },
+          { label: "Lentil soup", note: "" },
+          { label: "Fried plantain and eggs", note: "Breakfast for dinner." },
+          { label: "Käsespätzle", note: "My flatmate taught me. The spätzle press is a whole workout." },
+          { label: "Pepper soup", note: "Too spicy for my flatmate. Perfect for me." },
+          { label: "Chili con carne", note: "" },
+          { label: "Suya chicken thighs", note: "Ground the peanuts for the spice myself. The kitchen smelled like Lagos." },
+          { label: "Red lentil dal", note: "Rohan's recipe from his notes here. Thanks, Rohan." },
+          { label: "Fish stew with peppers", note: "" },
+          { label: "Jollof rice, again", note: "Mum says this one is nearly right. Nearly." },
+        ],
+        plan: {
+          summary:
+            "Femi has lived on takeaway and his flatmate's leftovers for two years. Two meals a week to start, one from his mum's Nigerian recipes and one quick weeknight dish, and one big cook a week. He shops at the market on Saturday so there's always something fresh to use.",
+          cadence: "Two meals a week, one of them a big cook.",
+        },
+      },
+      {
+        handle: "rohank",
+        daysAgo: 60,
+        hours: [[20, 22]],
+        items: [
+          { label: "Dal tadka", note: "Everything chopped first, a timer for each step. Mum's version, written down properly this time." },
+          { label: "Jeera rice", note: "Washed the rice three times. Fluffy. Noted for next time." },
+          { label: "Aloo posto", note: "A Kolkata classic. Grinding poppy seed paste by hand is a forearm workout." },
+          { label: "Egg curry", note: "" },
+          { label: "Masoor dal with spinach", note: "" },
+          { label: "Chicken kosha", note: "Three hours of slow browning. The onions decide when you're done, not you." },
+          { label: "Rajma", note: "Pressure cooker, four whistles. Wrote it down." },
+          { label: "Paneer bhurji", note: "Made the paneer from milk too. Lemon juice, a cloth and patience." },
+          { label: "Begun bhaja", note: "Fried aubergine slices. Simple and perfect." },
+          { label: "Khichuri", note: "Rainy-day food." },
+          { label: "Rui fish curry", note: "Fish from the market. Mum approved over video." },
+          { label: "Chana masala", note: "" },
+        ],
+        plan: {
+          summary:
+            "Rohan treats cooking the way he treats guitar practice: one technique a week, written up after. He's working through his mother's Bengali recipes in order of difficulty, two meals a week, with notes on what changed each time.",
+          cadence: "Two evenings a week.",
+        },
+      },
+      {
+        handle: "carmenontheroad",
+        daysAgo: 44,
+        items: [
+          { label: "Black bean tacos", note: "", daysAgo: 42 },
+          { label: "Green chile stew", note: "Two-burner stove, one pot, Hatch chiles from a roadside stand. Best thing I've made in the van.", daysAgo: 40 },
+          { label: "Campfire potatoes", note: "Foil packets in the coals. Took forever. Ate them in the dark.", daysAgo: 33 },
+          { label: "Huevos rancheros", note: "Morning at Great Basin. Salsa from a tomato and one jalapeño.", daysAgo: 29 },
+          { label: "Trout with lemon", note: "Bought it from a man at the lake and cleaned it myself. Proud, and slightly shaken.", daysAgo: 22 },
+          { label: "Pasta with roasted squash", note: "Squash from a farm stand in Idaho.", daysAgo: 15 },
+          { label: "Lentil soup", note: "Snowed in at a campground. Soup weather.", daysAgo: 12 },
+          { label: "Bison chili", note: "Bison from a ranch store in Cody.", daysAgo: 8 },
+          { label: "Corn chowder", note: "Sweet corn from the honor-box farm stand in the Sandhills.", daysAgo: 2 },
+        ],
+        plan: {
+          summary:
+            "Carmen lives in her van this year and cooks on a two-burner stove. Two real meals a week from whatever the local farm stands and markets have, with one-pot recipes that don't need an oven.",
+          cadence: "Two meals a week, wherever she's parked.",
+        },
+      },
+      {
+        handle: "emmal",
+        daysAgo: 38,
+        items: [
+          { label: "Meatballs with lingonberries", note: "Mormor's recipe card, splattered from fifty years of use." },
+          { label: "Salmon with dill potatoes", note: "" },
+          { label: "Kalops", note: "Beef stew with allspice. The flat smelled like Christmas." },
+          { label: "Mushroom risotto", note: "Chanterelles from the market, probably the last of the year." },
+          { label: "Raggmunk", note: "Potato pancakes with bacon and lingonberries. Messy, glorious." },
+          { label: "Fish soup", note: "" },
+          { label: "Pea soup and pancakes", note: "Proper Swedish comfort food." },
+          { label: "Jansson's temptation", note: "Too early for Christmas. Didn't care." },
+        ],
+        plan: {
+          summary:
+            "Emma wants one slow cook a week and one easy weeknight dish. She's working through her grandmother's recipe box one card at a time, and writes a note on the back of each card after.",
+          cadence: "One slow cook, one easy weeknight dish.",
+        },
+      },
+      {
+        handle: "jordanruns",
+        daysAgo: 25,
+        hours: [[19, 21]],
+        items: [
+          { label: "Chicken, rice and broccoli", note: "Meal prep for four days. Macros in the spreadsheet." },
+          { label: "Turkey chili", note: "Big batch, five portions. The freezer is full." },
+          { label: "Salmon and sweet potato", note: "" },
+          { label: "Pasta with homemade marinara", note: "First sauce from actual tomatoes. Long run tomorrow, so the carbs are justified." },
+          { label: "Banana pancakes", note: "After the long run." },
+          { label: "Lentil curry", note: "" },
+        ],
+        plan: {
+          summary:
+            "Jordan eats the same three takeout meals on rotation. The plan is one batch cook a week that feeds him for four days, and one fresh meal in between, built around his running.",
+          cadence: "One batch cook and one fresh meal a week.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Learn to dice an onion properly", "Watch one video, then dice two onions. Freeze what you don't use.", "one_off", 15),
+      q("Plan three dinners before you shop", "Write the list from the plan, not the other way round.", "weekly", 20),
+      q("Make stock from scraps", "Onion ends, carrot peel, a chicken carcass or a parmesan rind. Freeze it.", "weekly", 20),
+      q("Cook one dish without a recipe", "Something you've made twice. Taste as you go.", "weekly", 25),
+      q("Use up everything in the fridge", "One meal from what's already there. No shopping.", "weekly", 20),
+      q("Sharpen your knife", "Or get it sharpened. Everything gets easier.", "one_off", 10),
+      q("Make a sauce from scratch", "Tomato, béchamel or a simple pan sauce.", "weekly", 20),
+      q("Ask someone for their family recipe", "Write it down while they talk you through it.", "one_off", 15),
+      q("Cook for someone else", "A friend, a neighbour, family. Ask them what they'd change.", "boss", 60),
+      q("Bake a loaf of bread", "A simple no-knead one. It takes time, not skill.", "boss", 50),
+      q("Cook a dish you'd normally order", "Your usual takeout order, from scratch.", "boss", 70),
+    ],
+    doneQuest: (log) => q(`Cook: ${log.label}`, "From raw ingredients. Taste as you go.", "weekly", 25),
+    space:
+      "A recipe box on a kitchen counter in fresh mint and cream. Lead with the meals everyone has cooked together. File every logged dish as a handwritten index card behind its cook's tab, with their note on the back when tapped. Show each cook's progress to 100 as a row of small plates that fill in, and the five newest dishes on a little chalkboard menu.",
+  },
+
+  // ----- Push-ups -----
+  {
+    key: "pushups",
+    slug: "do-100-push-ups-in-a-row",
+    title: "Do 100 push-ups in a row",
+    tagline: "One unbroken set of 100 by the end of the year. Test once a week and log the whole set.",
+    description:
+      "Build up to 100 push-ups in one set, with no resting on the floor or your knees. A push-up counts when your chest comes down to a fist's height off the floor and your body stays straight.\n\n" +
+      "Test your max about once a week, fresh and warmed up, and log the whole set: if you did 27, log 27. Your newest test is your level, so an off day shows too. Training days don't need a log.",
+    emoji: "boxing",
+    theme: "teal",
+    category: "fitness",
+    metric: { name: "max set", unit: "push-ups", target: 100, aggregation: "latest" },
+    camps: [
+      { title: "Clean form, 20 in a row", detail: "Chest to a fist off the floor, body straight, twenty times.", target: 20, week: 3, emoji: "target" },
+      { title: "35 in a row", detail: "Train three days a week and test on a fourth.", target: 35, week: 12, emoji: "boxing" },
+      { title: "Halfway: 50", detail: "Fifty without stopping.", target: 50, week: 22, emoji: "camp" },
+      { title: "65 in a row", detail: "Past where most people stop.", target: 65, week: 32, emoji: "flag" },
+      { title: "80 in a row", detail: "Pace matters now: steady, not fast.", target: 80, week: 42, emoji: "trophy" },
+      { title: "100 in a row", detail: "One unbroken set of 100.", target: 100, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "mayac",
+        daysAgo: 75,
+        pace: 0,
+        beats: [
+          { daysAgo: 75, value: 24, note: "First test. The last three were ugly." },
+          { daysAgo: 68, value: 27, note: "New best." },
+          { daysAgo: 61, value: 31, note: "Three sets of 15 on training days, one test a week." },
+          { daysAgo: 54, value: 33, note: "The morning after a long run." },
+          { daysAgo: 47, value: 31, note: "Slept badly. Two fewer than last week, logging it anyway." },
+          { daysAgo: 40, value: 38, note: "Slowed down and breathed. That was the whole trick." },
+          { daysAgo: 33, value: 40, note: "" },
+          { daysAgo: 19, value: 43, note: "Straight after a 10-mile run." },
+          { daysAgo: 4, value: 46, note: "Fifty is close." },
+        ],
+        plan: {
+          summary:
+            "Maya runs a lot and has never trained her upper body. Three short sessions a week after runs (sets of about two thirds of her best, a minute's rest between), and one max test a week, first thing in the morning before coffee.",
+          cadence: "Three short sessions a week, one max test.",
+        },
+      },
+      {
+        handle: "kenjimorita",
+        daysAgo: 66,
+        pace: 0,
+        beats: [
+          { daysAgo: 66, value: 31, note: "First test. Checked my form in the mirror." },
+          { daysAgo: 59, value: 33, note: "" },
+          { daysAgo: 52, value: 36, note: "Five easy push-ups every time I go to the kitchen." },
+          { daysAgo: 38, value: 40, note: "Sore chest, happy." },
+          { daysAgo: 31, value: 41, note: "Barely. Right shoulder complained after." },
+          { daysAgo: 24, value: 37, note: "First test since the shoulder. Stopped early on purpose." },
+          { daysAgo: 17, value: 45, note: "The extra rest days are paying off." },
+          { daysAgo: 10, value: 47, note: "Maya is at 43. Noted." },
+        ],
+        plan: {
+          summary:
+            "Kenji wants to beat everyone here and knows he has to beat his own number first. Five easy push-ups every time he gets up from his desk, two harder sessions a week, and a test once a week.",
+          cadence: "Easy sets daily. One test a week.",
+        },
+        replan: {
+          daysAgo: 30,
+          shiftWeeks: 1,
+          reason: "Right shoulder twinged after testing two days in a row. One test a week, never the day after a hard session, and camps moved back a week.",
+        },
+      },
+      {
+        handle: "debcollins",
+        daysAgo: 57,
+        pace: 0,
+        beats: [
+          { daysAgo: 57, value: 6, note: "I'm 52 and I've only ever done them on my knees. Six real ones. Here we go." },
+          { daysAgo: 50, value: 8, note: "" },
+          { daysAgo: 43, value: 10, note: "Double digits." },
+          { daysAgo: 36, value: 11, note: "" },
+          { daysAgo: 29, value: 14, note: "My grandson counted out loud for me." },
+          { daysAgo: 22, value: 16, note: "" },
+          { daysAgo: 15, value: 19, note: "Arms shaking, smile on my face." },
+          { daysAgo: 6, value: 21, note: "Never thought I'd see twenty." },
+        ],
+        plan: {
+          summary:
+            "Deb is 52 and started with six full push-ups. Incline push-ups against the kitchen counter on weekdays, slow lowering push-ups twice a week, and a test on the floor once a week. Wrists and shoulders get a warm-up every time.",
+          cadence: "Weekdays, 10 min. One test a week.",
+        },
+      },
+      {
+        handle: "tylerb",
+        daysAgo: 30,
+        pace: 0,
+        beats: [
+          { daysAgo: 30, value: 35, note: "Did push-ups every day for high school football and none since." },
+          { daysAgo: 23, value: 38, note: "" },
+          { daysAgo: 16, value: 40, note: "" },
+          { daysAgo: 9, value: 42, note: "Kenji's at 47. I see you." },
+        ],
+        plan: {
+          summary: "Tyler did push-ups for high school football and hasn't since. Three sessions a week after work with ladder sets (one, two, three, up to ten and back down), and a test every week.",
+          cadence: "Three evenings a week, after work.",
+        },
+      },
+      {
+        handle: "olliegrant",
+        daysAgo: 7,
+        pace: 0,
+        beats: [
+          { daysAgo: 7, value: 19, note: "Bet my flatmate a curry I'd get to 100 before he does." },
+          { daysAgo: 1, value: 21, note: "He's on 15." },
+        ],
+        plan: {
+          summary: "Ollie has a bet with his flatmate. Three sets of push-ups before guitar practice most evenings, and a test once a week.",
+          cadence: "Most evenings. One test a week.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Film one push-up from the side", "Check: chest to a fist off the floor, hips in line.", "one_off", 15),
+      q("Three training days this week", "Sets of about two thirds of your best, a minute's rest between.", "weekly", 25),
+      q("Five easy push-ups at every break", "Every time you get up from your desk, all week.", "daily", 10),
+      q("Slow lowering push-ups", "Five push-ups, lowering for a count of five. Twice this week.", "weekly", 20),
+      q("Test your max on the same day each week", "Fresh, warmed up, same time of day.", "weekly", 20),
+      q("Ladder set", "1, 2, 3 up to 10, a breath between each. Then back down.", "weekly", 25),
+      q("Plank for a minute after training", "Every training day. The last push-ups are about your core.", "daily", 10),
+      q("Warm up wrists and shoulders", "Circles and a few against the wall before every set.", "daily", 10),
+      q("Take an easy week", "Two light sessions only, then test.", "one_off", 15),
+      q("Beat your best by two", "On your usual test day. Two more than last time.", "boss", 60),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Three training days this week", "Two thirds of your best per set.", "weekly", 25),
+        q("Five easy push-ups at every break", "All week.", "daily", 10),
+        q("Slow lowering push-ups", "Lower for a count of five.", "weekly", 20),
+        q("Ladder set", "1 up to 10 and back down.", "weekly", 25),
+        q("Test your max on the same day each week", "Fresh and warmed up.", "weekly", 20),
+        q("Plank for a minute after training", "Every training day.", "daily", 10),
+        q("Film one push-up from the side", "Check depth and hips.", "one_off", 15),
+      ]),
+    space:
+      "A gym chalkboard in teal and chalk white. Each member's newest test is drawn as a chalk tally in bundles of five, with their name and the date they tested. Lead with the biggest set anyone here has done, and how many members are past each camp (20, 35, 50, 65, 80). Show each member's tests over time as a small chalk line chart, and the newest notes in chalk handwriting.",
+  },
+
+  // ----- Summits -----
+  {
+    key: "summits",
+    slug: "hike-12-summits",
+    title: "Hike 12 summits",
+    tagline: "A summit a month, on your own two feet. Every top counts once.",
+    description:
+      "Walk to the top of 12 different summits this year, about one a month. Any summit counts if you walk up it from the bottom: a local hill, a famous peak, a volcano. Cable cars and summit roads don't.\n\n" +
+      "Log each summit by name, with its height if you know it and a line about the day.",
+    emoji: "hiking",
+    theme: "sky",
+    category: "fitness",
+    metric: { name: "summits", unit: "summits", target: 12, aggregation: "distinct" },
+    camps: [
+      { title: "First summit", detail: "A small one close to home. Pack more water than you think.", target: 1, week: 4, emoji: "hiking" },
+      { title: "Three summits", detail: "Learn to read the forecast, and turn back when it says so.", target: 3, week: 12, emoji: "compass" },
+      { title: "A full day out", detail: "Five summits, one of them a hike of six hours or more.", target: 5, week: 20, emoji: "backpack" },
+      { title: "Halfway: six summits", detail: "Half the year's tops.", target: 6, week: 26, emoji: "camp" },
+      { title: "Nine summits", detail: "Take a friend up their first one.", target: 9, week: 39, emoji: "flag" },
+      { title: "Twelve summits", detail: "Twelve tops in a year.", target: 12, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "noahb",
+        daysAgo: 82,
+        items: [
+          { label: "Mount Sanitas", note: "Boulder's local hill. 1,300 feet of rock stairs, and my lungs aren't used to the altitude yet.", daysAgo: 78 },
+          { label: "Mount Bierstadt", note: "First fourteener, 14,065 ft. Started at 5am to beat the afternoon storms. Worth every step.", daysAgo: 64 },
+          { label: "Twin Sisters Peaks", note: "Longs Peak right across the valley. Hail for ten minutes on the way down.", daysAgo: 41 },
+          { label: "Green Mountain", note: "Short one before work. Watched the sun come up over Denver.", daysAgo: 18 },
+        ],
+        plan: {
+          summary:
+            "Noah moved to Denver last year and keeps looking at the mountains from his window. The plan alternates foothill summits close to town with one big peak a month while the weather holds, then snowshoe summits over the winter.",
+          cadence: "A summit a month, early starts.",
+        },
+      },
+      {
+        handle: "lenafischer",
+        daysAgo: 70,
+        hours: [[16, 19]],
+        items: [
+          { label: "Herzogstand", note: "The classic first one from Munich. Train to Kochel, bus, up. The fog lifted at the top.", daysAgo: 66 },
+          { label: "Wendelstein", note: "1,838 m. Walked up while the cog railway passed us twice. Took it down, which the rules allow.", daysAgo: 45 },
+          { label: "Benediktenwand", note: "1,801 m, a long day with 1,100 m of climb. Ibex near the top.", daysAgo: 24 },
+          { label: "Jochberg", note: "A quick one before the snow. Sunrise over the Kochelsee.", daysAgo: 10 },
+        ],
+        plan: {
+          summary:
+            "Lena hikes the Bavarian Pre-Alps by train from Munich. A summit every three weeks until the snow, with her weekly long run for fitness, then two snowshoe summits in winter and the bigger peaks from May.",
+          cadence: "Every third weekend, first train out.",
+        },
+      },
+      {
+        handle: "ellie808",
+        daysAgo: 60,
+        items: [
+          { label: "Koko Head", note: "1,048 steps up old railway ties. I thought I was fit.", daysAgo: 55 },
+          { label: "Diamond Head", note: "The tourist hike, I know. Sunrise from the top was still something.", daysAgo: 40 },
+          { label: "Kuliouou Ridge", note: "Steep and muddy, and the view across to the windward side made me sit down.", daysAgo: 19 },
+        ],
+        plan: {
+          summary:
+            "Ellie lives in Honolulu, where flights to anywhere cost a fortune, so this year's summits are mostly on Oahu: ridges and craters, early, before the heat. One neighbor-island trip if a fare sale comes up.",
+          cadence: "One ridge a month, at sunrise.",
+        },
+      },
+      {
+        handle: "claireb",
+        daysAgo: 52,
+        items: [
+          { label: "Arthur's Seat", note: "It's practically in my back garden. Should have done it years ago. The wind tried to take my hat.", daysAgo: 50 },
+          { label: "Ben Lomond", note: "First Munro, 974 m. Rain, sun, hail, sun, in that order.", daysAgo: 31 },
+          { label: "Ben Vorlich", note: "Second Munro. Saw nothing at the top but cloud. Ticked it anyway.", daysAgo: 8 },
+        ],
+        plan: {
+          summary:
+            "Claire lives in Edinburgh and wants to start on the Munros. Hills she can reach by train or bus for now, a Munro whenever a friend with a car is going, and nothing in the Highlands in winter until she's done a proper winter skills course.",
+          cadence: "A hill a month. Munros when there's a lift.",
+        },
+      },
+      {
+        handle: "jiwoo",
+        daysAgo: 36,
+        hours: [[9, 11]],
+        items: [
+          { label: "Inwangsan", note: "Ten minutes from the office. Night views of the city from the rocks.", daysAgo: 33 },
+          { label: "Baegundae, Bukhansan", note: "836 m, the highest point in Seoul. Half the city was on the trail. Kimbap at the top.", daysAgo: 19 },
+          { label: "Gwanaksan", note: "Steep granite, with ropes in places. Sunrise from the top, then the first bus back.", daysAgo: 5 },
+        ],
+        plan: {
+          summary:
+            "Ji-woo runs along the Han River and wants the mountains around Seoul too. Most of them are a subway ride away, so the plan is a summit every other weekend at dawn, after a short run the day before.",
+          cadence: "Every other weekend at dawn.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pick your next summit and check the forecast", "Choose a backup in case the weather turns.", "one_off", 15),
+      q("Pack the ten essentials", "Map, light, layers, food, water, first aid and the rest. Leave the bag packed.", "one_off", 15),
+      q("Hike an hour with a full pack", "Uphill, with the bag you'll carry on the big day.", "weekly", 20),
+      q("Climb 500 m of stairs", "In a building or on a hill. Two sessions this week.", "weekly", 20),
+      q("Start before sunrise", "Headlamp on, at the trailhead at first light.", "weekly", 25),
+      q("Learn the way down first", "Check the descent before you start up. Most slips happen there.", "one_off", 15),
+      q("A long walk on tired legs", "Two hours the day after a hard workout.", "weekly", 20),
+      q("A summit with 1,000 m of climb", "A full day. Turn back at the time you set, not at the top.", "boss", 80),
+      q("Take someone up their first summit", "A friend, a cousin, a colleague.", "boss", 60),
+    ],
+    doneQuest: (log) => q(`Reach the top of ${log.label}`, "Check the forecast, start early, turn back if it turns.", "weekly", 30),
+    space:
+      "A topographic trail map in snowy sky blue and white: contour lines, small peaks, dotted routes. Every summit anyone has logged is a peak marker with its name, who climbed it and when. Lead with how many different summits the group has climbed together. Give each member a ridge line of twelve peaks that fill in as they climb, and show the newest notes as trail-register entries.",
+  },
 ];
 
 // ---------- Small helpers ----------
@@ -1907,14 +3526,13 @@ function seedChallenge(spec: ChallengeSpec, users: Map<string, SeedUser>, now: n
 
   // Cheers between members.
   const rng = new Rng(`cheers:${spec.key}`);
-  const itemBased = spec.metric.aggregation !== "sum";
   let lastAt = createdAt;
   for (const r of runs) {
     for (const log of r.logs) {
       lastAt = Math.max(lastAt, log.at);
       const others = runs.filter((o) => o.user.id !== r.user.id && o.joinAt < log.at);
       if (!others.length) continue;
-      const p = log.crossed ? 0.85 : itemBased ? (log.note ? 0.7 : 0.45) : log.note ? 0.42 : 0.18;
+      const p = log.crossed ? 0.85 : log.label != null ? (log.note ? 0.7 : 0.45) : log.note ? 0.42 : 0.18;
       if (!rng.chance(p)) continue;
       let k = 1 + (rng.chance(0.45) ? 1 : 0) + (rng.chance(0.25) ? 1 : 0) + (log.crossed && rng.chance(0.5) ? 1 : 0);
       k = Math.min(k, others.length);
@@ -1934,6 +3552,8 @@ type Raw = { d: number; value: number | null; label: string | null; note: string
 
 function rawLogs(spec: ChallengeSpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
   const inGap = (d: number) => (m.gaps ?? []).some(([from, to]) => d <= from && d >= to);
+  // A count log is one of something, so like a real one it carries no number.
+  const val = (v: number) => (spec.metric.aggregation === "count" ? null : v);
   const out: Raw[] = [];
   if (m.items) {
     const explicit = m.items.every((it) => it.daysAgo != null);
@@ -1951,7 +3571,7 @@ function rawLogs(spec: ChallengeSpec, m: MemberSpec, today: string, step: number
     if (inGap(d)) continue;
     const beat = m.beats?.find((b) => b.daysAgo === d);
     if (beat) {
-      out.push({ d, value: beat.value ?? roundTo(rng.float(...(m.amount ?? [1, 2])), step), label: null, note: beat.note, long: beat.long });
+      out.push({ d, value: val(beat.value ?? roundTo(rng.float(...(m.amount ?? [1, 2])), step)), label: null, note: beat.note, long: beat.long });
       continue;
     }
     const date = addDays(today, -d);
@@ -1963,18 +3583,18 @@ function rawLogs(spec: ChallengeSpec, m: MemberSpec, today: string, step: number
       if ((m.ritual.every ?? 1) === 1 || week % (m.ritual.every ?? 1) === 0) {
         if (rng.chance(0.92)) {
           const notes = m.ritual.notes;
-          out.push({ d, value: m.ritual.amount + rng.pick([-10, -5, 0, 0, 0, 5]), label: null, note: notes[week % notes.length], hour: m.ritual.hour });
+          out.push({ d, value: val(m.ritual.amount + rng.pick([-10, -5, 0, 0, 0, 5])), label: null, note: notes[week % notes.length], hour: m.ritual.hour });
         }
         continue;
       }
     }
     if (!phase && m.long && wd === m.long.weekday) {
-      if (rng.chance(m.long.chance)) out.push({ d, value: roundTo(rng.float(...m.long.amount), step), label: null, note: null, long: true });
+      if (rng.chance(m.long.chance)) out.push({ d, value: val(roundTo(rng.float(...m.long.amount), step)), label: null, note: null, long: true });
       continue;
     }
     const p = phase ? phase.weekdays[wd] : m.weekdays ? m.weekdays[wd] : (m.pace ?? 0.7);
     if (!rng.chance(p)) continue;
-    out.push({ d, value: roundTo(rng.float(...amount), step), label: null, note: null });
+    out.push({ d, value: val(roundTo(rng.float(...amount), step)), label: null, note: null });
   }
   return out;
 }
@@ -2013,7 +3633,7 @@ function simulateMember(
   const raws = rawLogs(spec, m, today, step, rng);
   const logs: LogRec[] = [];
   for (const raw of raws) {
-    const win = raw.hour != null ? ([raw.hour, raw.hour] as [number, number]) : rng.pick(user.hours);
+    const win = raw.hour != null ? ([raw.hour, raw.hour] as [number, number]) : rng.pick(m.hours ?? user.hours);
     const hour = rng.int(win[0], win[1]);
     const minute = rng.int(0, 59);
     // Items and story beats matter, so if their time hasn't come yet today, they happened yesterday.
@@ -2064,7 +3684,7 @@ function simulateMember(
   // 2. Some logs completed a quest the agent set earlier that week.
   const usedTitles = new Set<string>();
   const eligible = logs.filter((l) => l.at > planAt + 20 * HOUR);
-  const questCount = spec.metric.aggregation === "sum" ? Math.min(9, Math.round(logs.length * 0.12)) : Math.floor(eligible.length * 0.5);
+  const questCount = m.items ? Math.floor(eligible.length * 0.5) : Math.min(9, Math.round(logs.length * 0.12));
   type QuestRow = { id: string; tpl: QuestTpl; createdAt: number; dueOn: string | null; status: "open" | "done" | "skipped"; completedAt: number | null; logId: string | null };
   const quests: QuestRow[] = [];
   for (const log of spreadPick(eligible, questCount, rng)) {
@@ -2095,6 +3715,7 @@ function simulateMember(
     xp += log.xp;
     if (spec.metric.aggregation === "sum") total += log.value ?? 0;
     else if (spec.metric.aggregation === "count") total += log.value ?? 1;
+    else if (spec.metric.aggregation === "latest") total = log.value ?? total;
     else {
       seen.add((log.label ?? "").trim().toLowerCase());
       total = seen.size;

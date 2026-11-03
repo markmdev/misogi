@@ -41,7 +41,7 @@ bun dev              # http://localhost:3000
 In a second terminal:
 
 ```sh
-bun run seed         # demo challenges, 38 demo people, a few weeks of history
+bun run seed         # demo challenges, 44 demo people, a few weeks of history
 bun run ai-check     # one small call per model job; every check should say "ok": true
 ```
 
