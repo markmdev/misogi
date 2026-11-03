@@ -365,7 +365,7 @@ export function ShareButton({ url, text, className }: { url: string; text: strin
   const [copied, setCopied] = useState(false);
   return (
     <button
-      className={cx("btn btn-ghost btn-sm", className)}
+      className={cx("btn btn-ghost", className)}
       onClick={async () => {
         const full = url.startsWith("http") ? url : `${window.location.origin}${url}`;
         if (navigator.share) {
@@ -393,7 +393,7 @@ export function ShareWeekButton({ cardUrl, pageUrl, text, className }: { cardUrl
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className={cx("btn btn-sm", className)} onClick={() => setOpen(true)}>
+      <button className={cx("btn", className)} onClick={() => setOpen(true)}>
         <Icon name="camera" size={22} />
         Share my week
       </button>

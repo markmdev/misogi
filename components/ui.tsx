@@ -132,7 +132,7 @@ export function Pill({ children, tone = "cream", className, style }: { children:
     white: "bg-white/90 text-ink shadow-sm",
   } as const;
   return (
-    <span className={cx("inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-extrabold", tones[tone], className)} style={style}>
+    <span className={cx("inline-flex min-h-7 items-center gap-1.5 rounded-[14px] px-2.5 py-1 text-[13px] leading-5 font-extrabold text-balance", tones[tone], className)} style={style}>
       {children}
     </span>
   );

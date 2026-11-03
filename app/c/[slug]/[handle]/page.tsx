@@ -69,7 +69,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                     Day {facts.day} of {facts.days_total}
                   </span>
                   {guide && (
-                    <Pill tone="white" className="!h-6 !text-[12px]">
+                    <Pill tone="white" className="!min-h-6 !py-0.5 !text-[12px]">
                       <Icon name={user.agent_kind === "virgil" ? "camp" : "orb"} size={16} />
                       Guided by {guide}
                       {user.agent_seen_at && <span className="font-bold text-ink-3">· {timeAgo(user.agent_seen_at)}</span>}
@@ -243,10 +243,10 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                             <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>
                           ) : (
                             (metric.aggregation === "sum" || metric.aggregation === "latest") &&
-                            !l.quest_title && <Pill className="!h-6 !text-[12px]">Practice</Pill>
+                            !l.quest_title && <Pill className="!min-h-6 !py-0.5 !text-[12px]">Practice</Pill>
                           )}
                           {l.label && <span className="text-[15px] font-extrabold text-ink">{l.label}</span>}
-                          {l.quest_title && <Pill tone="moss" className="!h-6 !text-[12px]">✓ {l.quest_title}</Pill>}
+                          {l.quest_title && <Pill tone="moss" className="!min-h-6 !py-0.5 !text-[12px]">✓ {l.quest_title}</Pill>}
                           <span className="text-[12px] font-extrabold text-gold-deep">+{l.xp} XP</span>
                         </div>
                         {l.note && <p className="mt-1 text-[15px] leading-6 text-ink-2">{l.note}</p>}

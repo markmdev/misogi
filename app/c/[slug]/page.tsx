@@ -56,9 +56,9 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
         </div>
         <div className="relative mx-auto -mt-20 max-w-6xl px-4 sm:-mt-24 sm:px-6">
           <div className="card flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
-            <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row">
+            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 sm:flex sm:items-start">
               <IconTile name={c.emoji} size={76} bg={pal.tint} className="shadow-[0_4px_0_rgb(0_0_0/0.06)]" />
-              <div className="min-w-0">
+              <div className="contents sm:block sm:min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   {isTemplate ? (
                     <Pill tone="gold">
@@ -74,10 +74,10 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
                     </Pill>
                   )}
                 </div>
-                <h1 className="mt-2 text-[28px] leading-[34px] text-ink sm:text-[36px] sm:leading-[42px]">{c.title}</h1>
-                {c.tagline && <p className="mt-1.5 max-w-2xl text-[16px] leading-6 text-ink-2">{c.tagline}</p>}
+                <h1 className="col-span-2 mt-4 text-[28px] leading-[34px] text-ink sm:mt-2 sm:text-[36px] sm:leading-[42px]">{c.title}</h1>
+                {c.tagline && <p className="col-span-2 mt-1.5 max-w-2xl text-[16px] leading-6 text-ink-2">{c.tagline}</p>}
                 {!isTemplate && (
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-[14px] font-bold text-ink-2">
+                  <div className="col-span-2 mt-3 flex flex-wrap items-center gap-3 text-[14px] font-bold text-ink-2">
                     <div className="flex -space-x-1">
                       {board.slice(0, 5).map((s) => (
                         <Avatar key={s.handle} name={s.display_name} color={s.avatar} size={32} ring />
@@ -92,19 +92,19 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               {isTemplate ? (
-                <Link href={`/start?idea=${encodeURIComponent(c.title)}`} className="btn">
+                <Link href={`/start?idea=${encodeURIComponent(c.title)}`} className="btn grow sm:grow-0">
                   <Icon name="flag" size={24} />
                   Start this challenge
                 </Link>
               ) : isMember ? (
-                <Link href={`/c/${c.slug}/${viewer!.handle}`} className="btn btn-moss">
+                <Link href={`/c/${c.slug}/${viewer!.handle}`} className="btn btn-moss grow sm:grow-0">
                   <Icon name="backpack" size={24} />
                   My climb
                 </Link>
               ) : (
-                <JoinButton slug={c.slug} signedIn={!!viewer} title={c.title} />
+                <JoinButton slug={c.slug} signedIn={!!viewer} title={c.title} className="grow sm:grow-0" />
               )}
-              <ShareButton url={`/c/${c.slug}`} text={`${c.title} · climb it with me on Misogi`} />
+              <ShareButton url={`/c/${c.slug}`} text={`${c.title} · climb it with me on Misogi`} className="grow sm:grow-0" />
             </div>
           </div>
         </div>
