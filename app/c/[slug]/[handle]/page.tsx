@@ -276,7 +276,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
           {/* Plan */}
           <aside className="flex flex-col gap-6">
             {plan && (
-              <section>
+              <section className="lg:only:sticky lg:only:top-22">
                 <SectionTitle title="The plan" icon="map" />
                 <Fresh key={plan.version} className="rounded-[22px]">
                   <div className="card p-5">
