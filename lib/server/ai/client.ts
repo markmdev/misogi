@@ -17,7 +17,7 @@ export type Provider = "xai" | "meta";
 const MODELS: Record<Provider, Record<Job, string>> = {
   xai: {
     agent: "grok-4.7",
-    draft: "grok-4.7",
+    draft: "grok-4.20-0309-non-reasoning",
     codegen: "grok-build-0.1",
     fast: "grok-4.20-0309-non-reasoning",
     image: "grok-imagine-image-2.0",

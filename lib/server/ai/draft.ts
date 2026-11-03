@@ -86,7 +86,8 @@ export function normalizeDraft(d: Draft, today: string): Draft {
     ...d,
     title: d.title.slice(0, 60),
     tagline: d.tagline.slice(0, 120),
-    icon: icon(d.icon, fallbackIcon),
+    // Generic picks (mountain, tent, flag) say nothing about the challenge; prefer the category's icon.
+    icon: ["summit", "camp", "flag"].includes(d.icon) && fallbackIcon !== "summit" ? fallbackIcon : icon(d.icon, fallbackIcon),
     camps,
     first_quests: d.first_quests.slice(0, 4).map((q) => ({ ...q, xp: Math.min(Math.max(Math.round(q.xp) || 20, 10), 80) })),
   };
