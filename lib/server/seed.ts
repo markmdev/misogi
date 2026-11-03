@@ -673,7 +673,7 @@ const CHALLENGES: ChallengeSpec[] = [
         q("Listen to one slow podcast episode", "No pausing. Note what you understood after.", "weekly", 15),
       ]),
     space:
-      "Make it feel like a Chinese study notebook: warm paper, thin red margin lines, rose accents. Lead with the group's combined practice hours as one big number, then a calendar strip of the last 6 weeks showing how many people practiced each day. Show the newest notes as handwritten-style margin notes (they mention tones, lessons with Lin and HelloChinese). End with each member's progress toward the target as small bamboo-stalk bars.",
+      "Make it feel like a Chinese study notebook: warm paper, thin red margin lines, rose accents. Lead with the group's combined practice hours as one big number, with no progress bar under it: 150 hours is each learner's own goal, not the group's. Then a calendar strip of the last 6 weeks showing how many people practiced each day. Show the newest notes as handwritten-style margin notes (they mention tones, lessons with Lin and HelloChinese). End with each member's progress toward the target as small bamboo-stalk bars.",
   },
 
   // ----- Smart home -----
