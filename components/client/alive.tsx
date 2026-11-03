@@ -19,10 +19,11 @@ export function warmMascot(pose: string) {
 }
 
 /**
- * A muted loop laid over its still. It loads only once its spot is on screen, plays while it stays there
- * (and, with `onlyWhen`, only while that's true), fades in over the still, and never starts under reduced motion.
+ * A muted loop over its still. It loads only once its spot is on screen, plays while it stays there, fades in over
+ * the still and never starts under reduced motion. Once it shows it stays, only pausing off screen, so the still never
+ * comes back over a frame that has moved. `onShown` says when it starts fading in.
  */
-function Loop({ src, className, style, onlyWhen = true }: { src: () => string; className?: string; style?: CSSProperties; onlyWhen?: boolean }) {
+function Loop({ src, className, onShown }: { src: () => string; className?: string; onShown?: () => void }) {
   const ref = useRef<HTMLVideoElement>(null);
   const spot = useRef<HTMLSpanElement>(null);
   const [url, setUrl] = useState<string | null>(null);
@@ -37,18 +38,14 @@ function Loop({ src, className, style, onlyWhen = true }: { src: () => string; c
     return () => io.disconnect();
   }, []);
 
-  const on = seen && onlyWhen;
-  if (on && !url) setUrl(src());
+  if (seen && !url) setUrl(src());
 
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    if (on) {
-      // Starts over from the still each time it comes back, so the still never jumps to a mid-loop frame.
-      v.currentTime = 0;
-      void v.play().catch(() => {});
-    } else v.pause();
-  }, [on, url]);
+    if (seen) void v.play().catch(() => {});
+    else v.pause();
+  }, [seen, url]);
 
   return (
     <span ref={spot} className="pointer-events-none absolute inset-0" aria-hidden>
@@ -60,23 +57,31 @@ function Loop({ src, className, style, onlyWhen = true }: { src: () => string; c
           loop
           playsInline
           autoPlay
-          onPlaying={() => setShown(true)}
-          className={cx("transition-[opacity,transform] duration-500", on && shown ? "opacity-100" : "opacity-0", className)}
-          style={style}
+          onPlaying={() => {
+            setShown(true);
+            onShown?.();
+          }}
+          className={cx("transition-[opacity,transform] duration-500", shown ? "opacity-100" : "opacity-0", className)}
         />
       )}
     </span>
   );
 }
 
-/** Virgil: his still, with his loop for that pose playing over it. */
+/** Virgil: his still until his loop for that pose has faded in over it, then only the loop, so he never shows twice. */
 export function LiveMascot({ pose, still, size, alt, className, style }: { pose: string; still: string; size: number; alt: string; className?: string; style?: CSSProperties }) {
+  const [livePose, setLivePose] = useState<string | null>(null);
   return (
     <span className={cx("inline-block shrink-0 select-none", className)} style={{ width: size, height: size, ...style }}>
       <span className="relative block h-full w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={still} alt={alt} width={size} height={size} className="h-full w-full object-contain" draggable={false} />
-        <Loop key={pose} src={() => `/art/motion/virgil/${pose}.${seeThroughType()}`} className="absolute inset-0 h-full w-full object-contain" />
+        <img src={still} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-[visibility] delay-500", livePose === pose && "invisible")} draggable={false} />
+        <Loop
+          key={pose}
+          src={() => `/art/motion/virgil/${pose}.${seeThroughType()}`}
+          onShown={() => setLivePose(pose)}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
       </span>
     </span>
   );
@@ -92,38 +97,7 @@ export function LiveScene({ name, className }: { name: string; className?: strin
   );
 }
 
-/**
- * A challenge cover's loop. With a mouse it plays while the card is hovered or focused; on a touch screen,
- * while the card crosses the middle of the window, so one card moves at a time as you scroll.
- */
+/** A challenge cover's loop, playing wherever the cover is on screen. */
 export function LiveCover({ stem, className }: { stem: string; className?: string }) {
-  const box = useRef<HTMLSpanElement>(null);
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const card = box.current!.closest("a") ?? box.current!;
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      const on = () => setActive(true);
-      const off = () => setActive(false);
-      card.addEventListener("pointerenter", on);
-      card.addEventListener("pointerleave", off);
-      card.addEventListener("focusin", on);
-      card.addEventListener("focusout", off);
-      return () => {
-        card.removeEventListener("pointerenter", on);
-        card.removeEventListener("pointerleave", off);
-        card.removeEventListener("focusin", on);
-        card.removeEventListener("focusout", off);
-      };
-    }
-    const io = new IntersectionObserver(([e]) => setActive(e.isIntersecting), { rootMargin: "-45% 0px -45% 0px" });
-    io.observe(card);
-    return () => io.disconnect();
-  }, []);
-
-  return (
-    <span ref={box} className="pointer-events-none absolute inset-0">
-      <Loop src={() => `/art/motion/covers/${stem}.mp4`} onlyWhen={active} className={className} />
-    </span>
-  );
+  return <Loop src={() => `/art/motion/covers/${stem}.mp4`} className={className} />;
 }
