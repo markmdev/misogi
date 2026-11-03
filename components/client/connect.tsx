@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { Fragment, useEffect, useState, useTransition } from "react";
 import { newKeyAction } from "@/app/actions";
-import { timeAgo } from "@/lib/shared/format";
+import { agentLabel, timeAgo } from "@/lib/shared/format";
 import { cx, Icon, Mascot } from "../ui";
 import { Spinner } from "./space-frame";
 
@@ -32,11 +32,24 @@ function useAgentStatus(initial: Status | null, watching: boolean) {
   return status;
 }
 
-function CopyBlock({ text, label = "Copy", mono = false, big = false }: { text: string; label?: string; mono?: boolean; big?: boolean }) {
+/** Shows the key as its last four characters; Copy still copies the whole text. */
+function CopyBlock({ text, secret, label = "Copy", mono = false, big = false }: { text: string; secret?: string | null; label?: string; mono?: boolean; big?: boolean }) {
   const [copied, setCopied] = useState(false);
+  const parts = secret ? text.split(secret) : [text];
   return (
     <div className="relative rounded-2xl bg-white ring-1 ring-line">
-      <pre className={cx("overflow-x-auto px-4 py-3.5 pr-24 text-[13.5px] leading-6 whitespace-pre-wrap text-ink", mono ? "font-mono text-[12.5px]" : "font-sans", big && "max-h-72")}>{text}</pre>
+      <pre className={cx("overflow-x-auto px-4 py-3.5 pr-24 text-[13.5px] leading-6 whitespace-pre-wrap text-ink [overflow-wrap:anywhere]", mono ? "font-mono text-[12.5px]" : "font-sans", big && "max-h-72")}>
+        {parts.map((p, i) => (
+          <Fragment key={i}>
+            {i > 0 && (
+              <span title="Copy adds your full key" className="rounded-md bg-cream-2 px-1.5 py-0.5 font-mono text-[0.92em] whitespace-nowrap text-ink-2 ring-1 ring-line">
+                msk_••••{secret!.slice(-4)}
+              </span>
+            )}
+            {p}
+          </Fragment>
+        ))}
+      </pre>
       <button
         type="button"
         onClick={async () => {
@@ -97,23 +110,27 @@ export function ConnectPanel({
 
   return (
     <div className="flex flex-col gap-4">
-      <div
-        className={cx(
-          "flex items-center gap-3 rounded-2xl px-4 py-3 ring-1",
-          connected ? "bg-moss-soft text-moss-deep ring-moss/20" : "bg-white text-ink-2 ring-line",
-        )}
-      >
-        {connected ? <Icon name="check" size={30} /> : <Spinner className="text-ink-3" />}
-        <div className="text-[14px] leading-5 font-bold">
-          {connected ? (
-            <>
-              Connected{status?.agent_name ? ` to ${status.agent_name}` : ""} · last seen {timeAgo(status!.agent_seen_at)}
-            </>
-          ) : (
-            "Waiting for your AI to say hello…"
-          )}
+      {connected ? (
+        <div className="flex animate-rise items-center gap-3.5 rounded-2xl bg-moss-soft px-4 py-3.5 ring-1 ring-moss/20">
+          <Icon name="check" size={40} className="animate-pop [animation-delay:150ms]" />
+          <div className="min-w-0">
+            <div className="font-display text-[18px] leading-6 font-semibold text-moss-deep">
+              {status.agent_name ? `${status.agent_name} is your guide` : "Your AI is connected"}
+            </div>
+            <div className="text-[13px] leading-5 font-bold text-moss-deep/75">
+              {agentLabel(status.agent_kind, null)} · last seen {timeAgo(status.agent_seen_at)}
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-ink-2 ring-1 ring-line">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="absolute inset-0 animate-ping rounded-full bg-coral opacity-60" />
+            <span className="relative h-2.5 w-2.5 rounded-full bg-coral" />
+          </span>
+          <div className="text-[14px] leading-5 font-bold">Waiting for your AI to say hello…</div>
+        </div>
+      )}
 
       {!key && (
         <div className="card flex flex-col items-start gap-3 p-4">
@@ -147,7 +164,7 @@ export function ConnectPanel({
           <p className="text-[14px] leading-6 text-ink-2">
             Paste this into your Muse chat. Muse uses its own computer to read the guide, save your key and call Misogi, and its own scheduler for check-ins.
           </p>
-          <CopyBlock text={museMessage} label="Copy" big />
+          <CopyBlock text={museMessage} secret={key} label="Copy" big />
           <a href="https://muse.ai" target="_blank" rel="noreferrer" className="btn btn-ink btn-sm w-fit">
             Open Muse
           </a>
@@ -155,9 +172,9 @@ export function ConnectPanel({
       ) : (
         <div className="flex flex-col gap-3">
           <p className="label">Claude Code</p>
-          <CopyBlock text={claudeCmd} mono />
+          <CopyBlock text={claudeCmd} secret={key} mono />
           <p className="label mt-1">Any MCP client (URL only)</p>
-          <CopyBlock text={urlOnly} mono />
+          <CopyBlock text={urlOnly} secret={key} mono />
           <p className="text-[13px] leading-5 text-ink-3">The URL contains your key. Keep it private. Agents without MCP can follow {origin}/agent.md.</p>
         </div>
       )}
