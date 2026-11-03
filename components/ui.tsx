@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { ICONS, MASCOT } from "@/lib/shared/art";
+import { LiveMascot } from "./client/alive";
 
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
@@ -24,9 +25,14 @@ export function Mascot({
   alt?: string;
   style?: CSSProperties;
 }) {
-  const src = (MASCOT as Record<string, string>)[pose] ?? MASCOT.idle;
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} width={size} height={size} style={style} className={cx("select-none object-contain", className)} draggable={false} />;
+  const known = pose in MASCOT ? pose : "idle";
+  const still = (MASCOT as Record<string, string>)[known];
+  // Small Virgils (the chat button, avatars beside each chat message) stay still, so a list never twitches.
+  if (size < 48) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={still} alt={alt} width={size} height={size} style={style} className={cx("select-none object-contain", className)} draggable={false} />;
+  }
+  return <LiveMascot pose={known} still={still} size={size} alt={alt} className={className} style={style} />;
 }
 
 /** Icon on a soft rounded tile, like an app's settings row. */
@@ -165,7 +171,7 @@ export function Stat({ icon, value, label, tint = "var(--color-cream-2)" }: { ic
 export function EmptyState({ pose = "think", title, body, action }: { pose?: string; title: string; body?: string; action?: ReactNode }) {
   return (
     <div className="card flex flex-col items-center px-6 py-8 text-center">
-      <Mascot pose={pose} size={96} className="animate-bob" />
+      <Mascot pose={pose} size={96} />
       <h3 className="mt-3 text-[19px] text-ink">{title}</h3>
       {body && <p className="mt-1 max-w-sm text-[15px] leading-6 text-ink-2">{body}</p>}
       {action && <div className="mt-4">{action}</div>}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ActivityRow, ChallengeCard } from "@/components/challenge";
+import { LiveScene } from "@/components/client/alive";
 import { StartBox } from "@/components/client/start-box";
 import { Footer, TopBar } from "@/components/nav";
 import { Mascot } from "@/components/ui";
@@ -50,6 +51,7 @@ export default async function Home() {
               alt="A calm mountain at sunrise with a trail of camps leading to the summit"
               className="absolute inset-0 h-full w-full object-cover object-[50%_35%]"
             />
+            <LiveScene name="home-hero" className="absolute inset-0 h-full w-full object-cover object-[50%_35%]" />
             <div className="absolute inset-x-0 bottom-0 h-40 sm:h-56" style={{ background: "linear-gradient(to bottom, transparent, var(--color-cream) 92%)" }} />
           </div>
           <div className="relative mx-auto -mt-24 max-w-2xl px-4 max-[239px]:px-2 sm:-mt-32">
@@ -179,7 +181,7 @@ export default async function Home() {
 
         <section className="mx-auto mt-14 max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col items-center rounded-[32px] bg-coral-soft px-6 py-10 text-center">
-            <Mascot pose="cheer" size={110} className="animate-bob" alt="" />
+            <Mascot pose="cheer" size={110} alt="" />
             <h2 className="mt-2 text-[28px] leading-9 text-ink">What&apos;s your misogi?</h2>
             <p className="mt-2 max-w-md text-[16px] text-ink-2">The year goes by either way. Pick the one thing you&apos;ll be glad you did.</p>
             <Link href="/start" className="btn mt-6">

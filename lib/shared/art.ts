@@ -112,3 +112,17 @@ export const CATEGORY_ICON: Record<string, IconName> = {
   social: "handshake",
   other: "summit",
 };
+
+/** Covers of the challenges that ship with the site that have a Grok Imagine loop, by picture name: /art/motion/covers/<name>.mp4. */
+const COVER_LOOPS = new Set([
+  "chl_1jllmx23s0mw-oml4vhkg", "chl_demo21wztq3o-pb45d8dr", "chl_demo2sgdvwyp-jxujyjr2", "chl_demo6pz9hi23-y8cmc3xs", "chl_demo868st571-kre1hfi2",
+  "chl_demo9918eizb-6wekgtr2", "chl_demo9m966gr6-whrdiniz", "chl_demobnlfdz36-eo93kjrw", "chl_demobxw1dw1x-t60imbo2", "chl_demobz5307og-tkbmbjb9",
+  "chl_demod8j2fvyu-dz108edw", "chl_demok0n7ppto-b3gy94p3", "chl_demol4evv73u-bhhgpy92", "chl_demolx5lj3n1-ndlyxh5m", "chl_demoo1vcw5o3-pn3t6kb4",
+  "chl_demorn0urysa-f37pkdnq", "chl_demosali7j3c-iin07otc", "chl_demowew4z4h3-kto6in9l", "chl_demoy30vwjcp-vzbzvhsr",
+]);
+
+/** The loop for this cover, when it's one of those exact pictures; a redrawn cover has none. */
+export function coverLoop(coverUrl: string | null): string | null {
+  const name = coverUrl?.match(/\/media\/covers\/([\w-]+)\.\w+$/)?.[1];
+  return name && COVER_LOOPS.has(name) ? name : null;
+}

@@ -89,7 +89,7 @@ function Failed({ request }: { request: string }) {
 function Building({ request }: { request: string }) {
   return (
     <div className="card flex flex-col items-center px-6 py-10 text-center">
-      <Mascot pose="think" size={100} className="animate-bob" alt="" />
+      <Mascot pose="think" size={100} alt="" />
       <h3 className="mt-3 text-[19px] text-ink">Building this space…</h3>
       <p className="mt-1 max-w-md text-[14px] leading-6 text-ink-2">“{request}”</p>
       <p className="mt-3 flex items-center gap-2 text-[13px] font-bold text-ink-3">

@@ -119,7 +119,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
       {step === "idea" && (
         <section className="animate-rise">
           <div className="flex flex-col items-center text-center">
-            <Mascot pose="wave" size={110} className="animate-bob" />
+            <Mascot pose="wave" size={110} />
             <h1 className="mt-2 text-[30px] leading-9 text-ink">What&apos;s your misogi?</h1>
             <p className="mt-2 text-[16px] leading-6 text-ink-2">One hard thing you want to do this year. Say it in your own words.</p>
           </div>
@@ -477,7 +477,7 @@ function GhostClimb({ active, className }: { active: boolean; className?: string
                     pose="think"
                     size={72}
                     alt=""
-                    className="absolute top-1/2 -translate-y-1/2 animate-bob"
+                    className="absolute top-1/2 -translate-y-1/2"
                     style={x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }}
                   />
                 )}
@@ -505,7 +505,7 @@ function CreatingEffect({ onReady, signedIn }: { onReady: () => void; signedIn: 
   }, [onReady, signedIn]);
   return (
     <section className="flex flex-col items-center pt-12 text-center">
-      <Mascot pose="climb" size={140} className="animate-bob" />
+      <Mascot pose="climb" size={140} />
       <h2 className="mt-4 text-[24px] leading-8 text-ink">Setting up your camp…</h2>
     </section>
   );

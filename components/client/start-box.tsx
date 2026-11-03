@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { palette } from "@/lib/shared/theme";
 import { cx, Icon, Mascot } from "../ui";
+import { warmMascot } from "./alive";
 
 /** In the wheel's order, clockwise from the top; `chip` ones also show as examples under the box. */
 const IDEAS = [
@@ -59,7 +60,7 @@ export function StartBox() {
         key={pose}
         pose={pose}
         size={112}
-        className={cx("absolute -top-[70px] left-1/2 -translate-x-1/2", phase === "idle" ? "animate-bob" : "animate-pop")}
+        className={cx("absolute -top-[70px] left-1/2 -translate-x-1/2", phase !== "idle" && "animate-pop")}
       />
       <form ref={formRef} action="/start" className="relative z-10 mt-6 flex flex-col gap-3 sm:flex-row">
         <label htmlFor="idea" className="sr-only">
@@ -84,7 +85,11 @@ export function StartBox() {
       </form>
       {phase === "idle" ? (
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <button type="button" className="chip group !border-coral/25 !bg-coral-soft !text-coral-deep !shadow-[0_2px_0_color-mix(in_srgb,var(--color-coral)_30%,transparent)]" onClick={() => setPhase("spinning")}>
+          <button type="button" className="chip group !border-coral/25 !bg-coral-soft !text-coral-deep !shadow-[0_2px_0_color-mix(in_srgb,var(--color-coral)_30%,transparent)]" onClick={() => {
+              warmMascot("think");
+              warmMascot("cheer");
+              setPhase("spinning");
+            }}>
             <MiniWheel className="transition-transform duration-500 ease-out group-hover:rotate-[135deg]" />
             Spin the wheel
           </button>

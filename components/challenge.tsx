@@ -1,10 +1,16 @@
 import Link from "next/link";
-import { SCENES } from "@/lib/shared/art";
+import { coverLoop, SCENES } from "@/lib/shared/art";
 import { activityText, firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { ActivityItem, ChallengeSummary, Metric, Milestone, Standing } from "@/lib/shared/types";
+import { LiveCover } from "./client/alive";
 import { Fresh } from "./client/live";
 import { Avatar, cx, Icon, IconTile, Mascot, ProgressBar } from "./ui";
+
+/** The scene a theme uses, by name, for its drifting-clouds loop. */
+export function sceneName(theme: string): string {
+  return theme in SCENES ? theme : "home-hero";
+}
 
 export function sceneFor(theme: string, small = true): string {
   const s = (SCENES as Record<string, { src: string; sm: string }>)[theme] ?? SCENES["home-hero"];
@@ -14,6 +20,7 @@ export function sceneFor(theme: string, small = true): string {
 export function ChallengeCard({ c, className }: { c: ChallengeSummary; className?: string }) {
   const pal = palette(c.theme);
   const isTemplate = c.status === "template";
+  const loop = coverLoop(c.cover_url);
   return (
     <Link
       href={`/c/${c.slug}`}
@@ -26,6 +33,7 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
           alt=""
           className={cx("absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]", !c.cover_url && "object-[70%_center]")}
         />
+        {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover group-hover:scale-[1.04]" />}
         <div className="absolute bottom-3 left-3">
           <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
         </div>
@@ -246,9 +254,9 @@ export function CampPath({
                 <Mascot
                   pose="climb"
                   size={72}
-                  className={cx("absolute top-1/2 -translate-y-1/2", reveal ? "animate-[rise_0.5s_both,bob_3.2s_ease-in-out_0.5s_infinite]" : "animate-bob")}
+                  className={cx("absolute top-1/2 -translate-y-1/2", reveal && "animate-rise")}
                   alt=""
-                  style={{ ...(x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }), animationDelay: reveal ? `${at + 120}ms, ${at + 620}ms` : undefined }}
+                  style={{ ...(x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }), animationDelay: reveal ? `${at + 120}ms` : undefined }}
                 />
               )}
             </div>
