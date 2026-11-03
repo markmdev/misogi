@@ -140,7 +140,7 @@ export function Pill({ children, tone = "cream", className, style }: { children:
 
 export function SectionTitle({ title, action, icon, className }: { title: string; action?: ReactNode; icon?: string; className?: string }) {
   return (
-    <div className={cx("mb-3 flex items-center justify-between gap-3", className)}>
+    <div className={cx("mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5", className)}>
       <h2 className="flex items-center gap-2 text-[20px] leading-7 text-ink">
         {icon && <Icon name={icon} size={28} />}
         {title}
