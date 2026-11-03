@@ -9,10 +9,10 @@ export async function POST(req: Request) {
   try {
     const ip = clientIp(req);
     rateLimit(`draft:${ip}`, 6, 4);
-    const body = (await req.json().catch(() => ({}))) as { idea?: string; timezone?: string };
+    const body = ((await req.json().catch(() => null)) ?? {}) as { idea?: unknown; timezone?: unknown };
     const idea = String(body.idea ?? "").trim();
     if (idea.length < 3) throw new AppError("invalid", "Tell us your misogi in a few words.");
-    const tz = body.timezone && isValidTimeZone(body.timezone) ? body.timezone : "UTC";
+    const tz = typeof body.timezone === "string" && isValidTimeZone(body.timezone) ? body.timezone : "UTC";
     const draft = await draftChallenge(idea, dateIn(tz), ip);
     return json({ draft });
   } catch (e) {

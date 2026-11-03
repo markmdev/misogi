@@ -192,12 +192,17 @@ describe("a full climb over the HTTP API", () => {
     expect(pulse.stamp).toBeTruthy();
   });
 
-  test("sign-in links work once", async () => {
+  test("sign-in links work once, and only on POST", async () => {
     const link = await tool(alice.key, "get_sign_in_link");
-    const first = await fetch(link.body.url, { redirect: "manual" });
-    expect(first.status).toBe(307);
+    const preview = await fetch(link.body.url);
+    expect(preview.status).toBe(200); // a link preview (GET) doesn't use the token
+    const token = String(link.body.url).split("/signin/")[1];
+    const post = () =>
+      fetch(`${BASE}/api/signin`, { method: "POST", body: new URLSearchParams({ token }), redirect: "manual" });
+    const first = await post();
+    expect(first.status).toBe(303);
     expect(first.headers.get("set-cookie") ?? "").toContain("misogi_session");
-    const second = await fetch(link.body.url, { redirect: "manual" });
+    const second = await post();
     expect(second.headers.get("location") ?? "").toContain("signin-expired");
   });
 });

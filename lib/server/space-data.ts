@@ -37,6 +37,13 @@ export type SpaceData = {
   generated_at: string;
 };
 
+/** People's text goes into model-written pages; drop angle brackets so it can never become markup. */
+function clean(s: string): string;
+function clean(s: string | null): string | null;
+function clean(s: string | null): string | null {
+  return s == null ? s : s.replace(/[<>]/g, "");
+}
+
 export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceData {
   const board = standings(c);
   let member: SpaceData["member"] = null;
@@ -47,11 +54,13 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
       const plan = currentPlan(c.id, ownerUserId);
       member = {
         handle: u.handle,
-        name: u.display_name,
+        name: clean(u.display_name),
         starts_on: m.starts_on,
         ends_on: m.ends_on,
-        plan: plan ? { summary: plan.summary_md, cadence: plan.cadence, camps: plan.milestones } : null,
-        quests: listQuests(c.id, ownerUserId).map((q) => ({ title: q.title, detail: q.detail, kind: q.kind, xp: q.xp, due_on: q.due_on, status: q.status })),
+        plan: plan
+          ? { summary: clean(plan.summary_md), cadence: clean(plan.cadence), camps: plan.milestones.map((m) => ({ ...m, title: clean(m.title), detail: m.detail ? clean(m.detail) : m.detail })) }
+          : null,
+        quests: listQuests(c.id, ownerUserId).map((q) => ({ title: clean(q.title), detail: clean(q.detail), kind: q.kind, xp: q.xp, due_on: q.due_on, status: q.status })),
         facts: memberFacts(c, m),
       };
     }
@@ -66,9 +75,9 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
     kind: ownerUserId ? "member" : "challenge",
     challenge: {
       slug: c.slug,
-      title: c.title,
-      tagline: c.tagline,
-      description: c.description_md,
+      title: clean(c.title),
+      tagline: clean(c.tagline),
+      description: clean(c.description_md),
       metric: metricOf(c),
       theme: c.theme,
       status: c.status,
@@ -78,14 +87,14 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
     facts: member?.facts ?? null,
     members: board.slice(0, 50).map((s) => ({
       handle: s.handle,
-      name: s.display_name,
+      name: clean(s.display_name),
       total: s.total,
       progress: s.progress,
       rank: s.rank,
       streak: s.streak,
       level: s.level,
     })),
-    logs: logs.map((l) => ({ who: l.display_name, date: l.logged_for, value: l.value, label: l.label, note: l.note })),
+    logs: logs.map((l) => ({ who: clean(l.display_name), date: l.logged_for, value: l.value, label: clean(l.label), note: clean(l.note) })),
     generated_at: new Date().toISOString(),
   };
 }

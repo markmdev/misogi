@@ -36,8 +36,8 @@ function dataUri(file: string): string {
   return uri;
 }
 
-export const ogScene = (theme: string) => dataUri(`og/scene-${theme}.png`);
-export const ogIcon = (name: string) => dataUri(`og/icon-${name}.png`);
+export const ogScene = (theme: string) => dataUri(`og/scene-${/^[a-z-]{1,20}$/.test(theme) ? theme : "teal"}.png`);
+export const ogIcon = (name: string) => dataUri(`og/icon-${/^[a-z0-9-]{1,40}$/.test(name) ? name : "summit"}.png`);
 export const ogMascot = (pose: string) => dataUri(`og/mascot-${pose}.png`);
 
 export function initials(name: string) {

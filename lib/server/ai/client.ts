@@ -98,7 +98,7 @@ async function xaiKey(force = false): Promise<string> {
 async function rotateXaiKey() {
   const cfg = keyApiConfig();
   if (!cfg || process.env.XAI_API_KEY) return;
-  if (keyState.__xaiRotateAt && Date.now() - keyState.__xaiRotateAt < 10 * 60_000) return;
+  if (keyState.__xaiRotateAt && Date.now() - keyState.__xaiRotateAt < 60 * 60_000) return;
   keyState.__xaiRotateAt = Date.now();
   const before = keyState.__xaiKey?.value;
   try {
@@ -172,7 +172,8 @@ async function post(pathname: string, body: unknown, job: Job, opts: CallOptions
   }
   if (res.status === 429) {
     const text = await res.text().catch(() => "");
-    if (provider() === "xai") void rotateXaiKey();
+    // Rotate the shared key pool only on a real usage/credit limit, never on a per-minute rate limit.
+    if (provider() === "xai" && /credit|quota|spend|usage limit|billing|exhaust|insufficient/i.test(text)) void rotateXaiKey();
     if (text.includes("gateway_resting")) throw new AppError("resting", "Misogi's AI is resting for now. Try again later.");
     throw new AppError("resting", "The AI is busy right now. Try again in a minute.");
   }
@@ -210,11 +211,13 @@ export async function streamText(
   let text = "";
   let status = "in_progress";
   const idleMs = opts.idleMs ?? 90_000;
-  const readWithIdle = () =>
-    Promise.race([
-      reader.read(),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new AppError("resting", "The model stopped responding.")), idleMs)),
-    ]);
+  const readWithIdle = () => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const idle = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new AppError("resting", "The model stopped responding.")), idleMs);
+    });
+    return Promise.race([reader.read(), idle]).finally(() => clearTimeout(timer));
+  };
   try {
     for (;;) {
       const { done, value } = await readWithIdle().catch((e: unknown) => {

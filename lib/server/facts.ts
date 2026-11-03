@@ -65,9 +65,12 @@ function baseline(logs: FactLog[]): number | null {
 
 export function progressOf(total: number, logs: FactLog[], metric: MetricDef): number | null {
   if (metric.target == null || metric.target === 0) return null;
-  if (metric.aggregation === "latest" && metric.direction === "down") {
+  if (metric.direction === "down") {
+    // Lower is better (a 5k time): reaching the target is 100%; before that, measure from the first try.
+    if (logs.length === 0) return 0;
+    if (total <= metric.target) return 1;
     const base = baseline(logs);
-    if (base == null || base === metric.target) return logs.length ? 0 : 0;
+    if (base == null || base <= metric.target) return 0;
     return clamp((base - total) / (base - metric.target), 0, 1);
   }
   return clamp(total / metric.target, 0, 1);
@@ -199,8 +202,10 @@ export function computeFacts(input: MemberFactInput): Facts {
 
 /** Sort key for leaderboards: higher is better. */
 export function standingScore(total: number, progress: number | null, metric: MetricDef): number {
+  // For "lower is better" everyone is compared on the same number, not on progress from their own start.
+  if (metric.direction === "down") return -total;
   if (progress != null) return progress;
-  return metric.direction === "down" ? -total : total;
+  return total;
 }
 
 export function round(n: number): number {

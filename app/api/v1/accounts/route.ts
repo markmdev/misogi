@@ -12,9 +12,13 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     rateLimit(`signup:${clientIp(req)}`, 2, 10);
-    const body = (await req.json().catch(() => ({}))) as { display_name?: string; timezone?: string; motivation_style?: string };
-    if (!body.display_name) throw new AppError("invalid", "display_name is required.");
-    const user = createUser({ display_name: body.display_name, timezone: body.timezone, motivation_style: body.motivation_style });
+    const body = ((await req.json().catch(() => null)) ?? {}) as { display_name?: unknown; timezone?: unknown; motivation_style?: unknown };
+    if (typeof body.display_name !== "string" || !body.display_name.trim()) throw new AppError("invalid", "display_name is required.");
+    const user = createUser({
+      display_name: body.display_name,
+      timezone: typeof body.timezone === "string" ? body.timezone : undefined,
+      motivation_style: typeof body.motivation_style === "string" ? body.motivation_style : undefined,
+    });
     const { key } = createApiKey(user.id);
     const origin = originOf(req);
     return json(

@@ -13,7 +13,8 @@ export const dynamic = "force-dynamic";
 
 export default async function Image({ params }: { params: Promise<{ slug: string; handle: string }> }) {
   const { slug, handle } = await params;
-  const c = findChallenge(slug);
+  const found = findChallenge(slug);
+  const c = found && found.status !== "draft" ? found : null;
   const u = getUserByHandle(handle);
   const m = c && u ? getMembership(c.id, u.id) : null;
   const f = c && m ? memberFacts(c, m) : null;

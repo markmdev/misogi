@@ -126,6 +126,9 @@ export async function runVirgil(
       if ((seen.get(sig) ?? 0) > 2) {
         output = JSON.stringify({ error: { code: "loop", message: "You already made this exact call. Answer the person instead." } });
         emit({ type: "tool_done", name: call.name, ok: false, error: "repeated" });
+      } else if (HIDDEN.has(call.name)) {
+        output = JSON.stringify({ error: { code: "forbidden", message: "That tool isn't available here." } });
+        emit({ type: "tool_done", name: call.name, ok: false, error: "not available" });
       } else {
         let parsed: unknown = {};
         try {

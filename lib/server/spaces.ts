@@ -98,6 +98,14 @@ export function requestSpace(user: UserRow, slug: string, target: SpaceTarget, r
     ownerKey,
   );
   if (pending) throw new AppError("conflict", "A version of this space is already being built.", "Wait for it (get_space) before asking again.");
+  const today = one<{ n: number }>(
+    "SELECT COUNT(*) n FROM space_versions v JOIN challenges c ON c.id = v.challenge_id WHERE v.created_at >= ? AND (v.owner_key = ? OR (v.owner_key = '' AND c.creator_id = ?))",
+    new Date(Date.now() - 86400_000).toISOString(),
+    user.id,
+    user.id,
+  )!.n;
+  if (today >= 40) throw new AppError("resting", "That's a lot of rebuilds for one day. Try again tomorrow.");
+  if (queue().waiting.length >= 30) throw new AppError("resting", "Misogi is building a lot of pages right now. Try again in a few minutes.");
   const versionId = tx(() => {
     const v = (one<{ v: number | null }>("SELECT MAX(version) v FROM space_versions WHERE challenge_id = ? AND owner_key = ?", c.id, ownerKey)!.v ?? 0) + 1;
     const vid = id("spc");

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 /** Example check-ins in two styles, so a new climber can pick what motivates them. */
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as { title?: string };
+  const body = ((await req.json().catch(() => null)) ?? {}) as { title?: unknown };
   try {
     rateLimit(`pairs:${clientIp(req)}`, 6, 4);
     const pairs = await stylePairs(String(body.title ?? "a hard challenge"), clientIp(req));

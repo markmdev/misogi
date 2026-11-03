@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(props: PageProps<"/c/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   const c = findChallenge(slug);
-  if (!c) return { title: "Not found" };
+  if (!c || c.status === "draft") return { title: "Misogi" };
   return { title: c.title, description: c.tagline || `A year-long challenge on Misogi: ${c.title}.` };
 }
 

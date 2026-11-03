@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 
-// No cacheComponents: with OpenNext 1.20 every request hangs in the Workers runtime.
 const nextConfig: NextConfig = {
   turbopack: {
     rules: {
@@ -9,6 +8,19 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  async headers() {
+    return [
+      {
+        // App pages may only frame our own spaces, so a generated page can't navigate its frame elsewhere.
+        source: "/((?!s/|api/).*)",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-src 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
   },
 };
 

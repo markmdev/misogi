@@ -120,7 +120,7 @@ function autoReachMilestones(c: ChallengeRow, userId: string): Milestone[] {
   if (!plan) return [];
   const milestones = parseJson<Milestone[]>(plan.milestones_json, []);
   const metric = metricOf(c);
-  if (metric.direction === "down" || metric.aggregation === "latest") return [];
+  if (metric.direction === "down") return [];
   const total = aggregate(memberLogs(c.id, userId), metric);
   const reached: Milestone[] = [];
   for (const m of milestones) {
@@ -241,7 +241,8 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
   const date = input.date ?? today;
   if (!isIsoDate(date)) throw new AppError("invalid", `Bad date "${date}". Use YYYY-MM-DD.`);
   if (date > addDays(today, 1)) throw new AppError("invalid", "You can't log progress in the future.");
-  if (date < m.starts_on) throw new AppError("invalid", `This challenge started on ${m.starts_on}; you can't log before that.`);
+  // One day of slack: a time zone change can move "today" to the day before the start.
+  if (date < addDays(m.starts_on, -1)) throw new AppError("invalid", `This challenge started on ${m.starts_on}; you can't log before that.`);
   const agg = c.metric_aggregation;
   let value = input.value ?? null;
   if (value != null && !Number.isFinite(value)) throw new AppError("invalid", "value must be a number.");
@@ -262,8 +263,13 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
     if (quest.status !== "open") throw new AppError("conflict", "That quest is already closed.");
   }
 
+  const totalXp = () => {
+    const logXp = memberLogs(c.id, user.id).reduce((s, l) => s + l.xp, 0);
+    const camps = (currentPlan(c.id, user.id)?.milestones ?? []).filter((x) => x.done_at).length;
+    return logXp + camps * MILESTONE_XP;
+  };
   return tx(() => {
-    const before = levelFor(memberLogs(c.id, user.id).reduce((s, l) => s + l.xp, 0)).level;
+    const before = levelFor(totalXp()).level;
     const xp = LOG_XP + (note.length >= 30 ? NOTE_BONUS_XP : 0) + (quest?.xp ?? 0);
     const logId = id("log");
     run(
@@ -297,7 +303,7 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
       });
     }
     const reached = autoReachMilestones(c, user.id);
-    const after = levelFor(memberLogs(c.id, user.id).reduce((s, l) => s + l.xp, 0) + 0).level;
+    const after = levelFor(totalXp()).level;
     if (after > before) recordActivity(c.id, user.id, "level", { level: after });
     return { log_id: logId, xp, milestones_reached: reached.map((r) => ({ id: r.id, title: r.title })) };
   });

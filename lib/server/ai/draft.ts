@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CATEGORY_ICON, ICONS } from "@/lib/shared/art";
 import { AGGREGATIONS, THEMES } from "@/lib/shared/types";
 import { CATEGORIES } from "../domain/challenges";
-import { addDays, addYear } from "../util";
+import { addDays, addYear, isIsoDate } from "../util";
 import { structured } from "./client";
 
 export const DraftSchema = z.object({
@@ -76,7 +76,7 @@ export function normalizeDraft(d: Draft, today: string): Draft {
   const icon = (name: string, fallback: string) => (name in ICONS ? name : fallback);
   const fallbackIcon = CATEGORY_ICON[d.category as keyof typeof CATEGORY_ICON] ?? "summit";
   const camps = d.camps.slice(0, 6).map((c, i, arr) => {
-    let due = /^\d{4}-\d{2}-\d{2}$/.test(c.due_on) ? c.due_on : addDays(today, Math.round(((i + 1) * 365) / arr.length));
+    let due = isIsoDate(c.due_on) ? c.due_on : addDays(today, Math.round(((i + 1) * 365) / arr.length));
     if (due <= today) due = addDays(today, 14 + i * 30);
     if (due > end) due = end;
     return { ...c, title: c.title.slice(0, 40), icon: icon(c.icon, i === arr.length - 1 ? "summit" : "camp"), due_on: due };
@@ -89,7 +89,12 @@ export function normalizeDraft(d: Draft, today: string): Draft {
     // Generic picks (mountain, tent, flag) say nothing about the challenge; prefer the category's icon.
     icon: ["summit", "camp", "flag"].includes(d.icon) && fallbackIcon !== "summit" ? fallbackIcon : icon(d.icon, fallbackIcon),
     camps,
-    first_quests: d.first_quests.slice(0, 4).map((q) => ({ ...q, xp: Math.min(Math.max(Math.round(q.xp) || 20, 10), 80) })),
+    first_quests: (d.first_quests.length
+      ? d.first_quests
+      : [{ title: "Do a first small session", detail: "Fifteen minutes is enough. Just start.", kind: "one_off" as const, xp: 20 }]
+    )
+      .slice(0, 4)
+      .map((q) => ({ ...q, xp: Math.min(Math.max(Math.round(q.xp) || 20, 10), 80) })),
   };
 }
 

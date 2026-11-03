@@ -93,7 +93,7 @@ export function getMembership(challengeId: string, userId: string): MembershipRo
 export function requireMember(c: ChallengeRow, userId: string): MembershipRow {
   const m = getMembership(c.id, userId);
   if (!m || m.status === "left")
-    throw new AppError("forbidden", `You're not in "${c.title}".`, `Call join_challenge with challenge "${c.slug}" first.`);
+    throw new AppError("forbidden", "You're not in this challenge.", `Call join_challenge with challenge "${c.slug}" first.`);
   return m;
 }
 
@@ -153,7 +153,7 @@ export function createChallenge(
   const metric = cleanMetric(input.metric);
   const today = dateIn(user.timezone);
   const starts_on = input.starts_on && isIsoDate(input.starts_on) ? input.starts_on : today;
-  const theme = (THEMES as readonly string[]).includes(input.theme ?? "") ? input.theme! : THEMES[Math.floor(Math.random() * 6)];
+  const theme = (THEMES as readonly string[]).includes(input.theme ?? "") ? input.theme! : THEMES[Math.floor(Math.random() * THEMES.length)];
   const category = (CATEGORIES as readonly string[]).includes(input.category ?? "") ? input.category! : "other";
   return tx(() => {
     const cid = id("chl");

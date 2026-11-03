@@ -21,7 +21,7 @@ setTimeout(function(){var b=document.body;if(!b||(!b.innerText.trim()&&!b.queryS
 }
 
 function inject(html: string, head: string): string {
-  const m = /<head[^>]*>/i.exec(html);
+  const m = /<head(\s[^>]*)?>/i.exec(html);
   if (m) return html.slice(0, m.index + m[0].length) + head + html.slice(m.index + m[0].length);
   const h = /<html[^>]*>/i.exec(html);
   if (h) return html.slice(0, h.index + h[0].length) + `<head>${head}</head>` + html.slice(h.index + h[0].length);
@@ -30,6 +30,10 @@ function inject(html: string, head: string): string {
 
 export async function GET(req: NextRequest, ctx: RouteContext<"/s/[id]">) {
   const { id } = await ctx.params;
+  // Spaces only ever render inside Misogi's sandboxed frame; opened directly, a model-written page
+  // could pose as Misogi. Browsers send Sec-Fetch-Dest; tools without it (curl, tests) are harmless.
+  const dest = req.headers.get("sec-fetch-dest");
+  if (dest && dest !== "iframe") return new Response("Not found", { status: 404, headers: { "Content-Type": "text/plain" } });
   const v = getVersion(id);
   if (!v || !v.html) return new Response("This space doesn't exist.", { status: 404, headers: { "Content-Type": "text/plain" } });
   const c = one<ChallengeRow>("SELECT * FROM challenges WHERE id = ?", v.challenge_id);

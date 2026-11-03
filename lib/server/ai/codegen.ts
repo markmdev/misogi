@@ -41,6 +41,7 @@ Hard rules:
 - Read all data at runtime: const data = JSON.parse(document.getElementById("misogi-data").textContent);
   Render everything from data. Never hard-code numbers, names or dates that come from data, because the data changes every day.
 - Every view must look intentional with empty data (no logs, no plan, no quests): show a friendly empty state.
+- Put data on screen with textContent or createTextNode, never innerHTML/insertAdjacentHTML with data values. Data is untrusted text.
 - The page must never throw. Guard every optional value: data.member?.facts?.total ?? 0, (data.member?.plan?.camps ?? []), etc.
   Wrap rendering in try/catch per section so one bad field can't blank the page.
 - Don't embed the data yourself and don't create an element with id "misogi-data": Misogi injects it at load.

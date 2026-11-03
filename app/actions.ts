@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createApiKey, currentUser, endSession, rotateApiKey, startSession } from "@/lib/server/auth";
@@ -12,6 +13,7 @@ import { requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/serve
 import { queueCover } from "@/lib/server/covers";
 import { tx } from "@/lib/server/db";
 import { AppError, dateIn, isValidTimeZone } from "@/lib/server/util";
+import { rateLimit } from "@/lib/server/http";
 
 export type ActionResult<T = undefined> = { ok: true; data?: T } | { ok: false; error: string };
 
@@ -19,6 +21,12 @@ function failure(e: unknown): { ok: false; error: string } {
   if (e instanceof AppError) return { ok: false, error: e.message };
   console.error("[action]", e);
   return { ok: false, error: "Something went wrong. Try again." };
+}
+
+async function limitByIp(bucket: string, perMinute: number, burst: number) {
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || h.get("x-real-ip") || "local";
+  rateLimit(`${bucket}:${ip}`, perMinute, burst);
 }
 
 async function requireUser() {
@@ -40,6 +48,7 @@ const StartInput = z.object({
 /** Creates the account, the challenge, its first plan and quests, and an agent key. */
 export async function startChallenge(input: unknown): Promise<ActionResult<{ slug: string; key: string; handle: string }>> {
   try {
+    await limitByIp("start", 2, 6);
     const parsed = StartInput.safeParse(input);
     if (!parsed.success) throw new AppError("invalid", "Some details are missing. Go back a step and try again.");
     const { name, choices } = parsed.data;
@@ -87,6 +96,7 @@ export async function joinAction(slug: string, name?: string, timezone?: string)
     let user = await currentUser();
     let key: string | undefined;
     if (!user) {
+      await limitByIp("join", 2, 6);
       if (!name?.trim()) throw new AppError("invalid", "Tell us your name to join.");
       const tz = timezone && isValidTimeZone(timezone) ? timezone : "UTC";
       user = createUser({ display_name: name, timezone: tz });
@@ -141,6 +151,7 @@ export async function cheerAction(logId: string): Promise<ActionResult<{ cheers:
 export async function requestSpaceAction(slug: string, target: SpaceTarget, request: string): Promise<ActionResult> {
   try {
     const user = await requireUser();
+    rateLimit(`space:${user.id}`, 2, 4);
     requestSpace(user, slug, target, request, "web");
     return { ok: true };
   } catch (e) {

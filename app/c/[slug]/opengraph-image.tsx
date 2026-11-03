@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const c = findChallenge(slug);
+  const found = findChallenge(slug);
+  const c = found && found.status !== "draft" ? found : null;
   const theme = c?.theme ?? "teal";
   const pal = palette(theme);
   const s = c ? summarize(c) : null;
