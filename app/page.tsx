@@ -4,7 +4,7 @@ import { Footer, TopBar } from "@/components/nav";
 import { Icon, Mascot } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
-import { listActivity } from "@/lib/server/domain/feed";
+import { siteFeed } from "@/lib/server/domain/feed";
 import { SCENES } from "@/lib/shared/art";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ export default async function Home() {
   const user = await currentUser();
   const live = listChallenges({ status: ["active"], limit: 6 });
   const templates = listChallenges({ status: ["template"], limit: 12 });
-  const feed = listActivity({ limit: 8 });
+  const feed = siteFeed(8);
   const hero = SCENES["home-hero"];
 
   return (

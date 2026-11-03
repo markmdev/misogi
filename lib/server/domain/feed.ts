@@ -83,3 +83,18 @@ export function listActivity(opts: { challengeId?: string; userId?: string; limi
     challenge: { slug: r.slug, title: r.title, emoji: r.emoji, theme: r.theme },
   }));
 }
+
+/** The site-wide feed: newest first, at most `perPerson` items from any one person so one busy climber can't fill it. */
+export function siteFeed(limit = 8, perPerson = 2): ActivityItem[] {
+  const seen = new Map<string, number>();
+  const out: ActivityItem[] = [];
+  for (const item of listActivity({ limit: 100 })) {
+    const who = item.user?.handle ?? item.id;
+    const n = seen.get(who) ?? 0;
+    if (n >= perPerson) continue;
+    seen.set(who, n + 1);
+    out.push(item);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
