@@ -45,7 +45,9 @@ Hard rules:
 - The page must never throw. Guard every optional value: data.member?.facts?.total ?? 0, (data.member?.plan?.camps ?? []), etc.
   Wrap rendering in try/catch per section so one bad field can't blank the page.
 - Don't embed the data yourself and don't create an element with id "misogi-data": Misogi injects it at load.
-- Mobile first: it's shown in a frame as narrow as 320 px. Perfect at 320–430 px, comfortable up to 960 px (center a max-width column). No horizontal scroll.
+- Mobile first: the frame is 320–390 px wide on phones. On a computer it's 720 px wide on the shared challenge page (kind "challenge")
+  and 976 px on a member's own page (kind "member"). Perfect at 320–430 px, and use the whole width on a computer too: put sections
+  side by side where they fit, and never draw a narrow centered column with empty space either side. No horizontal scroll.
   At narrow widths: grids drop to one or two columns; flex and grid children get min-width: 0; a row with a name, a bar and a number
   gives the bar the remaining space (flex: 1) with the name truncating (ellipsis), never a fixed-width bar column; charts are SVG with a
   viewBox and width: 100%, or CSS bars sized in %, never a fixed pixel width; long words and names wrap or truncate.
