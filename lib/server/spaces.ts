@@ -248,7 +248,8 @@ async function build(versionId: string, userId: string) {
         v.owner_key,
         versionId,
       );
-      recordActivity(v.challenge_id, userId, "space", { version: v.version, target: v.owner_key ? "me" : "challenge" });
+      // Builds made for demo data aren't something a person did, so they stay out of the feed.
+      if (v.author !== "system") recordActivity(v.challenge_id, userId, "space", { version: v.version, target: v.owner_key ? "me" : "challenge" });
     });
   } catch (e) {
     const message = e instanceof AppError ? e.message : "The build failed unexpectedly.";

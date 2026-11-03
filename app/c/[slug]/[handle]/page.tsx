@@ -128,8 +128,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
           />
           <Stat
             icon={facts.pace != null && facts.pace >= 1 ? "rocket" : "hourglass"}
-            value={facts.pace != null ? `${facts.pace >= 1 ? "Ahead" : "Behind"}` : `${facts.days_remaining}d`}
-            label={facts.pace != null ? `pace ${Math.round(facts.pace * 100)}%` : "left this year"}
+            value={facts.pace != null ? `${facts.pace >= 1 ? "Ahead" : "Behind"}` : facts.days_remaining}
+            label={facts.pace != null ? `pace ${Math.round(facts.pace * 100)}%` : "days left"}
             tint="var(--color-sky-soft)"
           />
         </section>

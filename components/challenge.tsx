@@ -110,7 +110,11 @@ export function Leaderboard({ rows, metric, slug, highlight, accent }: { rows: S
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="truncate text-[15px] font-extrabold text-ink">{s.display_name}</span>
-                {s.role === "creator" && <span className="label !text-[10px]">Started it</span>}
+                {s.role === "creator" && (
+                  <span className="shrink-0" title="Started this challenge">
+                    <Icon name="flag" size={18} alt="Started this challenge" />
+                  </span>
+                )}
               </div>
               {s.progress != null ? (
                 <ProgressBar value={s.progress} color={accent} height={8} className="mt-1.5 max-w-[220px]" />

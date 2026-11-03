@@ -414,8 +414,8 @@ const CHALLENGES: ChallengeSpec[] = [
   {
     key: "mandarin",
     slug: "mandarin-conversation",
-    title: "Hold a 20-minute conversation in Mandarin",
-    tagline: "From zero to a real 20-minute chat in Mandarin. No English allowed.",
+    title: "150 hours of Mandarin",
+    tagline: "About 25 minutes a day, from zero to a real 20-minute chat.",
     description:
       "Start Mandarin from scratch and end the year with a 20-minute conversation with a native speaker, all in Mandarin.\n\n" +
       "Practice time is the shared yardstick: about 25 minutes a day gets you to 150 hours. Tutor lessons, apps, flashcards, podcasts and shadowing all count. Log minutes.",

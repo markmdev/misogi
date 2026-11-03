@@ -71,7 +71,7 @@ export default async function Home() {
                 <label htmlFor="idea" className="sr-only">
                   What&apos;s your misogi?
                 </label>
-                <input id="idea" name="idea" required minLength={3} maxLength={200} className="input flex-1" placeholder="What's your misogi this year?" autoComplete="off" />
+                <input id="idea" name="idea" required minLength={3} maxLength={200} className="input sm:flex-1" placeholder="What's your misogi this year?" autoComplete="off" />
                 <button className="btn shrink-0" type="submit">
                   Plan my year
                 </button>
