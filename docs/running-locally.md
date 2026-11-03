@@ -79,7 +79,7 @@ The tests use the HTTP API, make no model calls, and create their own accounts. 
 ## Good to know
 
 - **Starting over:** stop the server, delete `data/` and start again. `data/` holds the database, covers and generated media, and is not committed.
-- **Another port:** `bun dev -p 3001`, then add `BASE_URL=http://localhost:3001` to `.env.local` so the tests and scripts follow.
+- **Another port:** `bun dev -p 3001`. Add `BASE_URL=http://localhost:3001` to `.env.local` for `bun run seed` and `bun run ai-check`. `bun test` doesn't read `.env.local`, so run it as `BASE_URL=http://localhost:3001 bun test`.
 - **One dev server per checkout.** Next.js refuses to start a second one in the same folder and tells you the running one's port and PID.
 - **Database scripts run inside the server.** better-sqlite3 doesn't load under Bun, so `bun run seed` and `bun run ai-check` are HTTP calls to `/api/admin/*`. Add new admin jobs as routes there. In dev they're open; in production they need `ADMIN_KEY`.
 - **Next.js 16 is newer than most models' training data.** Read the guide in `node_modules/next/dist/docs/` before writing Next.js code (see `AGENTS.md`).
