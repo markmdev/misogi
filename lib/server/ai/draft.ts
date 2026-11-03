@@ -23,7 +23,7 @@ export const DraftSchema = z.object({
   camps: z
     .array(
       z.object({
-        title: z.string().describe("Camp name, max 40 chars, no numbering (not 'Camp 1: ...')"),
+        title: z.string().describe("Camp name in sentence case, max 40 chars, no numbering (e.g. 'First five', not 'Camp 1: First Five')"),
         detail: z.string().describe("What being here means, one short sentence"),
         target: z.number().nullable().describe("Metric value that marks this camp, or null"),
         due_on: z.string().describe("YYYY-MM-DD"),
@@ -79,33 +79,76 @@ function lowerWords(s: string): string {
     .join(" ");
 }
 
-/** Keeps model output inside what the product supports. */
-export function normalizeDraft(d: Draft, today: string): Draft {
+const iconOr = (name: string, fallback: string) => (name in ICONS ? name : fallback);
+
+/** Camps inside the year, in date order, with known icons. */
+function normalizeCamps(camps: Draft["camps"], today: string): Draft["camps"] {
   const end = addYear(today);
-  const icon = (name: string, fallback: string) => (name in ICONS ? name : fallback);
-  const fallbackIcon = CATEGORY_ICON[d.category as keyof typeof CATEGORY_ICON] ?? "summit";
-  const camps = d.camps.slice(0, 6).map((c, i, arr) => {
+  const out = camps.slice(0, 6).map((c, i, arr) => {
     let due = isIsoDate(c.due_on) ? c.due_on : addDays(today, Math.round(((i + 1) * 365) / arr.length));
     if (due <= today) due = addDays(today, 14 + i * 30);
     if (due > end) due = end;
-    return { ...c, title: c.title.slice(0, 40), icon: icon(c.icon, i === arr.length - 1 ? "summit" : "camp"), due_on: due };
+    return { ...c, title: c.title.slice(0, 40), icon: iconOr(c.icon, i === arr.length - 1 ? "summit" : "camp"), due_on: due };
   });
-  camps.sort((a, b) => a.due_on.localeCompare(b.due_on));
+  return out.sort((a, b) => a.due_on.localeCompare(b.due_on));
+}
+
+/** Up to 4 quests with sane XP; one gentle default if the model gave none. */
+function normalizeQuests(quests: Draft["first_quests"]): Draft["first_quests"] {
+  return (quests.length ? quests : [{ title: "Do a first small session", detail: "Fifteen minutes is enough. Just start.", kind: "one_off" as const, xp: 20 }])
+    .slice(0, 4)
+    .map((q) => ({ ...q, xp: Math.min(Math.max(Math.round(q.xp) || 20, 10), 80) }));
+}
+
+/** Keeps model output inside what the product supports. */
+export function normalizeDraft(d: Draft, today: string): Draft {
+  const fallbackIcon = CATEGORY_ICON[d.category as keyof typeof CATEGORY_ICON] ?? "summit";
+  const camps = normalizeCamps(d.camps, today);
   return {
     ...d,
     title: d.title.slice(0, 60),
     tagline: d.tagline.slice(0, 120),
     metric: { ...d.metric, name: lowerWords(d.metric.name).slice(0, 40) || d.metric.name },
     // Generic picks (mountain, tent, flag) say nothing about the challenge; prefer the category's icon.
-    icon: ["summit", "camp", "flag"].includes(d.icon) && fallbackIcon !== "summit" ? fallbackIcon : icon(d.icon, fallbackIcon),
+    icon: ["summit", "camp", "flag"].includes(d.icon) && fallbackIcon !== "summit" ? fallbackIcon : iconOr(d.icon, fallbackIcon),
     camps,
-    first_quests: (d.first_quests.length
-      ? d.first_quests
-      : [{ title: "Do a first small session", detail: "Fifteen minutes is enough. Just start.", kind: "one_off" as const, xp: 20 }]
-    )
-      .slice(0, 4)
-      .map((q) => ({ ...q, xp: Math.min(Math.max(Math.round(q.xp) || 20, 10), 80) })),
+    first_quests: normalizeQuests(d.first_quests),
   };
+}
+
+const StarterSchema = DraftSchema.pick({ camps: true, plan_summary: true, cadence: true, first_quests: true });
+export type Starter = z.infer<typeof StarterSchema>;
+
+/**
+ * A starter plan for someone who just joined an existing challenge: the metric is fixed, so camps use its unit.
+ * Their AI (or Virgil) tailors it after a chat.
+ */
+export async function starterPlan(
+  c: { title: string; tagline: string; metric: { name: string; unit: string; target: number | null; aggregation: string; direction: string } },
+  today: string,
+  visitor?: string,
+): Promise<Starter> {
+  const icons = Object.keys(ICONS).join(", ");
+  const m = c.metric;
+  const s = await structured(
+    "draft",
+    {
+      name: "starter_plan",
+      system: `Someone just joined a year-long challenge that others are already climbing. Write their starter plan.
+Today is ${today}; their year runs to ${addYear(today)}.
+The metric is fixed: ${m.name}${m.unit ? ` (${m.unit})` : ""}, counted by "${m.aggregation}"${m.target != null ? `, summit at ${m.target}` : ""}${m.direction === "down" ? ", lower is better" : ""}.
+Camp targets use that metric and unit, rise steadily, and the last camp is the summit. First camp within 2–4 weeks.
+You know nothing personal about them yet, so keep it general and say their AI will tailor it after a short chat.
+Write like a sharp friend: short, specific, no clichés, no exclamation marks.
+${AGG_GUIDE}
+Allowed icons: ${icons}.`,
+      input: `Challenge: ${c.title}\n${c.tagline}`.slice(0, 400),
+      schema: StarterSchema,
+      maxTokens: 4000,
+    },
+    { visitor },
+  );
+  return { ...s, camps: normalizeCamps(s.camps, today), first_quests: normalizeQuests(s.first_quests).slice(0, 3) };
 }
 
 export const StylePairsSchema = z.object({

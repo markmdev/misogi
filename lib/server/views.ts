@@ -67,6 +67,8 @@ export function memberView(slug: string, handle: string, viewer: UserRow | null)
     isOwner,
     viewerIsMember: viewer ? !!getMembership(c.id, viewer.id) : false,
     keys: isOwner ? keyStatus(user.id) : null,
+    /** Joined in the last 90 s: a starter plan may still be drafting (see starter.ts). */
+    justJoined: Date.now() - Date.parse(m.joined_at) < 90_000,
   };
 }
 

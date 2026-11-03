@@ -11,6 +11,7 @@ import { addQuests, cheer, logProgress, setPlan, skipQuest } from "@/lib/server/
 import { createUser } from "@/lib/server/domain/users";
 import { requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
 import { queueCover } from "@/lib/server/covers";
+import { queueStarterPlan } from "@/lib/server/starter";
 import { tx } from "@/lib/server/db";
 import { AppError, dateIn, isValidTimeZone } from "@/lib/server/util";
 import { rateLimit } from "@/lib/server/http";
@@ -91,21 +92,21 @@ export async function startChallenge(input: unknown): Promise<ActionResult<{ slu
 }
 
 /** Joins a challenge, creating a lightweight account first if needed. */
-export async function joinAction(slug: string, name?: string, timezone?: string): Promise<ActionResult<{ handle: string; key?: string }>> {
+export async function joinAction(slug: string, name?: string, timezone?: string): Promise<ActionResult<{ handle: string }>> {
   try {
     let user = await currentUser();
-    let key: string | undefined;
     if (!user) {
       await limitByIp("join", 2, 6);
       if (!name?.trim()) throw new AppError("invalid", "Tell us your name to join.");
       const tz = timezone && isValidTimeZone(timezone) ? timezone : "UTC";
       user = createUser({ display_name: name, timezone: tz });
-      key = createApiKey(user.id).key;
+      // No API key yet: the Your AI panel makes one when they connect an agent.
       await startSession(user.id);
     }
-    joinChallenge(user, slug);
+    const joined = joinChallenge(user, slug);
+    if (!joined.already) queueStarterPlan(user, slug);
     revalidatePath(`/c/${slug}`);
-    return { ok: true, data: { handle: user.handle, key } };
+    return { ok: true, data: { handle: user.handle } };
   } catch (e) {
     return failure(e);
   }

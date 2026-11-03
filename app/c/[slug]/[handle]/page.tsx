@@ -9,7 +9,7 @@ import { SpaceFrame } from "@/components/client/space-frame";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
 import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, SectionTitle, Stat } from "@/components/ui";
-import { currentUser, keyStatus, publicOrigin } from "@/lib/server/auth";
+import { currentUser, publicOrigin } from "@/lib/server/auth";
 import { findChallenge } from "@/lib/server/domain/challenges";
 import { getUserByHandle } from "@/lib/server/domain/users";
 import { memberView, pulse } from "@/lib/server/views";
@@ -40,6 +40,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const welcome = isOwner && sp.welcome === "1";
   const origin = await publicOrigin();
   const completed = membership.status === "completed";
+  // Right after a web join, a starter plan is being drafted (lib/server/starter.ts); the live pulse refreshes when it lands.
+  const drafting = isOwner && !plan && v.justJoined;
 
   return (
     <div style={{ background: pal.tint }} className="min-h-dvh">
@@ -111,7 +113,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                 slug={c.slug}
                 title={c.title}
                 initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
-                hasKey={keyStatus(viewer!.id).has_key}
+                hasKey={v.keys?.has_key ?? false}
               />
             </div>
           </section>
@@ -161,7 +163,11 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
             {quests.length ? (
               <QuestList slug={c.slug} quests={quests} metric={metric} owner={isOwner && !completed} today={facts.today} accent={pal.accent} />
             ) : (
-              <EmptyState pose="read" title="No quests yet" body={isOwner ? "Ask your AI or Virgil for this week's quests." : `${name}'s AI hasn't set quests yet.`} />
+              <EmptyState
+                pose="read"
+                title={drafting ? "Picking your first quests…" : "No quests yet"}
+                body={drafting ? "They show up here in a few seconds." : isOwner ? "Ask your AI or Virgil for this week's quests." : `${name}'s AI hasn't set quests yet.`}
+              />
             )}
           </section>
 
@@ -177,7 +183,11 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                 <CampPath milestones={plan.milestones} accent={pal.accent} deep={pal.deep} tint={pal.tint} total={facts.total} unit={metric.unit} />
               </div>
             ) : (
-              <EmptyState pose="think" title="No plan yet" body={isOwner ? "Your AI writes the plan after a short chat." : `${name} hasn't made a plan yet.`} />
+              <EmptyState
+                pose="think"
+                title={drafting ? "Drafting your camps…" : "No plan yet"}
+                body={drafting ? "A starter plan lands here in a few seconds. Your AI makes it yours after a short chat." : isOwner ? "Your AI writes the plan after a short chat." : `${name} hasn't made a plan yet.`}
+              />
             )}
           </section>
         </div>
@@ -293,7 +303,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                     slug={c.slug}
                     title={c.title}
                     initialStatus={{ agent_kind: user.agent_kind, agent_name: user.agent_name, agent_seen_at: user.agent_seen_at }}
-                    hasKey={keyStatus(viewer!.id).has_key}
+                    hasKey={v.keys?.has_key ?? false}
                   />
                 </div>
               </section>
