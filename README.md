@@ -1,6 +1,6 @@
 # Misogi
 
-**One hard thing this year, with a guide that already knows you.**
+**Misogi turns your Muse into the world's best coach, tutor, mentor.**
 
 ![Misogi: one hard thing this year. Say it in a line, and your AI plans the year](docs/images/cover.jpg)
 
