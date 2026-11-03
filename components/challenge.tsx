@@ -38,7 +38,7 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
         {c.tagline && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">{c.tagline}</p>}
         <div className="mt-auto flex items-center justify-between gap-2 pt-4">
           {isTemplate ? (
-            <span className="text-[13px] font-bold text-ink-3">Zuckerberg · {c.template_year}</span>
+            <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">Zuckerberg · {c.template_year}</span>
           ) : (
             <span className="flex items-center gap-1.5 text-[13px] font-extrabold text-ink-2">
               <Icon name="highfive" size={20} />

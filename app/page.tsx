@@ -180,19 +180,21 @@ export default async function Home() {
               <ChatBubble side="right" name="Muse">
                 On it. Your page is rebuilding now.
               </ChatBubble>
-              <Mascot pose="flag" size={88} className="absolute -right-2 -bottom-4 hidden sm:block" alt="" />
+              <Mascot pose="flag" size={88} className="absolute -bottom-4 -left-3 hidden sm:block" alt="" />
             </div>
           </div>
         </section>
 
-        {/* Templates */}
+        {/* Templates: a shelf that runs to the window's edge */}
         {templates.length > 0 && (
-          <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
-            <h2 className="text-[26px] leading-8 text-ink">Ten years of Zuckerberg&apos;s challenges</h2>
-            <p className="mt-1 max-w-2xl text-[15px] leading-6 text-ink-2">
-              From 2009 to 2019, Mark Zuckerberg picked one hard thing each year. Start from one of his, or make your own.
-            </p>
-            <div className="scrollbar-none -mx-4 mt-5 flex snap-x gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6">
+          <section className="mt-16">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+              <h2 className="text-[26px] leading-8 text-ink">Ten years of Zuckerberg&apos;s challenges</h2>
+              <p className="mt-1 max-w-2xl text-[15px] leading-6 text-ink-2">
+                From 2009 to 2019, Mark Zuckerberg picked one hard thing each year. Start from one of his, or make your own.
+              </p>
+            </div>
+            <div className="scrollbar-none mt-5 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-4 sm:scroll-px-[max(1.5rem,calc((100%-72rem)/2+1.5rem))] sm:px-[max(1.5rem,calc((100%-72rem)/2+1.5rem))]">
               {templates.map((c) => (
                 <ChallengeCard key={c.slug} c={c} className="w-[260px] shrink-0 snap-start" />
               ))}
