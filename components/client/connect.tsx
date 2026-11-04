@@ -149,7 +149,7 @@ Then ask me your first question.`;
           <p className="text-[14px] leading-6 text-ink-2">Copy this and send it to Muse. It connects and sets up your check-ins by itself.</p>
           <CopyBlock text={museMessage} secret={connectCode} label="Copy" big />
           <p className="text-[13px] leading-5 text-ink-3">
-            Muse first asks to allow {new URL(origin).host}: tap <b>Always allow</b>. Then tap <b>Connect</b> on its card, and again in the window Muse opens.
+            When Muse asks, tap <b>Always allow</b> for {new URL(origin).host}, then <b>Connect</b> on its card, and <b>Connect</b> again in the window it opens.
           </p>
           <a href="https://muse.ai" target="_blank" rel="noreferrer" className="btn btn-ink btn-sm w-fit">
             Open Muse
