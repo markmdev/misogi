@@ -147,7 +147,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             />
             {error && <p className="text-[14px] font-bold text-coral-deep">{error}</p>}
             <button className="btn" disabled={idea.trim().length < 3}>
-              Plan my year
+              Start my climb
             </button>
           </form>
           <div className="mt-5 flex flex-wrap justify-center gap-2">

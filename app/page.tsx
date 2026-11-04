@@ -47,6 +47,9 @@ export default async function Home() {
   const feed = siteFeed(8);
   const hero = SCENES["home-hero"];
   const proof = showcaseView();
+  const examples = listChallenges({ status: ["active"], limit: 40 })
+    .map((c) => c.title)
+    .filter((t) => t.length <= 42);
 
   return (
     <>
@@ -55,7 +58,7 @@ export default async function Home() {
         <main>
           {/* Hero: an illustrated scene with a rounded sheet rising over it. */}
           <section className="relative">
-            <div className="relative h-[300px] overflow-hidden sm:h-[420px] lg:h-[480px]">
+            <div className="relative h-[230px] overflow-hidden sm:h-[380px] lg:h-[420px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={hero.src}
@@ -68,21 +71,18 @@ export default async function Home() {
               <LiveScene name="home-hero" className="absolute inset-0 h-full w-full object-cover object-[50%_35%]" />
               <div className="absolute inset-x-0 bottom-0 h-40 sm:h-56" style={{ background: "linear-gradient(to bottom, transparent, var(--color-cream) 92%)" }} />
             </div>
-            <div className="relative mx-auto -mt-24 max-w-2xl px-4 max-[239px]:px-2 sm:-mt-32">
-              <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 max-[239px]:px-3 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">
-                <h1 className="text-center text-[34px] leading-[40px] text-ink sm:text-[46px] sm:leading-[52px]">One hard thing this year.</h1>
-                <p className="mx-auto mt-3 max-w-lg text-center font-display text-[19px] leading-[26px] font-semibold text-ink sm:text-[21px] sm:leading-7">
-                  <MisogiWord side="above">Misogi</MisogiWord> turns your{" "}
-                  <span className="whitespace-nowrap">
-                    <Icon name="orb" size={36} eager className="-my-2 -mr-1 -ml-1.5 inline-block align-middle" />
+            <div className="relative mx-auto -mt-20 max-w-[44rem] px-3 max-[239px]:px-2 sm:-mt-32 sm:px-4">
+              <div className="relative rounded-[32px] bg-cream px-4 pt-11 pb-6 max-[239px]:px-3 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pt-14 sm:pb-9">
+                <h1 className="text-center text-[36px] leading-[40px] text-balance text-ink sm:text-[54px] sm:leading-[58px]">Do one hard thing this year.</h1>
+                <p className="mx-auto mt-3 max-w-[30rem] text-center text-[16px] leading-6 text-ink-2 sm:text-[18px] sm:leading-7">
+                  Talk to your{" "}
+                  <span className="whitespace-nowrap font-bold text-ink">
+                    <Icon name="orb" size={28} eager className="-my-2 mr-0.5 -ml-0.5 inline-block align-middle" />
                     Muse
-                  </span>{" "}
-                  into the world&apos;s best coach, tutor, mentor.
+                  </span>
+                  . <MisogiWord side="above">Misogi</MisogiWord> turns it into your own page that tracks your progress and shows what&apos;s next.
                 </p>
-                <p className="mx-auto mt-2 max-w-md text-center text-[15px] leading-6 text-ink-2 sm:text-[16px]">
-                  Say your goal in a line. Muse plans the year, checks in, and keeps your page up to date.
-                </p>
-                <StartBox />
+                <StartBox examples={examples} />
               </div>
             </div>
           </section>
@@ -227,7 +227,7 @@ export default async function Home() {
               </h2>
               <p className="mt-2 max-w-md text-[16px] text-ink-2">The year goes by either way. Pick the one thing you&apos;ll be glad you did.</p>
               <Link href="/start" className="btn mt-6">
-                Plan my year
+                Start my climb
               </Link>
             </div>
           </section>

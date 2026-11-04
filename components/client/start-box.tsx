@@ -26,16 +26,55 @@ type Phase = "idle" | "spinning" | "landed" | "typing" | "going";
 /** Marks the line that travels from the home box into the drafting card's title on /start. */
 export const LINE = { viewTransitionName: "your-line", viewTransitionClass: "line" } as const;
 
-/** The home page's box: say your misogi, pick an example, or let the wheel pick one and draft it. */
-export function StartBox() {
+/** Types each example into the empty box's placeholder, holds it, wipes it and moves on; still under reduced motion. */
+function useTypedExample(examples: string[], on: boolean) {
+  const [shown, setShown] = useState(examples[0] ?? "");
+  // Where the typing is, kept across pauses so it picks up where it stopped: example k, i letters, typing or wiping.
+  const at = useRef({ k: 0, i: examples[0]?.length ?? 0, wiping: true });
+  useEffect(() => {
+    if (!on || examples.length === 0 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const p = at.current;
+    let t = 0;
+    const step = () => {
+      const text = examples[p.k % examples.length];
+      if (!p.wiping) {
+        p.i++;
+        setShown(text.slice(0, p.i));
+        if (p.i >= text.length) {
+          p.wiping = true;
+          return void (t = window.setTimeout(step, 1900));
+        }
+        return void (t = window.setTimeout(step, 45 + Math.random() * 40));
+      }
+      p.i = Math.max(0, p.i - 2);
+      setShown(text.slice(0, p.i));
+      if (p.i > 0) return void (t = window.setTimeout(step, 16));
+      p.wiping = false;
+      p.k = (p.k + 1) % examples.length;
+      t = window.setTimeout(step, 350);
+    };
+    t = window.setTimeout(step, 1900);
+    return () => clearTimeout(t);
+  }, [examples, on]);
+  return shown;
+}
+
+/**
+ * The home page's box: say your misogi and start the climb, pick an example under it, or let the wheel decide. While
+ * it's empty, real challenges from the site type themselves into it.
+ */
+export function StartBox({ examples }: { examples: string[] }) {
   const router = useRouter();
   const [idea, setIdea] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
+  const [focused, setFocused] = useState(false);
   // What the chosen line comes from (the box or a chip), so only that one travels into the draft.
   const [from, setFrom] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const field = useRef<HTMLTextAreaElement>(null);
   const timer = useRef(0);
   useEffect(() => () => clearTimeout(timer.current), []);
+  const example = useTypedExample(examples, !focused && !idea && phase === "idle");
 
   function go(text: string) {
     setFrom("box");
@@ -64,56 +103,80 @@ export function StartBox() {
   }
 
   const pose = phase === "idle" ? "wave" : phase === "spinning" ? "think" : "cheer";
+  const submit = () => {
+    if (idea.trim().length >= 3) go(idea.trim());
+    else field.current?.focus();
+  };
 
   return (
     <>
       <Mascot
         key={pose}
         pose={pose}
-        size={112}
+        size={96}
         eager
-        className={cx("absolute -top-[70px] left-1/2 -translate-x-1/2", from && "lg:[view-transition-name:guide]", phase !== "idle" && "animate-pop")}
+        className={cx("absolute -top-[62px] left-1/2 -translate-x-1/2", from && "lg:[view-transition-name:guide]", phase !== "idle" && "animate-pop")}
       />
       <form
         ref={formRef}
         action="/start"
         onSubmit={(e) => {
           e.preventDefault();
-          go(idea.trim());
+          submit();
         }}
-        className="relative z-10 mt-6 flex flex-col gap-3 sm:flex-row"
+        className={cx(
+          "relative z-10 mt-6 rounded-[24px] bg-paper p-2 text-left ring-[1.5px] shadow-[0_4px_0_var(--color-line-2),0_20px_40px_-24px_rgb(46_42_38/0.45)] transition-[box-shadow,--tw-ring-color] duration-150",
+          focused || phase === "typing" || phase === "going" ? "ring-coral shadow-[0_4px_0_var(--color-line-2),0_0_0_5px_var(--color-coral-soft)]" : "ring-line-2",
+        )}
       >
         <label htmlFor="idea" className="sr-only">
-          What&apos;s your misogi?
+          Your one hard thing this year
         </label>
-        <input
+        <textarea
+          ref={field}
           id="idea"
           name="idea"
           required
           minLength={3}
           maxLength={200}
+          rows={2}
           value={idea}
-          onChange={(e) => setIdea(e.target.value)}
+          onChange={(e) => setIdea(e.target.value.replace(/\n/g, " "))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           readOnly={phase !== "idle"}
           style={travels("box")}
-          className={cx("input sm:flex-1", (phase === "typing" || phase === "going") && "!border-coral !shadow-[0_0_0_4px_var(--color-coral-soft)]")}
-          placeholder="What's your misogi this year?"
+          className="block w-full resize-none bg-transparent px-3.5 pt-3 pb-1 text-[19px] leading-7 font-semibold text-ink outline-none placeholder:text-ink-3 sm:text-[20px]"
+          placeholder={phase !== "idle" ? "" : focused ? "Your one hard thing this year" : example}
           autoComplete="off"
         />
-        <button className={cx("btn shrink-0", phase === "going" && "btn-pressed")} type="submit">
-          Plan my year
-        </button>
-      </form>
-      {phase === "idle" ? (
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <button type="button" className="chip group !border-coral/25 !bg-coral-soft !text-coral-deep !shadow-[0_2px_0_color-mix(in_srgb,var(--color-coral)_30%,transparent)]" onClick={() => {
+        <div className="grid grid-cols-2 gap-2 pt-1 sm:flex sm:justify-end">
+          <button
+            type="button"
+            disabled={phase !== "idle"}
+            className="btn btn-ghost group !h-12 !gap-1.5 !px-2.5 !text-[15px] sm:!gap-2 sm:!px-4 sm:!text-[16px]"
+            onClick={() => {
               warmMascot("think");
               warmMascot("cheer");
               setPhase("spinning");
-            }}>
+            }}
+          >
             <MiniWheel className="transition-transform duration-500 ease-out group-hover:rotate-[135deg]" />
-            Spin the wheel
+            Decide for me
           </button>
+          <button className={cx("btn !h-12 !px-3 !text-[15px] sm:!px-5 sm:!text-[16px]", phase === "going" && "btn-pressed")} type="submit">
+            Start my climb
+          </button>
+        </div>
+      </form>
+      {phase === "idle" ? (
+        <div className="mt-3.5 flex flex-wrap justify-center gap-2">
           {IDEAS.filter((e) => e.chip).map((e) => (
             <IntentLink
               key={e.text}

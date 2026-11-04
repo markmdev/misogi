@@ -11,7 +11,7 @@ type Spot = { left: number; top?: number; bottom?: number; thread: number; side:
 /**
  * The word misogi, marked with a stitched underline. A mouse resting on it, or a tap, hangs a felt tag from it on a
  * thread that explains the word. `side` is where the tag prefers to hang; it flips when there isn't room. The tag has
- * nothing to press, so every tap and click goes through it to what's underneath, such as the box or Plan my year.
+ * nothing to press, so every tap and click goes through it to what's underneath, such as the box or its buttons.
  */
 export function MisogiWord({ children = "misogi", side = "below" }: { children?: ReactNode; side?: "below" | "above" }) {
   const id = useId();
