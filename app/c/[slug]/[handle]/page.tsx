@@ -210,7 +210,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
             />
             {plan && plan.milestones.length ? (
               <div className="card px-3 py-5">
-                <CampPath milestones={plan.milestones} accent={pal.accent} deep={pal.deep} tint={pal.tint} total={facts.total} unit={metric.unit} />
+                <CampPath milestones={plan.milestones} accent={pal.accent} deep={pal.deep} tint={pal.tint} total={facts.total} unit={metric.unit} direction={metric.direction} />
               </div>
             ) : (
               <EmptyState

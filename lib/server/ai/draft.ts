@@ -23,7 +23,7 @@ export const DraftSchema = z.object({
   camps: z
     .array(
       z.object({
-        title: z.string().describe("Camp name in sentence case, max 40 chars, no numbering, any number in digits as the page writes it (e.g. 'First 5 books', 'Sub-1:45 half', not 'Camp 1: First Five' or 'Summit in one forty five')"),
+        title: z.string().describe("Camp name in sentence case, max 40 chars, no numbering, naming this camp's own target in the metric's measure, any number in digits as the page writes it (e.g. 'First 5 books', 'Sub-1:45 half', not 'Camp 1: First Five', 'Summit in one forty five' or, for a half marathon time, '10K under 50 min')"),
         detail: z.string().describe("What being here means, one short sentence"),
         target: z.number().describe("Metric value that marks this camp, higher than the camp before it (lower when lower is better)"),
         due_on: z.string().describe("YYYY-MM-DD"),
@@ -58,7 +58,7 @@ Today is ${today}; the challenge runs to ${end}.
 Make the goal concrete and measurable while keeping their intent. Ambitious but possible in a year for a busy adult.
 Camps follow skill-building research: first win early, steady load increases, slack for bad weeks, a hard final test.
 When the idea names a date or a dated event (a race, an exam, a trip), the last camp is that day, named for the event ("Race day", "Exam day"), and no camp comes after it.
-Every camp is a number of the metric, reached by logging it: camp targets use the metric's unit, rise from one camp to the next, and the last camp is the summit.
+Every camp is a number of the metric, reached by logging it: camp targets use the metric's unit, move toward the summit from one camp to the next (falling when lower is better), and the last camp is the summit. A camp's title names its own target in that same measure, never a different one: for a half marathon time, "Half in 2:15", not "5K under 27:30" or "10 miles in 1:22". Tune-up races and tests of other kinds go in quests.
 Write like a sharp friend: short, specific, no clichés, no exclamation marks.
 People already climb these challenges on Misogi. When the idea is the same goal as one of them, give it that title exactly, so they can climb together: ${liveTitles().join("; ")}.
 ${AGG_GUIDE}
@@ -148,7 +148,7 @@ export async function starterPlan(
       system: `Someone just joined a year-long challenge that others are already climbing. Write their starter plan.
 Today is ${today}; their year runs to ${addYear(today)}.
 The metric is fixed: ${m.name}${m.unit ? ` (${m.unit})` : ""}, counted by "${m.aggregation}"${m.target != null ? `, summit at ${m.target}` : ""}${m.direction === "down" ? ", lower is better" : ""}.
-Camp targets use that metric and unit, rise steadily, and the last camp is the summit. First camp within 2–4 weeks.
+Camp targets use that metric and unit, move steadily toward the summit (falling when lower is better), and the last camp is the summit; each camp's title names its own target in that same measure. First camp within 2–4 weeks.
 You know nothing personal about them yet, so keep it general and say their AI will tailor it after a short chat.
 Write like a sharp friend: short, specific, no clichés, no exclamation marks.
 ${AGG_GUIDE}
