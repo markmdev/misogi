@@ -2,6 +2,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
+import { dataDir } from "./db";
 
 const root = path.join(process.cwd(), "assets");
 const cache = new Map<string, string | Buffer>();
@@ -39,6 +41,13 @@ function dataUri(file: string): string {
 export const ogScene = (theme: string) => dataUri(`og/scene-${/^[a-z-]{1,20}$/.test(theme) ? theme : "teal"}.png`);
 export const ogIcon = (name: string) => dataUri(`og/icon-${/^[a-z0-9-]{1,40}$/.test(name) ? name : "summit"}.png`);
 export const ogMascot = (pose: string) => dataUri(`og/mascot-${pose}.png`);
+
+/** The challenge's own dressed Muse as a PNG, or the plain one in `pose` while it has none. */
+export async function ogMuse(virgilPath: string | null | undefined, pose: string): Promise<string> {
+  if (!virgilPath) return ogMascot(pose);
+  const png = await sharp(path.join(dataDir(), "media", virgilPath)).png().toBuffer();
+  return `data:image/png;base64,${png.toString("base64")}`;
+}
 
 export function initials(name: string) {
   return name

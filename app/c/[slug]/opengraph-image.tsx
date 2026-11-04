@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { findChallenge, summarize } from "@/lib/server/domain/challenges";
-import { ogFonts, ogIcon, ogMascot, ogScene } from "@/lib/server/og";
+import { ogFonts, ogIcon, ogMuse, ogScene } from "@/lib/server/og";
 import { metricLine } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
@@ -16,7 +16,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const theme = c?.theme ?? "teal";
   const pal = palette(theme);
   const s = c ? summarize(c) : null;
-  const title = c?.title ?? "One hard thing this year";
+  const title = c?.title ?? "Do one hard thing this year";
+  const muse = await ogMuse(c?.virgil_path, "flag");
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: pal.sky, fontFamily: "Nunito" }}>
@@ -61,7 +62,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             </div>
           </div>
         </div>
-        <img src={ogMascot("flag")} alt="" width={300} height={300} style={{ position: "absolute", right: 70, bottom: 30 }} />
+        <img src={muse} alt="" width={300} height={300} style={{ position: "absolute", right: 70, bottom: 30 }} />
       </div>
     ),
     { ...size, fonts: ogFonts() },

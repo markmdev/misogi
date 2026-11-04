@@ -36,11 +36,12 @@ export function num(n: number | null | undefined): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(Math.abs(n) < 10 ? 1 : 0);
 }
 
-/** "12.5 mi", "3 books", "HSK 2" style value. */
+/** "12.5 mi", "3 books", "HSK 2", "V5" style value. */
 export function withUnit(n: number | null | undefined, unit: string): string {
   if (n == null) return "–";
   if (!unit) return num(n);
   if (/^(level|hsk|lvl)$/i.test(unit)) return `${unit.toUpperCase() === "HSK" ? "HSK" : "Level"} ${num(n)}`;
+  if (unit === "V") return `V${num(n)}`;
   const singular = Math.abs(n) === 1 && unit.length > 3 && unit.endsWith("s") ? unit.slice(0, -1) : unit;
   return `${num(n)} ${singular}`;
 }

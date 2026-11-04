@@ -56,7 +56,7 @@ export function Footer() {
           <span className="font-display font-semibold text-ink">
             <MisogiWord />
           </span>
-          <span>· one hard thing this year</span>
+          <span>· do one hard thing this year</span>
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <Link href="/explore" className="hover:text-ink">Explore</Link>
