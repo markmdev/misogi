@@ -302,3 +302,33 @@
     opacity: 0;
   }
 }
+
+/* The word misogi: a stitched underline, and the felt tag that hangs from it on a thread (components/client/misogi-word.tsx). */
+.misogi-word {
+  text-decoration: underline dashed color-mix(in srgb, var(--color-coral) 70%, transparent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
+}
+.misogi-word:hover,
+.misogi-word[aria-expanded="true"] {
+  text-decoration-color: var(--color-coral);
+}
+@keyframes misogi-hang {
+  0% { transform: translateY(-10px) rotate(-11deg); opacity: 0; }
+  35% { transform: translateY(2px) rotate(6deg); opacity: 1; }
+  60% { transform: rotate(-3deg); }
+  80% { transform: rotate(1.2deg); }
+  100% { transform: rotate(0); }
+}
+@keyframes misogi-float {
+  0% { transform: translateY(12px) rotate(9deg); opacity: 0; }
+  35% { transform: translateY(-3px) rotate(-5deg); opacity: 1; }
+  60% { transform: rotate(2.5deg); }
+  80% { transform: rotate(-1deg); }
+  100% { transform: rotate(0); }
+}
+.misogi-tag-hang { position: relative; animation: misogi-hang 0.75s cubic-bezier(0.3, 0.7, 0.3, 1) both; }
+.misogi-tag-float { position: relative; animation: misogi-float 0.75s cubic-bezier(0.3, 0.7, 0.3, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .misogi-tag-hang, .misogi-tag-float { animation: none; }
+}
