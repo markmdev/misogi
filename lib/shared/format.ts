@@ -51,6 +51,10 @@ export function withUnit(n: number | null | undefined, unit: string): string {
   if (/^(level|hsk|lvl)$/i.test(unit)) return `${unit.toUpperCase() === "HSK" ? "HSK" : "Level"} ${num(n)}`;
   if (unit === "V") return `V${num(n)}`;
   if (/^[$€£¥₹]/.test(unit)) return `${unit[0]}${num(n)}${unit.slice(1)}`;
+  if (/^(min|mins|minutes)$/i.test(unit) && !Number.isInteger(n) && n < 1000) {
+    const secs = Math.round(n * 60);
+    return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")} ${unit}`;
+  }
   const singular = Math.abs(n) === 1 && unit.length > 3 && unit.endsWith("s") ? unit.slice(0, -1) : unit;
   return `${num(n)} ${singular}`;
 }
