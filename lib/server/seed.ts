@@ -1818,6 +1818,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "steps",
     slug: "walk-10-000-steps-a-day",
     title: "Walk 10,000 steps a day",
+    practice: ["7,800 steps. Short of 10k, rain all day.", "6,200 steps, desk day.", "8,900. So close.", "Walked the long way home: 7,400."],
     tagline: "Ten thousand steps on 300 days of the year. Every step counts, not just the walks.",
     description:
       "Walk 10,000 steps a day, and count the days you make it. The summit is 300 days: that leaves room for sick days, long flights and the odd day on the sofa.\n\n" +
@@ -2127,6 +2128,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "meditate",
     slug: "meditate-10-minutes-a-day",
     title: "Meditate 10 minutes a day",
+    practice: ["Five minutes on the train, not the full ten.", "Sat for six minutes before anyone woke up.", "A few minutes of breathing at lunch. Short, but I sat.", "Fell asleep two minutes in. Counts as trying."],
     tagline: "Ten minutes, most days of the year. Any style, any app, any chair.",
     description:
       "Sit for ten minutes a day. Breathing, a body scan, a guided app, a slow walk: any practice counts if it's ten minutes and your attention is on it.\n\n" +
@@ -2278,6 +2280,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "dinners",
     slug: "share-100-dinners-with-family",
     title: "Share 100 dinners with family",
+    practice: ["Late night, everyone ate separately.", "Takeaway on the sofa, no table tonight.", "Cooked, but ate alone. Tomorrow.", "Travel day, dinner on the train."],
     tagline: "About two a week. Sit down together and stay for the whole meal.",
     description:
       "Have 100 dinners with family this year, about two a week. A dinner counts when you sit down together and stay for the whole meal, with no other screens at the table. Takeout counts. Video dinners with family far away count. Family is whoever you call family.\n\n" +
@@ -2573,6 +2576,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "screentime",
     slug: "keep-screen-time-under-2-hours-a-day",
     title: "Keep screen time under 2 hours a day",
+    practice: ["2h 25m. Over the line, mostly maps.", "2h 10m. The group chat won.", "2h 40m, travel day.", "2h 05m. Nearly."],
     tagline: "Two hours of phone a day, tops. Get your evenings back.",
     description:
       "Keep your phone's screen time under two hours a day. A work computer doesn't count; your phone does, all of it, maps and messages included.\n\n" +
@@ -2694,6 +2698,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "spanish",
     slug: "hold-a-15-minute-conversation-in-spanish",
     title: "Hold a 15-minute conversation in Spanish",
+    practice: ["Podcast on the commute, listening only.", "Ten minutes of flashcards.", "Read a news article in Spanish.", "An episode with Spanish subtitles."],
     tagline: "About 20 minutes a day, from hola to a real 15-minute chat.",
     description:
       "Start Spanish from zero, or from school Spanish you've forgotten, and end the year with a 15-minute conversation with a native speaker, all in Spanish.\n\n" +
@@ -4228,6 +4233,7 @@ const GRID: HistorySpec[] = [
     key: "grid-run-four-half-marathons-in-four-quarters",
     slug: "run-four-half-marathons-in-four-quarters",
     title: "Run four half marathons in four quarters",
+    practice: ["Easy 5 miles.", "Rest day. Stretched.", "Tempo, 4 miles.", "Long run, 9 miles.", "Hills, 30 minutes."],
     metric: { name: "half marathons run", unit: "half marathons", target: 4, aggregation: "count" },
     camps: [
       { title: "Ten mile base", detail: "You can run 10 miles steady without walking.", target: null, week: 3, emoji: "running" },
@@ -4272,6 +4278,7 @@ const GRID: HistorySpec[] = [
     key: "grid-read-50-books-on-one-country-in-a-year",
     slug: "read-50-books-on-one-country-in-a-year",
     title: "Read 50 books on one country in a year",
+    practice: ["Forty pages before bed.", "Read on the bus to work.", "Notes on the last chapter.", "A slow night: twenty pages."],
     metric: { name: "books read", unit: "books", target: 50, aggregation: "count" },
     camps: [
       { title: "Choose your ground", detail: "You pick one country or era and finish your first three books.", target: 3, week: 3, emoji: "map" },
@@ -4376,6 +4383,7 @@ const GRID: HistorySpec[] = [
     key: "grid-learn-and-play-52-piano-songs-in-a-year",
     slug: "learn-and-play-52-piano-songs-in-a-year",
     title: "Learn and play 52 piano songs in a year",
+    practice: ["Scales, then the left hand of the next song.", "Twenty minutes on the bar that keeps tripping me.", "Played the last five songs through once.", "Metronome at 60, hands together."],
     metric: { name: "songs learned", unit: "songs", target: 52, aggregation: "count" },
     camps: [
       { title: "First three songs", detail: "You can learn simple songs cleanly from start to finish.", target: 3, week: 3, emoji: "seedling" },
