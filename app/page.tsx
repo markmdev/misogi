@@ -95,7 +95,7 @@ export default async function Home() {
           </section>
 
           <section className="mx-auto mt-12 max-w-4xl px-4 sm:mt-16 sm:px-6">
-            <Film src="/film/misogi.mp4" poster="/film/misogi.webp" length="2:24" />
+            <Film src="/film/misogi-v29.mp4" poster="/film/misogi-v29.webp" length="2:59" />
           </section>
 
           {/* How it works */}

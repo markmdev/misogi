@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-/** The Misogi film: its closing frame with a play button until tapped, then the film with sound and its controls. */
+/** The Misogi film: its poster with a play button until tapped, then the film with sound and its controls. */
 export function Film({ src, poster, length }: { src: string; poster: string; length: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [started, setStarted] = useState(false);
@@ -23,7 +23,7 @@ export function Film({ src, poster, length }: { src: string; poster: string; len
           type="button"
           onClick={() => void ref.current?.play()}
           aria-label={`Play the Misogi film, ${length}`}
-          className="group absolute inset-0 flex items-end justify-center pb-4 sm:pb-7"
+          className="group absolute inset-0 flex items-center justify-center"
         >
           <span className="flex items-center gap-3 rounded-full bg-white/95 py-1.5 pr-5 pl-1.5 shadow-[var(--shadow-float)] transition duration-200 group-hover:scale-[1.04] group-active:scale-[0.98] sm:py-2 sm:pl-2">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-coral shadow-[0_3px_0_var(--color-coral-deep)] sm:h-12 sm:w-12">
