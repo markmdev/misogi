@@ -239,7 +239,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                         style={choices[i] === k ? { ["--tw-ring-color" as string]: pal.accent } : undefined}
                       >
                         <span className="flex h-6 items-center gap-2 text-[12px] font-extrabold tracking-wide text-ink-3 uppercase">
-                          <Icon name="summit" size={20} />
+                          <Icon name="orb" size={20} />
                           Muse
                           {choices[i] === k ? <Icon name="check" size={22} className="ml-auto animate-pop" /> : <span className="ml-auto font-bold tracking-normal normal-case">now</span>}
                         </span>

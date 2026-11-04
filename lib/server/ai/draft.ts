@@ -186,7 +186,7 @@ Here is the whole answer for a guitar challenge. Match its shape and length; wri
 - Sprained wrist. gentle: "That wrist needs a break. Want to learn songs by ear this week instead?" firm: "Wrist's out for a week. Ear training daily. Back on the strings Saturday if it's fine."
 
 gentle takes the pressure off and ends with a question. firm opens with the fact, then says what to do and when, with no question.
-Plain words, like a friend texting. No "I noticed", no "together", no emoji, no exclamation marks, no calendar dates.`,
+Plain words with contractions (that's, you're), like a friend texting. No "I noticed", no "together", no emoji, no exclamation marks, no calendar dates.`,
       input: `Challenge: ${title.slice(0, 120)}`,
       schema: StylePairsSchema,
       maxTokens: 1500,
