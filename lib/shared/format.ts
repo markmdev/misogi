@@ -50,6 +50,7 @@ export function withUnit(n: number | null | undefined, unit: string): string {
   if (!unit) return num(n);
   if (/^(level|hsk|lvl)$/i.test(unit)) return `${unit.toUpperCase() === "HSK" ? "HSK" : "Level"} ${num(n)}`;
   if (unit === "V") return `V${num(n)}`;
+  if (/^[$€£¥₹]/.test(unit)) return `${unit[0]}${num(n)}${unit.slice(1)}`;
   const singular = Math.abs(n) === 1 && unit.length > 3 && unit.endsWith("s") ? unit.slice(0, -1) : unit;
   return `${num(n)} ${singular}`;
 }

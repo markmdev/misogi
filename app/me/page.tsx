@@ -76,7 +76,7 @@ export default async function Me() {
                         {withUnit(facts.total, c.metric.unit)}
                         {facts.target != null ? ` / ${withUnit(facts.target, c.metric.unit)}` : ""}
                       </span>
-                      {facts.open_quests > 0 && <span className="ml-auto text-ink-3">{facts.open_quests} quests</span>}
+                      {facts.open_quests > 0 && <span className="ml-auto text-ink-3">{facts.open_quests} {facts.open_quests === 1 ? "quest" : "quests"}</span>}
                     </div>
                   </Link>
                 );
