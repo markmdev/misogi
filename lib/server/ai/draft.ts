@@ -163,12 +163,12 @@ export const StylePairsSchema = z.object({
   pairs: z
     .array(
       z.object({
-        gentle: z.string().describe("A check-in message in a gentler style"),
-        firm: z.string().describe("The same situation in a firmer, more direct style"),
-        situation: z.string().describe("2–4 word label, e.g. 'Missed three days'"),
+        situation: z.string().describe("2–4 words, how a person would say it"),
+        gentle: z.string().describe("A warm nudge that makes room, ending with a question"),
+        firm: z.string().describe("A blunt push: the plain fact, then the next step"),
       }),
     )
-    .describe("Exactly 3 pairs, each about a different situation in this challenge"),
+    .describe("Exactly 3 pairs: a missed week, a good streak, a plan that has to move"),
 });
 
 export async function stylePairs(title: string, visitor?: string) {
@@ -176,9 +176,17 @@ export async function stylePairs(title: string, visitor?: string) {
     "fast",
     {
       name: "style_pairs",
-      system: `Write example check-in messages a guide might send someone doing this year-long challenge. Each pair shows the same situation
-in two styles so the person can pick what motivates them. Messages: 1–2 sentences, specific to the challenge, natural, no emoji, no clichés.
-Situations: one where they're behind, one where they did well, one before a hard session.`,
+      system: `A new climber picks how their AI coach, Muse, should talk to them during this year-long challenge. Write three moments,
+each with two messages Muse could send, so different that anyone sees at a glance which one is for them. Use the challenge's own
+units, sessions and places. The third moment is whatever most often derails this challenge (an injury, travel, a closed venue, work).
+
+Here is the whole answer for a guitar challenge. Match its shape and length; write your own words and numbers, none of these:
+- Missed a week. gentle: "Rough week? Happens. Want to just play the one song you love tonight, no plan?" firm: "Seven days, no practice. Tonight: twenty minutes on the chorus you keep dropping."
+- 9 days in a row. gentle: "Nine days straight, that's a real habit now. Want to try a new song this weekend?" firm: "Nine days straight. Day ten is tonight. Record the full song once, no stopping."
+- Sprained wrist. gentle: "That wrist needs a break. Want to learn songs by ear this week instead?" firm: "Wrist's out for a week. Ear training daily. Back on the strings Saturday if it's fine."
+
+gentle takes the pressure off and ends with a question. firm opens with the fact, then says what to do and when, with no question.
+Plain words, like a friend texting. No "I noticed", no "together", no emoji, no exclamation marks, no calendar dates.`,
       input: `Challenge: ${title.slice(0, 120)}`,
       schema: StylePairsSchema,
       maxTokens: 1500,
@@ -191,19 +199,19 @@ Situations: one where they're behind, one where they did well, one before a hard
 /** Used when the model is resting: still lets someone pick a style. */
 export const FALLBACK_PAIRS = [
   {
-    situation: "Missed a few days",
-    gentle: "Busy week? No problem. Want to do a short session today to get back in?",
-    firm: "Three days off. Ten minutes today, no excuses. Go.",
+    situation: "Missed a week",
+    gentle: "Rough week? Happens. Want to do one small session tonight, no catching up?",
+    firm: "A week with nothing logged. One session tonight. Log it.",
   },
   {
-    situation: "Had a great week",
-    gentle: "That was a lovely week. You should be proud of how steady you've been.",
-    firm: "Strong week. Now do it again. Consistency is the whole game.",
+    situation: "Five in a row",
+    gentle: "This is really clicking. Want to keep it easy and enjoy the run?",
+    firm: "Five sessions straight. Do the sixth on Saturday. Don't break it.",
   },
   {
-    situation: "Before a hard session",
-    gentle: "Today's a big one. Take it at your own pace; finishing is what counts.",
-    firm: "Hard session today. You planned for this. Show up and get it done.",
+    situation: "Plans changed",
+    gentle: "This week got away from you? Want to pick a lighter version for now?",
+    firm: "This week's plan is gone. Move the session to Saturday. Book it now.",
   },
 ];
 

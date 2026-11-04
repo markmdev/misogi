@@ -214,7 +214,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
       {step === "style" && (
         <section className="animate-rise">
           <div className="text-center">
-            <h2 className="text-[26px] leading-8 text-ink">How should your guide talk to you?</h2>
+            <h2 className="text-[26px] leading-8 text-ink">How should your Muse talk to you?</h2>
             <p className="mt-2 text-[15px] text-ink-2">Pick one in each, the message you&apos;d rather get.</p>
           </div>
           {!pairs ? (
@@ -240,7 +240,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                       >
                         <span className="flex h-6 items-center gap-2 text-[12px] font-extrabold tracking-wide text-ink-3 uppercase">
                           <Icon name="summit" size={20} />
-                          Your guide
+                          Muse
                           {choices[i] === k ? <Icon name="check" size={22} className="ml-auto animate-pop" /> : <span className="ml-auto font-bold tracking-normal normal-case">now</span>}
                         </span>
                         <span className="mt-1.5 block text-[15px] leading-6 text-ink">{p[k]}</span>
