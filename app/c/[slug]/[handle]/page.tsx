@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CampPath, sceneFor, sceneName } from "@/components/challenge";
 import { LiveScene } from "@/components/client/alive";
-import { CheerButton, LogButton, QuestList, ShareButton, ShareWeekButton } from "@/components/client/actions";
+import { BuildPageAgain, CheerButton, LogButton, QuestList, ShareButton, ShareWeekButton } from "@/components/client/actions";
 import { ConnectPanel } from "@/components/client/connect";
 import { Fresh, LivePulse } from "@/components/client/live";
 import { LogMediaRow, PhotoWall, StickerBoard } from "@/components/client/media";
@@ -57,6 +57,11 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const builder = museName(modelFor("codegen"));
   const askWho = askWhoFor(user.agent_kind);
   const AskWho = askWho.charAt(0).toUpperCase() + askWho.slice(1);
+  const imaginingText = {
+    title: imaginer ? `${imaginer} is imagining this page…` : "Imagining this challenge's page…",
+    body: builder ? `${builder} starts building it in a few seconds.` : "It starts building in a few seconds.",
+  };
+  const emptyBody = `Tell ${askWho} what this page should be. Try: “A cozy study notebook with this week's words and my streak.”`;
 
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
@@ -235,18 +240,16 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
             reloadKey={stamp}
             empty={
               imagining ? (
-                <EmptyState
-                  pose="think"
-                  title={imaginer ? `${imaginer} is imagining this page…` : "Imagining this challenge's page…"}
-                  body={builder ? `${builder} starts building it in a few seconds.` : "It starts building in a few seconds."}
-                />
+                <EmptyState pose="think" {...imaginingText} />
+              ) : isOwner && c.creator_id === v.userId ? (
+                <BuildPageAgain slug={c.slug} title="Your page is empty" body={emptyBody} imagining={imaginingText} />
               ) : (
                 <EmptyState
                   pose="flag"
                   title={isOwner ? "Your page is empty" : "Nothing here yet"}
                   body={
                     isOwner
-                      ? `Tell ${askWho} what this page should be. Try: “A cozy study notebook with this week's words and my streak.”`
+                      ? emptyBody
                       : `${guideDoes} hasn't built a page yet.`
                   }
                 />
