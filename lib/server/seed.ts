@@ -81,6 +81,8 @@ type HistorySpec = {
   notes?: string[];
   shortNotes?: string[];
   noteFor?: (ctx: NoteCtx) => string;
+  /** What the climber's AI writes when it logs a practice day between counted logs, as a check-in. */
+  practice?: string[];
 };
 
 type ChallengeSpec = HistorySpec & {
@@ -936,6 +938,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "smarthome",
     slug: "smart-home-from-scratch",
     title: "Build a smart home from scratch",
+    practice: ["Soldered the hallway sensor board. Not mounted yet.", "Flashed new firmware to the plugs.", "Wrote two automations, testing them this week.", "Ran cable to the garage.", "An hour on the Zigbee pairing. It finally holds."],
     tagline: "Twelve small projects that make home a little smarter, all running locally.",
     description:
       "Turn an ordinary home into a smart one, one project at a time. Avoid cloud lock-in where you can: Home Assistant, cheap sensors and things you can fix yourself.\n\n" +
@@ -1070,6 +1073,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "books",
     slug: "read-25-books",
     title: "Read 25 books",
+    practice: ["Read 40 pages before bed.", "Half an hour with the book on the train.", "Read the next two chapters.", "Thirty pages at lunch.", "Audiobook on the walk, about an hour.", "Slow night: ten pages. Still reading."],
     tagline: "Twenty-five books this year. Any genre, any length. Finished means finished.",
     description:
       "One book every two weeks, give or take. Novels, history, poetry, the cookbook you read cover to cover: if you finished it, it counts. Audiobooks count too.\n\n" +
@@ -1244,6 +1248,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "run",
     slug: "run-365-miles",
     title: "Run 365 miles",
+    practice: ["Rest day: 20 minutes of mobility.", "Rest day. Foam roller and an easy walk.", "Strength session: squats, lunges, calf raises.", "Rest day, legs up, early night."],
     tagline: "A mile a day on average. Run it however your weeks allow.",
     description:
       "365 miles in a year. That's a mile a day on average, but nobody runs every day: most of us do three or four runs a week and a longer one on the weekend.\n\n" +
@@ -1425,6 +1430,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "essays",
     slug: "write-52-essays",
     title: "Write 52 essays",
+    practice: ["Drafted 600 words of the next essay.", "Edited yesterday's draft and cut a third.", "Outlined two essay ideas.", "Twenty minutes of morning pages.", "Read the draft out loud and fixed the ending."],
     tagline: "One essay a week for a year. Short is fine. Published is the point.",
     description:
       "Write and publish one essay a week. Five hundred words is enough. A blog, a newsletter or a public doc all count, as long as someone else can read it.\n\n" +
@@ -1687,6 +1693,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "guitar",
     slug: "learn-20-songs-guitar",
     title: "Learn 20 songs on guitar",
+    practice: ["Twenty minutes of chord changes, G to C to D.", "Played the bridge slowly with the metronome at 70.", "Fingerpicking pattern, fifteen minutes.", "Played through the last three songs to keep them.", "Barre chord drill, ten minutes. F still buzzes.", "Strummed along to the recording twice."],
     tagline: "From sore fingertips to twenty songs you can play start to finish.",
     description:
       "Learn 20 songs well enough to play them start to finish for someone else, without stopping. Chords, fingerpicking or riffs, any style.\n\n" +
@@ -1956,6 +1963,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "savings",
     slug: "save-three-months-of-expenses",
     title: "Save three months of expenses",
+    practice: ["No-spend day.", "Cooked at home instead of ordering.", "Cancelled a free trial before it charged.", "Checked the budget: on track this week.", "Packed lunch, skipped the cafe."],
     tagline: "A cushion of three months, built one transfer at a time.",
     description:
       "Build an emergency fund that covers three months of rent, food and bills, kept in its own account and touched only for real emergencies.\n\n" +
@@ -2843,6 +2851,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "cook",
     slug: "cook-100-meals-from-scratch",
     title: "Cook 100 meals from scratch",
+    practice: ["Leftovers night. Prepped onions and stock for tomorrow.", "Planned the week's meals and did the shop.", "Made a batch of tomato sauce for the freezer.", "Bread dough in the fridge overnight.", "Knife practice on a bag of carrots."],
     tagline: "Two meals a week from raw ingredients. Simple counts. Jars don't.",
     description:
       "Cook 100 meals from scratch this year, about two a week. A meal counts when you made it yourself from raw ingredients: chopped, seasoned and cooked. Dried pasta, stock and spices are fine; a jar of sauce or a meal kit isn't.\n\n" +
@@ -2990,6 +2999,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "pushups",
     slug: "do-100-push-ups-in-a-row",
     title: "Do 100 push-ups in a row",
+    practice: ["Three sets of 25, easy pace.", "A set every hour at the desk, about 120 in all.", "Plank and triceps, 15 minutes.", "Easy day: two sets of 20."],
     tagline: "One unbroken set of 100 by the end of the year. Test once a week and log the whole set.",
     description:
       "Build up to 100 push-ups in one set, with no resting on the floor or your knees. A push-up counts when your chest comes down to a fist's height off the floor and your body stays straight.\n\n" +
@@ -3507,6 +3517,7 @@ const CHALLENGES: ChallengeSpec[] = [
     key: "camino",
     slug: "hike-the-camino-de-santiago",
     title: "Hike the Camino de Santiago",
+    practice: ["Training walk with the full pack, 12 km.", "Stairs with the pack, 40 minutes.", "Broke in the new insoles on a 6 km loop.", "Foot care and a short walk. Saving the legs.", "Hill repeats with the poles."],
     tagline: "772 km across Spain, from the Pyrenees to Santiago, in stages that fit your year.",
     description:
       "Walk the Camino Francés from Saint-Jean-Pied-de-Port to Santiago de Compostela, about 772 km, in one go or in stages across the year.\n\n" +
@@ -3803,6 +3814,7 @@ const FRIENDS: HistorySpec[] = [
     key: "friend-julaiti",
     slug: "publish-24-videos-in-a-year",
     title: "Publish 24 videos in a year",
+    practice: ["Edited for 40 minutes. Rough cut done.", "Wrote the next script, one page.", "Filmed b-roll on the way home.", "Picked the thumbnail and the title.", "Recorded the voiceover, three takes."],
     metric: { name: "videos published", unit: "videos", target: 24, aggregation: "count" },
     camps: [
       { title: "First upload done", detail: "Shot on a phone, published anyway.", target: 1, week: 3, emoji: "flag" },
@@ -3854,6 +3866,7 @@ const FRIENDS: HistorySpec[] = [
     key: "friend-guzus",
     slug: "collect-1-million-in-twelve-months",
     title: "Collect $1 million in twelve months",
+    practice: ["Five sales calls, no closes today.", "Sent three proposals.", "Followed up with last month's leads.", "Pipeline review: two deals likely this month.", "Demo for a new prospect. Went well."],
     metric: { name: "dollars collected", unit: "$", target: 1000000, aggregation: "sum" },
     camps: [
       { title: "First ten thousand", detail: "Proof that someone pays for the offer.", target: 10000, week: 3, emoji: "flag" },
@@ -5410,6 +5423,7 @@ type LogRec = {
   xp: number;
   crossed: boolean;
   questId: string | null;
+  checkin?: boolean;
 };
 
 function emptyCounts(): Counts {
@@ -5638,7 +5652,7 @@ function seedHistory(spec: HistorySpec, cid: string, runs: MemberRun[], now: num
       lastAt = Math.max(lastAt, log.at);
       const others = runs.filter((o) => o.user.id !== r.user.id && o.joinAt < log.at);
       if (!others.length) continue;
-      const p = log.crossed ? 0.85 : log.label != null ? (log.note ? 0.7 : 0.45) : log.note ? 0.42 : 0.18;
+      const p = log.checkin ? 0.12 : log.crossed ? 0.85 : log.label != null ? (log.note ? 0.7 : 0.45) : log.note ? 0.42 : 0.18;
       if (!rng.chance(p)) continue;
       let k = 1 + (rng.chance(0.45) ? 1 : 0) + (rng.chance(0.25) ? 1 : 0) + (log.crossed && rng.chance(0.5) ? 1 : 0);
       k = Math.min(k, others.length);
@@ -5761,12 +5775,25 @@ function onPace(ms: Milestone[], logs: LogRec[], metric: HistorySpec["metric"], 
 
 const photoOf = (m: MemberSpec, l: LogRec) => (l.label != null ? m.items?.find((it) => it.label === l.label)?.photo : undefined);
 
-type Raw = { d: number; value: number | null; label: string | null; note: string | null; hour?: number; long?: boolean };
+type Raw = { d: number; value: number | null; label: string | null; note: string | null; hour?: number; long?: boolean; checkin?: boolean };
+
+/** How far back practice days are logged as check-ins. */
+const PRACTICE_DAYS = 14;
 
 function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
   const inGap = (d: number) => (m.gaps ?? []).some(([from, to]) => d <= from && d >= to);
   // A count log is one of something, and a days log is a day done, so like real ones they carry no number.
   const val = (v: number) => (spec.metric.aggregation === "count" || spec.metric.aggregation === "days" ? null : v);
+  // Practice days between counted logs, for someone still climbing, yesterday always: check-ins keep the streak without moving the number.
+  const practiced = (raws: Raw[]): Raw[] => {
+    if (!spec.practice || !raws.some((r) => r.d <= 30)) return raws;
+    const logged = new Set(raws.map((r) => r.d));
+    const notes = rng.shuffle(spec.practice);
+    for (let d = Math.min(PRACTICE_DAYS, m.daysAgo - 1); d >= 0; d--)
+      if (!logged.has(d) && !inGap(d) && (d === 1 || rng.chance(0.75)))
+        raws.push({ d, value: spec.metric.aggregation === "count" ? 0 : null, label: null, note: notes[d % notes.length], checkin: true });
+    return raws;
+  };
   const out: Raw[] = [];
   if (m.items) {
     const explicit = m.items.every((it) => it.daysAgo != null);
@@ -5778,7 +5805,7 @@ function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, 
       days = spreadPick(avail.length ? avail : [0], m.items.length, rng);
     }
     m.items.forEach((it, i) => out.push({ d: days[i], value: null, label: it.label, note: it.note ?? "" }));
-    return out;
+    return practiced(out);
   }
   for (let d = m.daysAgo; d >= 0; d--) {
     if (inGap(d)) continue;
@@ -5810,7 +5837,7 @@ function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, 
     if (!rng.chance(p)) continue;
     out.push({ d, value: val(roundTo(rng.float(...amount), step)), label: null, note: null });
   }
-  return out;
+  return practiced(out);
 }
 
 function sourceFor(u: SeedUser, rng: Rng): string {
@@ -5891,13 +5918,14 @@ function simulateMember(
       xp: 0,
       crossed: false,
       questId: null,
+      checkin: raw.checkin,
     });
   }
   logs.sort((a, b) => a.at - b.at);
 
   // 2. Some logs completed a quest the agent set earlier that week.
   const usedTitles = new Set<string>();
-  const eligible = logs.filter((l) => l.at > planAt + 20 * HOUR);
+  const eligible = logs.filter((l) => !l.checkin && l.at > planAt + 20 * HOUR);
   const questCount = m.items ? Math.floor(eligible.length * 0.5) : Math.min(9, Math.round(logs.length * 0.12));
   type QuestRow = { id: string; tpl: QuestTpl; createdAt: number; dueOn: string | null; status: "open" | "done" | "skipped"; completedAt: number | null; logId: string | null };
   const quests: QuestRow[] = [];
@@ -5938,7 +5966,8 @@ function simulateMember(
     }
     const quest = quests.find((x) => x.logId === log.id);
     if (quest) acts.push({ kind: "quest_done", at: log.at, userId: user.id, data: { quest_id: quest.id, title: quest.tpl.title, log_id: log.id, xp: log.xp } });
-    else
+    // Practice check-ins stay on the climber's own page, so the challenge's feed keeps to what moved.
+    else if (!log.checkin)
       acts.push({
         kind: "logged",
         at: log.at,
