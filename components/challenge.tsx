@@ -19,7 +19,7 @@ export function sceneFor(theme: string, small = true): string {
   return small ? s.sm : s.src;
 }
 
-export function ChallengeCard({ c, className }: { c: ChallengeSummary; className?: string }) {
+export function ChallengeCard({ c, className, dense }: { c: ChallengeSummary; className?: string; dense?: boolean }) {
   const pal = palette(c.theme);
   const isTemplate = c.status === "template";
   const loop = coverLoop(c.cover_url);
@@ -30,15 +30,11 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
       className={cx("card group flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-float)]", className)}
     >
       <ViewTransition name={`cover-${c.slug}`} share={{ open: "morph", default: "none" }} default="none">
-        <div className="relative h-[132px] overflow-hidden" style={{ background: pal.sky }}>
+        <div className="relative aspect-[3/2] overflow-hidden" style={{ background: pal.sky }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={c.cover_url ?? sceneFor(c.theme)}
-            alt=""
-            className={cx("absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]", !c.cover_url && "object-[70%_center]")}
-          />
-          {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover group-hover:scale-[1.04]" />}
-          <div className="absolute bottom-3 left-3">
+          <img src={c.cover_url ?? sceneFor(c.theme)} alt="" className={cx("absolute inset-0 h-full w-full object-cover", !c.cover_url && "object-[70%_center]")} />
+          {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover" />}
+          <div className={cx("absolute bottom-3 left-3", dense && "max-sm:bottom-2 max-sm:left-2 max-sm:origin-bottom-left max-sm:scale-[0.7]")}>
             <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
           </div>
           {c.virgil_url && (
@@ -46,18 +42,20 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
               src={c.virgil_url}
               size={96}
               alt=""
-              className="absolute right-2 -bottom-1 drop-shadow-[0_4px_4px_rgb(46_42_38/0.2)] transition duration-500 group-hover:-translate-y-1"
+              className={cx("absolute right-2 -bottom-1 drop-shadow-[0_4px_4px_rgb(46_42_38/0.2)] transition duration-500 group-hover:-translate-y-1", dense && "max-sm:right-1 max-sm:origin-bottom-right max-sm:scale-[0.67]")}
             />
           )}
           {isTemplate && c.template_year && (
-            <span className="absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[12px] font-extrabold text-ink shadow-sm">{c.template_year}</span>
+            <span className={cx("absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[12px] font-extrabold text-ink shadow-sm", dense && "max-sm:top-2 max-sm:right-2 max-sm:px-2 max-sm:py-0.5 max-sm:text-[11px]")}>
+              {c.template_year}
+            </span>
           )}
         </div>
       </ViewTransition>
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="text-[18px] leading-6 text-ink">{c.title}</h3>
-        {c.tagline && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">{c.tagline}</p>}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-4">
+      <div className={cx("flex flex-1 flex-col p-4", dense && "max-sm:p-3")}>
+        <h3 className={cx("text-[18px] leading-6 text-ink", dense && "max-sm:text-[15px] max-sm:leading-5")}>{c.title}</h3>
+        {c.tagline && <p className={cx("mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2", dense && "max-sm:hidden")}>{c.tagline}</p>}
+        <div className={cx("mt-auto flex items-center justify-between gap-2 pt-4", dense && "max-sm:flex-col max-sm:items-start max-sm:gap-1.5 max-sm:pt-2.5")}>
           {isTemplate ? (
             <span className="shrink-0 text-[13px] font-bold whitespace-nowrap text-ink-3">Zuckerberg</span>
           ) : (
@@ -66,7 +64,7 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
               {c.members} climbing
             </span>
           )}
-          <span className="min-w-0 truncate rounded-full px-2.5 py-1 text-[12px] font-extrabold whitespace-nowrap" style={{ background: pal.tint, color: pal.deep }}>
+          <span className="min-w-0 max-w-full truncate rounded-full px-2.5 py-1 text-[12px] font-extrabold whitespace-nowrap" style={{ background: pal.tint, color: pal.deep }}>
             {metricLine(c.metric)}
           </span>
         </div>

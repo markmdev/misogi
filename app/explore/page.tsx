@@ -66,9 +66,9 @@ export default async function Explore(props: PageProps<"/explore">) {
           <section className="mt-8">
             <h2 className="mb-4 text-[22px] text-ink">Live now</h2>
             {live.length ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                 {live.map((c) => (
-                  <ChallengeCard key={c.slug} c={c} />
+                  <ChallengeCard key={c.slug} c={c} dense />
                 ))}
               </div>
             ) : (
@@ -80,9 +80,9 @@ export default async function Explore(props: PageProps<"/explore">) {
             <section className="mt-12">
               <h2 className="text-[22px] text-ink">Zuckerberg&apos;s yearly challenges</h2>
               <p className="mt-1 mb-4 text-[15px] text-ink-2">One hard thing a year, 2009 to 2019. Make one yours.</p>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                 {templates.map((c) => (
-                  <ChallengeCard key={c.slug} c={c} />
+                  <ChallengeCard key={c.slug} c={c} dense />
                 ))}
               </div>
             </section>

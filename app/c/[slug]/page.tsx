@@ -122,7 +122,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
           {cover ? (
             <div className="card flex flex-col gap-5 p-4 sm:p-5 md:flex-row md:gap-7">
               <ViewTransition name={`cover-${c.slug}`} share="morph" default="none">
-                <div className="relative aspect-[2/1] max-h-[260px] w-full shrink-0 overflow-hidden rounded-[20px] md:aspect-auto md:max-h-none md:min-h-[200px] md:w-[280px] lg:min-h-[228px] lg:w-[340px]" style={{ background: pal.sky }}>
+                <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden rounded-[20px] md:w-[300px] md:self-center lg:w-[360px]" style={{ background: pal.sky }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover" />}
