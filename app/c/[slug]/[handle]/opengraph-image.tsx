@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { findChallenge, getMembership, metricOf } from "@/lib/server/domain/challenges";
 import { memberFacts } from "@/lib/server/domain/progress";
 import { getUserByHandle } from "@/lib/server/domain/users";
-import { ogFonts, ogIcon, ogMascot, ogScene } from "@/lib/server/og";
+import { ogFonts, ogIcon, ogMuse, ogScene } from "@/lib/server/og";
 import { firstName, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
@@ -21,6 +21,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const theme = c?.theme ?? "teal";
   const pal = palette(theme);
   const metric = c ? metricOf(c) : null;
+  const muse = await ogMuse(c?.virgil_path, "climb");
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", fontFamily: "Nunito", background: pal.sky }}>
@@ -55,7 +56,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             <div style={{ display: "flex", fontFamily: "Fredoka", fontSize: 34, color: "#2E2A26" }}>misogi</div>
           )}
         </div>
-        <img src={ogMascot("climb")} alt="" width={300} height={300} style={{ position: "absolute", right: 70, bottom: 30 }} />
+        <img src={muse} alt="" width={300} height={300} style={{ position: "absolute", right: 70, bottom: 30 }} />
       </div>
     ),
     { ...size, fonts: ogFonts() },
