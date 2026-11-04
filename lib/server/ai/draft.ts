@@ -57,6 +57,7 @@ export async function draftChallenge(idea: string, today: string, visitor?: stri
 Today is ${today}; the challenge runs to ${end}.
 Make the goal concrete and measurable while keeping their intent. Ambitious but possible in a year for a busy adult.
 Camps follow skill-building research: first win early, steady load increases, slack for bad weeks, a hard final test.
+When the idea names a date or a dated event (a race, an exam, a trip), the last camp is that day, named for the event ("Race day", "Exam day"), and no camp comes after it.
 Write like a sharp friend: short, specific, no clichés, no exclamation marks.
 ${AGG_GUIDE}
 Allowed icons: ${icons}.
