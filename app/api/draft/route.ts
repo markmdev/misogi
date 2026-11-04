@@ -3,6 +3,7 @@ import { draftChallenge } from "@/lib/server/ai/draft";
 import { clientIp, errorJson, json, rateLimit } from "@/lib/server/http";
 import { AppError, dateIn, isValidTimeZone } from "@/lib/server/util";
 import { museName } from "@/lib/shared/format";
+import { finishBeforeExit } from "@/lib/server/unfinished";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
     const idea = String(body.idea ?? "").trim();
     if (idea.length < 3) throw new AppError("invalid", "Tell us your misogi in a few words.");
     const tz = typeof body.timezone === "string" && isValidTimeZone(body.timezone) ? body.timezone : "UTC";
-    const draft = await draftChallenge(idea, dateIn(tz), ip);
+    const draft = await finishBeforeExit(draftChallenge(idea, dateIn(tz), ip));
     return json({ draft, drafted_by: museName(modelFor("draft")) });
   } catch (e) {
     return errorJson(e);

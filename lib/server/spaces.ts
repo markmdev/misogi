@@ -15,6 +15,7 @@ import { recordActivity } from "./domain/feed";
 import { currentPlan } from "./domain/progress";
 import { getUser } from "./domain/users";
 import { AppError, id, nowIso } from "./util";
+import { finishBeforeExit } from "./unfinished";
 
 export type SpaceTarget = "challenge" | "me";
 
@@ -141,14 +142,14 @@ export function requestSpace(user: UserRow, slug: string, target: SpaceTarget, r
  * measures and the world it lives in, then Muse Wonder builds it like any request. Returns at once; never throws.
  */
 export function queueChallengeApp(challengeId: string): void {
-  void (async () => {
+  void finishBeforeExit((async () => {
     const c = one<ChallengeRow>("SELECT * FROM challenges WHERE id = ?", challengeId);
     const creator = c?.creator_id ? getUser(c.creator_id) : null;
     if (!c || !creator) return;
     const camps = (currentPlan(c.id, creator.id)?.milestones ?? []).map((m) => m.title);
     const brief = await writeAppBrief(c, camps, { visitor: creator.id });
     requestSpace(creator, c.slug, "challenge", brief, "system");
-  })().catch((e) => console.error("[app] failed", challengeId, e instanceof AppError ? e.message : e));
+  })()).catch((e) => console.error("[app] failed", challengeId, e instanceof AppError ? e.message : e));
 }
 
 export function undoSpace(user: UserRow, slug: string, target: SpaceTarget) {
@@ -229,10 +230,12 @@ function pump() {
   while (q.running < CONCURRENCY && q.waiting.length) {
     const job = q.waiting.shift()!;
     q.running++;
-    void build(job.versionId, job.userId).finally(() => {
-      q.running--;
-      pump();
-    });
+    void finishBeforeExit(
+      build(job.versionId, job.userId).finally(() => {
+        q.running--;
+        pump();
+      }),
+    );
   }
 }
 
