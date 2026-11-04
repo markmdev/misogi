@@ -116,7 +116,14 @@ async function offBackdrop(png: Buffer): Promise<Uint8Array | null> {
   // A backdrop drawn with a little grain or a faint shadow spreads further from its colour than a flat one.
   const spread = rim.map(off).sort((a, b) => a - b)[Math.floor(rim.length * 0.95)];
   const tolerance = Math.min(48, Math.max(30, spread * 1.6));
-  const outside = floodFromEdges(W, H, (i) => off(i) < tolerance);
+  // A shadow the drawing casts on its backdrop is the backdrop's own colour, darker: it goes with the backdrop.
+  const sum = br + bg + bb;
+  const shade = (i: number) => {
+    const [r, g, b] = [rgb[i * 3], rgb[i * 3 + 1], rgb[i * 3 + 2]];
+    const s = r + g + b;
+    return s > sum * 0.4 && s < sum * 1.02 && Math.max(Math.abs(r / s - br / sum), Math.abs(g / s - bg / sum), Math.abs(b / s - bb / sum)) < 0.015;
+  };
+  const outside = floodFromEdges(W, H, (i) => off(i) < tolerance || shade(i));
   const subject = Uint8Array.from(outside, (v) => (v ? 0 : 1));
   const share = subject.reduce((n, v) => n + v, 0) / (W * H);
   return share < 0.04 || share > 0.9 ? null : subject;
