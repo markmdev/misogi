@@ -3,7 +3,7 @@
 import { ImageResponse } from "next/og";
 import { palette } from "@/lib/shared/theme";
 import type { Facts, Metric, PublicUser } from "@/lib/shared/types";
-import { firstName, withUnit } from "@/lib/shared/format";
+import { againstGoal, firstName, shownTotal, toSummit, withUnit } from "@/lib/shared/format";
 import type { ChallengeRow } from "./domain/challenges";
 import { initials, ogFonts, ogIcon, ogMuse, ogScene } from "./og";
 
@@ -18,7 +18,7 @@ const AVATAR: Record<string, [string, string]> = {
 
 function weekHeadline(f: Facts, m: Metric): { big: string; small: string } {
   if (m.aggregation === "days") return { big: `${f.this_week}/7`, small: "days this week" };
-  if (m.aggregation === "latest") return { big: withUnit(f.total, m.unit), small: `${f.this_week} sessions this week` };
+  if (m.aggregation === "latest") return { big: shownTotal(f.total, m), small: `${f.this_week} sessions this week` };
   if (m.aggregation === "distinct") return { big: withUnit(f.this_week, m.unit), small: "new this week" };
   return { big: withUnit(f.this_week, m.unit), small: "this week" };
 }
@@ -72,10 +72,8 @@ export async function weeklyCard(c: ChallengeRow, user: PublicUser, f: Facts, m:
             {pct != null ? (
               <div style={{ display: "flex", flexDirection: "column", marginTop: 30 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 26, fontWeight: 800, color: "#6B635B" }}>
-                  <span>{pct}% to the summit</span>
-                  <span>
-                    {withUnit(f.total, m.unit)} / {withUnit(f.target, m.unit)}
-                  </span>
+                  <span>{toSummit(f, m)}</span>
+                  <span>{m.direction === "down" ? againstGoal(f.target ?? 0, m) : `${withUnit(f.total, m.unit)} / ${withUnit(f.target, m.unit)}`}</span>
                 </div>
                 <div style={{ display: "flex", marginTop: 12, height: 30, borderRadius: 999, background: "#EFE5D8", overflow: "hidden" }}>
                   <div style={{ display: "flex", width: `${Math.max(4, pct)}%`, height: "100%", borderRadius: 999, background: pal.accent }} />
