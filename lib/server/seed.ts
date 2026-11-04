@@ -4015,8 +4015,8 @@ const GRID: HistorySpec[] = [
           { daysAgo: 24, value: 1.73, note: "A full hour, no stops. 3,050 yards." },
           { daysAgo: 17, value: 1.48, note: "2,600 yd, counted by the hundred." },
           { daysAgo: 16, value: 1.02, note: "10 x 100 on 1:50. Made all ten." },
-          { daysAgo: 10, value: 1.42, note: "Easy long one. Half marathon next Sunday, so nothing hard." },
-          { daysAgo: 1, value: 0.57, note: "Recovery swim, 1,000 easy. Legs still heavy from Sunday's half." },
+          { daysAgo: 10, value: 1.42, note: "Easy long one. Half marathon next week, so nothing hard." },
+          { daysAgo: 1, value: 0.57, note: "Recovery swim, 1,000 easy. Legs still heavy from the half." },
         ],
         plan: {
           summary:
@@ -4067,7 +4067,7 @@ const GRID: HistorySpec[] = [
           { label: "Baker Park Reserve trail", note: "Five. Baker after Lake Rebecca, both west of town, one drive.", daysAgo: 53 },
           { label: "Richardson Nature Center trails", note: "Maples starting to turn. 3 miles with my son, he counted six deer.", daysAgo: 32 },
           { label: "Crow-Hassan prairie trails", note: "Prairie gone gold. Wind the whole way, 6 miles, saw nobody.", daysAgo: 18 },
-          { label: "Silverwood Park loop", note: "One mile, paved. With my son before trick-or-treating. Easy day before the half.", daysAgo: 4 },
+          { label: "Silverwood Park loop", note: "One mile, paved. With my son after school. Easy day before the half.", daysAgo: 4 },
         ],
         plan: {
           summary:
@@ -4184,7 +4184,7 @@ const GRID: HistorySpec[] = [
           { label: "Bar muscle-up", note: "Three in a row. Handstand walk 1.5 m before I fell over.", daysAgo: 27 },
           { label: "Bar muscle-up", daysAgo: 20 },
           { label: "Bar muscle-up", note: "Four singles, no chicken wing. Walked 3 m on my hands down the hallway.", daysAgo: 13 },
-          { label: "Bar muscle-up", note: "Kept it to three. Half marathon on Sunday.", daysAgo: 6 },
+          { label: "Bar muscle-up", note: "Kept it to three. Half marathon in a few days.", daysAgo: 6 },
           { label: "Bar muscle-up", note: "Five singles, full reset between. Handstand walk 4 m, new mark on the tape.", daysAgo: 1 },
         ],
         plan: {
@@ -4277,7 +4277,7 @@ const GRID: HistorySpec[] = [
           { label: "Kokoro by Natsume Soseki", note: "Sensei's letter is half the book and I read it in one go. Three in. Ground chosen: Japan, all year.", daysAgo: 80 },
           { label: "In Praise of Shadows by Junichiro Tanizaki", note: "Fifty pages on the beauty of dim rooms and lacquer. Turned the big light off and finished it by lamp.", daysAgo: 76 },
           { label: "Hiroshima by John Hersey", daysAgo: 70 },
-          { label: "Snow Country by Yasunari Kawabata", note: "Snow Country at the end of August. Wrong season, right book.", daysAgo: 64 },
+          { label: "Snow Country by Yasunari Kawabata", note: "Snow Country in late summer. Wrong season, right book.", daysAgo: 64 },
           { label: "The Housekeeper and the Professor by Yoko Ogawa", daysAgo: 58 },
           { label: "Embracing Defeat by John W. Dower", note: "The occupation in 600 pages. Twelve days and most of a weekend. Worth it.", daysAgo: 46 },
           { label: "Convenience Store Woman by Sayaka Murata", daysAgo: 42 },
@@ -4871,7 +4871,7 @@ const GRID: HistorySpec[] = [
           { daysAgo: 54, value: 3, note: "Bills live. It files invoices and flags due dates, never pays. Three running." },
           { daysAgo: 45, value: 3, note: "Kill switch: one message from my phone and everything stops. Tested it twice on the platform." },
           { daysAgo: 35, value: 4, note: "Dinner RSVPs: it confirms seats, asks about allergies, sends the address the day before. Morning ops done, four running." },
-          { daysAgo: 24, value: 4, note: "Sunday audit: 312 actions this week, 3 I'd have done differently. All three too polite." },
+          { daysAgo: 24, value: 4, note: "Weekly audit: 312 actions this week, 3 I'd have done differently. All three too polite." },
           { daysAgo: 15, value: 4, note: "My coach asked what would make me trust it with money. A cap, a log, and a confirm step I can answer from the train." },
           { daysAgo: 8, value: 4, note: "Subscription watch in shadow mode: renewals flagged three days before they charge. It counts after two clean weeks." },
           { daysAgo: 1, value: 4, note: "Wrote the spending rules: €50 a payment, €200 a month, my yes on anything new. The phone bill goes first." },
@@ -5133,14 +5133,14 @@ const GRID: HistorySpec[] = [
         beats: [
           { daysAgo: 65, note: "Day one. Phone charges in a shoebox by the front door, a $12 alarm clock by the bed. Picked it up at 12:03." },
           { daysAgo: 63, note: "Allowed list taped inside the front door: calls, maps, alarm. Everything else waits till noon." },
-          { daysAgo: 59, note: "First Sunday review: 6 of 7. The slip was Friday at 8:10, in the lift lobby. Next: a paperback in the work bag." },
+          { daysAgo: 59, note: "First weekly review: 6 of 7. The one slip was at 8:10, in the lift lobby. Next: a paperback in the work bag." },
           { daysAgo: 52, note: "13 of 14. The reaching mostly stops by 10 now. Next: badges off on the last two apps." },
           { daysAgo: 45, note: "Built the phone a proper dock yesterday, bent aluminium, by the front door. It sleeps there face down. 20 of 21." },
           { daysAgo: 30, note: "Back from a cousin's wedding in KL. Three mornings lost to boarding passes and the family group chat. Clean again today." },
           { daysAgo: 25, note: "Rain, no walk. Read on the sofa till noon and missed nothing." },
           { daysAgo: 18, note: "Two mornings lost to an incident at work: paged at 7, phone in hand till lunch. Not counting them. Clean today." },
           { daysAgo: 11, note: "Build day at the bench. Five hours, no idea where the phone was." },
-          { daysAgo: 3, note: "October: 26 of 31. Three lost to the trip, two to the incident. Next: print boarding passes and the hotel address the night before." },
+          { daysAgo: 3, note: "26 clean mornings in the last 31. Three lost to the trip, two to the incident. Next: print boarding passes and the hotel address the night before." },
           { daysAgo: 1, note: "58. Woke before the alarm clock, walked, two hours of real work before the first message. Noon felt early." },
         ],
         plan: {
