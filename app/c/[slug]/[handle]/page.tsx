@@ -37,6 +37,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const v = memberView(slug, handle, viewer);
   if (!v) notFound();
   const { c, user, facts, plan, quests, logs, space, metric, isOwner, membership, plans, wall } = v;
+  // Things counted whole (songs, days, countries) are planned in whole ones.
+  const planSays = facts.expected_by_now != null && metric.aggregation !== "sum" && metric.aggregation !== "latest" ? Math.round(facts.expected_by_now) : facts.expected_by_now;
   const pal = palette(c.theme);
   const stamp = pulse(c);
   const name = firstName(user.display_name);
@@ -161,7 +163,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
           <section className="card p-5">
             <div className="mb-2 flex items-center justify-between text-[13px] font-extrabold text-ink-2">
               <span>{Math.round(facts.progress * 100)}% to the summit</span>
-              {facts.expected_by_now != null && facts.day >= 7 && <span className="text-ink-3">Plan says {withUnit(facts.expected_by_now, metric.unit)} by today</span>}
+              {planSays != null && planSays > 0 && facts.day >= 7 && <span className="text-ink-3">Plan says {withUnit(planSays, metric.unit)} by today</span>}
             </div>
             <div className="relative">
               <ProgressBar value={facts.progress} color={pal.accent} height={18} />
