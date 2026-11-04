@@ -10,7 +10,7 @@ import { listChallenges } from "@/lib/server/domain/challenges";
 import { siteFeed } from "@/lib/server/domain/feed";
 import { showcaseView } from "@/lib/server/views";
 import { firstName, foldRepeats } from "@/lib/shared/format";
-import { SCENES } from "@/lib/shared/art";
+import { SCENES, virgilLoop } from "@/lib/shared/art";
 import { MisogiWord } from "@/components/client/misogi-word";
 
 export const dynamic = "force-dynamic";
@@ -47,9 +47,15 @@ export default async function Home() {
   const feed = siteFeed(8);
   const hero = SCENES["home-hero"];
   const proof = showcaseView();
-  const examples = listChallenges({ status: ["active"], limit: 40 })
+  const active = listChallenges({ status: ["active"], limit: 100 });
+  const examples = active
+    .slice(0, 40)
     .map((c) => c.title)
     .filter((t) => t.length <= 42);
+  const chips = active
+    .filter((c, i) => c.virgil_url && virgilLoop(c.virgil_url) && c.title.length <= 34 && active.findIndex((o) => o.title === c.title) === i)
+    .slice(0, 30)
+    .map((c) => ({ title: c.title, muse: c.virgil_url! }));
 
   return (
     <>
@@ -83,7 +89,7 @@ export default async function Home() {
                   </a>
                   . <MisogiWord side="above">Misogi</MisogiWord> turns it into your own page that tracks your progress and shows what&apos;s next.
                 </p>
-                <StartBox examples={examples} />
+                <StartBox examples={examples} chips={chips} />
               </div>
             </div>
           </section>

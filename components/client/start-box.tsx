@@ -3,30 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { palette } from "@/lib/shared/theme";
-import { cx, Icon, Mascot } from "../ui";
-import { warmMascot } from "./alive";
+import { virgilLoop } from "@/lib/shared/art";
+import { cx, Mascot } from "../ui";
+import { LiveMascot, warmMascot } from "./alive";
 import { IntentLink } from "./intent-link";
 
-/** In the wheel's order, clockwise from the top; `chip` ones also show as examples under the box, those with `from` only from that width up, so they stay two rows. */
-const IDEAS: { text: string; icon: string; color: string; chip: boolean; from?: "380" | "lg" }[] = [
-  { text: "Hold a conversation in Mandarin", icon: "language", color: palette("sky").accent, chip: true, from: "lg" },
-  { text: "Cook 52 new meals from scratch", icon: "cooking", color: "var(--color-gold)", chip: false },
-  { text: "Read 25 books", icon: "books", color: palette("lilac").accent, chip: true },
-  { text: "Visit all 50 states", icon: "travel", color: palette("sand").accent, chip: false },
-  { text: "Build a smart home", icon: "smarthome", color: palette("rose").accent, chip: true, from: "380" },
-  { text: "Run 365 miles", icon: "running", color: palette("mint").accent, chip: true },
-  { text: "Write 52 essays", icon: "writing", color: palette("peach").accent, chip: true },
-  { text: "Learn 20 songs on guitar", icon: "music", color: palette("teal").accent, chip: true, from: "lg" },
+/** In the wheel's order, clockwise from the top. */
+const IDEAS: { text: string; icon: string; color: string }[] = [
+  { text: "Hold a conversation in Mandarin", icon: "language", color: palette("sky").accent },
+  { text: "Cook 52 new meals from scratch", icon: "cooking", color: "var(--color-gold)" },
+  { text: "Read 25 books", icon: "books", color: palette("lilac").accent },
+  { text: "Visit all 50 states", icon: "travel", color: palette("sand").accent },
+  { text: "Build a smart home", icon: "smarthome", color: palette("rose").accent },
+  { text: "Run 365 miles", icon: "running", color: palette("mint").accent },
+  { text: "Write 52 essays", icon: "writing", color: palette("peach").accent },
+  { text: "Learn 20 songs on guitar", icon: "music", color: palette("teal").accent },
 ];
 const N = IDEAS.length;
-const FROM = { "380": "max-[379px]:hidden", lg: "max-lg:hidden" };
-
-const CHIP_WORDS = IDEAS.filter((i) => i.chip).map((i) => i.text.toLowerCase().split(" "));
-/** A title already under the box as a chip, word for word or with words added. */
-const echoesChip = (title: string) => {
-  const words = title.toLowerCase().split(" ");
-  return CHIP_WORDS.some((chip) => chip.every((w) => words.includes(w)));
-};
 const SLICE = 360 / N;
 
 type Phase = "idle" | "spinning" | "landed" | "typing" | "going";
@@ -67,11 +60,14 @@ function useTypedExample(examples: string[], on: boolean) {
   return shown;
 }
 
+/** A real challenge under the box, with the Muse dressed for it; only Muses with a loop, so every chip moves. */
+export type MuseChip = { title: string; muse: string };
+
 /**
  * The home page's box: say your misogi and start the climb, pick an example under it, or let the wheel decide. While
  * it's empty, real challenges from the site type themselves into it.
  */
-export function StartBox({ examples }: { examples: string[] }) {
+export function StartBox({ examples, chips }: { examples: string[]; chips: MuseChip[] }) {
   const router = useRouter();
   const [idea, setIdea] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
@@ -82,7 +78,7 @@ export function StartBox({ examples }: { examples: string[] }) {
   const field = useRef<HTMLTextAreaElement>(null);
   const timer = useRef(0);
   useEffect(() => () => clearTimeout(timer.current), []);
-  const fresh = useMemo(() => examples.filter((t) => !echoesChip(t)), [examples]);
+  const fresh = useMemo(() => examples.filter((t) => !chips.some((c) => c.title === t)), [examples, chips]);
   const example = useTypedExample(fresh, !focused && !idea && phase === "idle");
 
   function go(text: string) {
@@ -185,20 +181,37 @@ export function StartBox({ examples }: { examples: string[] }) {
         </div>
       </form>
       {phase === "idle" ? (
-        <div className="mt-3.5 flex flex-wrap justify-center gap-1.5 max-sm:text-[15px] sm:gap-2">
-          {IDEAS.filter((e) => e.chip).map((e) => (
-            <IntentLink
-              key={e.text}
-              href={`/start?idea=${encodeURIComponent(e.text)}`}
-              transitionTypes={["open"]}
-              onNavigate={() => setFrom(e.text)}
-              style={travels(e.text)}
-              className={cx("chip", e.from && FROM[e.from])}
-            >
-              <Icon name={e.icon} size={24} eager className="max-sm:size-[22px]" />
-              {e.text}
-            </IntentLink>
-          ))}
+        <div className="muse-chips -mx-4 mt-3 max-[239px]:-mx-3 sm:-mx-10">
+          {[0, 1].map((r) => {
+            const row = chips.filter((_, i) => i % 2 === r);
+            return (
+              <div key={r} className="overflow-x-clip py-1">
+                {/* Two copies of the row, so it loops without a seam; the second is for the eye only. */}
+                <div className={cx("muse-chips-row flex w-max gap-2 pr-2", r === 1 && "muse-chips-back")} style={{ ["--n" as string]: row.length }}>
+                  {[0, 1].map((copy) =>
+                    row.map((c) => {
+                      const key = `${copy}:${c.title}`;
+                      return (
+                        <IntentLink
+                          key={key}
+                          href={`/start?idea=${encodeURIComponent(c.title)}`}
+                          transitionTypes={["open"]}
+                          onNavigate={() => setFrom(key)}
+                          style={travels(key)}
+                          aria-hidden={copy === 1 || undefined}
+                          tabIndex={copy === 1 ? -1 : undefined}
+                          className="chip muse-chip"
+                        >
+                          <LiveMascot loop={`/art/motion/virgils/chip/${virgilLoop(c.muse)}`} still={c.muse} size={36} alt="" release />
+                          {c.title}
+                        </IntentLink>
+                      );
+                    }),
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <Wheel onLanded={landed} scrollFrom={formRef} />

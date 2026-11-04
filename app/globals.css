@@ -225,6 +225,16 @@
   .chip:hover { transform: translateY(-1px); }
   .chip:active { transform: translateY(1px); box-shadow: none; }
 
+  /* Home's challenges under the box drift past in two rows, opposite ways, and stop under a pointer or a finger. */
+  .muse-chip { min-height: 46px; padding: 4px 16px 4px 4px; border-radius: 23px; border: 1.5px solid var(--color-line-2); box-shadow: 0 3px 0 var(--color-line-2); font-size: 15px; }
+  .muse-chips { contain: inline-size; mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent); }
+  .muse-chips-row { animation: muse-drift calc(var(--n) * 6s) linear infinite; }
+  .muse-chips-back { animation-direction: reverse; }
+  .muse-chips:hover .muse-chips-row,
+  .muse-chips:active .muse-chips-row,
+  .muse-chips:focus-within .muse-chips-row { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .muse-chips-row { animation: none; } }
+
   /* Placeholder for text that is still being written; .skel-live while it's being worked on. */
   .skel {
     display: block;
@@ -379,3 +389,5 @@
   }
   100% { opacity: 1; transform: rotate(var(--tilt)); filter: var(--rest); }
 }
+
+@keyframes muse-drift { to { transform: translateX(-50%); } }
