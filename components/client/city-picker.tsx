@@ -58,7 +58,11 @@ export function CityPicker({ id, value, onChange }: { id?: string; value: Picked
           suggest(e.target.value);
           if (value) onChange(null);
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={(e) => {
+          setOpen(true);
+          // On a phone the keyboard covers the bottom half: bring the field up so its suggestions show above it.
+          if (matchMedia("(pointer: coarse)").matches) e.currentTarget.scrollIntoView({ block: "start", behavior: "smooth" });
+        }}
         onBlur={() => {
           setOpen(false);
           // Typed in full but not picked ("Lisbon"): take the first suggestion, which is the biggest place by that name.
@@ -119,7 +123,7 @@ export function MyCity({ initial }: { initial: PickedCity | null }) {
   return (
     <div className="card mt-8 p-5">
       <label className="label" htmlFor="my-city">
-        Your city (optional)
+        Your city
       </label>
       <div className="mt-2">
         <CityPicker

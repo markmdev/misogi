@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   try {
     rateLimit(`cities:${clientIp(req)}`, 120, 30);
     const q = req.nextUrl.searchParams.get("q") ?? "";
-    return json({ cities: q.trim().length >= 2 ? searchCities(q) : [] });
+    return json({ cities: q.trim().length >= 2 ? searchCities(q, 4) : [] });
   } catch (e) {
     return errorJson(e);
   }
