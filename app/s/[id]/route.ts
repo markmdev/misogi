@@ -19,7 +19,7 @@ addEventListener("error",function(e){err(e.message)});
 addEventListener("unhandledrejection",function(e){err(e.reason&&e.reason.message||e.reason)});
 var last=0;function size(){var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0));if(Math.abs(h-last)>2){last=h;post({type:"height",height:h})}}
 addEventListener("load",function(){size();if(window.ResizeObserver)new ResizeObserver(size).observe(document.body||document.documentElement);setTimeout(size,400);setTimeout(size,1500);
-setTimeout(function(){var b=document.body;if(!b||(!b.innerText.trim()&&!b.querySelector("svg,canvas,img")))err("The page rendered blank.");var h=document.documentElement.scrollHeight;if(h>6000)err("The page is "+h+" px tall, and the frame cuts it off at 6000. Keep the whole page under 3000 px; the frame grows to fit the page, so size nothing with vh.",1)},2500)});
+setTimeout(function(){var b=document.body;if(!b||(!b.innerText.trim()&&!b.querySelector("svg,canvas,img")))err("The page rendered blank.");var h=document.documentElement.scrollHeight;if(h>6000)err("The page is "+h+" px tall, and the frame cuts it off at 6000. Keep the whole page under 3000 px; the frame grows to fit the page, so size nothing with vh.",1);var d=document.documentElement;if(d.scrollWidth>d.clientWidth+1)err("The page is "+d.scrollWidth+" px wide in a "+d.clientWidth+" px frame, so it scrolls sideways. Make everything fit the frame's width: let rows wrap, let fixed-width items shrink, and keep any long strip inside its own overflow-x:auto box.",1)},2500)});
 })();</script>`;
 }
 
