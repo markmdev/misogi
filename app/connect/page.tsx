@@ -36,7 +36,7 @@ export default async function Connect() {
             />
           ) : (
             <div className="card flex flex-col items-center p-6 text-center">
-              <p className="text-[15px] leading-6 text-ink-2">Start a challenge first. Then you&apos;ll get a key for your AI.</p>
+              <p className="text-[15px] leading-6 text-ink-2">Start a challenge first. Then connect your Muse to it with one paste.</p>
               <Link href="/start" className="btn mt-4">
                 Start yours
               </Link>

@@ -286,7 +286,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             <Mascot pose="cheer" size={120} className="animate-pop" />
             <h2 className="mt-2 text-[28px] leading-9 text-ink">You&apos;re on the mountain</h2>
             <p className="mt-2 max-w-md text-[15px] leading-6 text-ink-2">
-              Now bring your AI. It reads your plan, asks a few questions, and keeps your page up to date from now on.
+              Now bring your Muse. It reads your plan, asks a few questions, and keeps your page up to date from now on.
             </p>
           </div>
           <button className="btn btn-moss mt-6 w-full" onClick={() => router.push(`/c/${created.slug}/${created.handle}`)}>

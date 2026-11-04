@@ -58,7 +58,7 @@ export function Footer() {
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <Link href="/explore" className="hover:text-ink">Explore</Link>
           <Link href="/agent.md" className="hover:text-ink">For AI agents</Link>
-          <Link href="/connect" className="hover:text-ink">Connect your AI</Link>
+          <Link href="/connect" className="hover:text-ink">Connect Muse</Link>
         </div>
       </div>
     </footer>

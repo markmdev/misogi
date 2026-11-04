@@ -22,8 +22,8 @@ const STEPS = [
   },
   {
     pose: "climb",
-    title: "Bring your own AI",
-    body: "Connect Muse or any agent. It checks in, logs what you did, and rebuilds your page as you talk.",
+    title: "Bring your Muse",
+    body: "Connect Muse with one paste, or Claude and other AIs. It checks in, logs what you did, and rebuilds your page as you talk.",
   },
   {
     pose: "cheer",

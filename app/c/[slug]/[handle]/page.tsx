@@ -107,7 +107,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               <div>
                 <h2 className="text-[22px] leading-7 text-ink">You&apos;re on the mountain.</h2>
                 <p className="mt-1 text-[15px] leading-6 text-ink-2">
-                  Connect your AI so it can plan with you and keep this page up to date. Or tap <b>Ask Virgil</b> to start right here.
+                  Connect your Muse so it can plan with you and keep this page up to date. Or tap <b>Ask Virgil</b> to start right here.
                 </p>
               </div>
             </div>
