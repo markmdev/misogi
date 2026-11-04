@@ -45,7 +45,7 @@ export function JoinButton({ slug, signedIn, title, className }: { slug: string;
       </button>
       {error && !open && <p className="mt-2 text-[14px] font-bold text-coral-deep">{error}</p>}
       <Sheet open={open} onClose={() => setOpen(false)} title={`Join “${title}”`}>
-        <p className="text-[15px] leading-6 text-ink-2">Same summit, your own pace. Your AI gets your plan; your name shows on the leaderboard.</p>
+        <p className="text-[15px] leading-6 text-ink-2">Same summit, your own pace. Your Muse gets your plan; your name shows on the leaderboard.</p>
         <form
           className="mt-4 flex flex-col gap-3"
           onSubmit={(e) => {

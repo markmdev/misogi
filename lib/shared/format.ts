@@ -138,3 +138,9 @@ export function agentLabel(kind: string | null | undefined, name: string | null 
   if (name?.trim().toLowerCase() === "muse") return `${whose} Muse`;
   return name ? `${name}, ${whose.toLowerCase() === "your" ? "your" : whose} ${brand}` : `${whose} ${brand}`;
 }
+
+/** Who a line tells someone to ask, by the guide they coach with: "Muse", "your AI" or "your Muse". */
+export function askWhoFor(kind: string | null | undefined): string {
+  const k = (kind ?? "").toLowerCase();
+  return k === "virgil" ? "Muse" : k === "mcp" || k === "agent" ? "your AI" : "your Muse";
+}

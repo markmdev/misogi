@@ -301,7 +301,7 @@ export function CampPath({
               <div className="mt-0.5 text-[12px] font-bold text-ink-3">
                 {m.target != null ? withUnit(m.target, unit) : ""}
                 {m.target != null && m.due_on ? " · " : ""}
-                {m.due_on ? `by ${shortDate(m.due_on)}` : ""}
+                {m.due_on ? `by ${shortDate(m.due_on, isSummit)}` : ""}
               </div>
               {state === "next" && m.target != null && (
                 <div className="mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-[12px] font-extrabold" style={{ background: tint, color: deep }}>
