@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { palette } from "@/lib/shared/theme";
 import { cx, Icon, Mascot } from "../ui";
 import { warmMascot } from "./alive";
@@ -19,6 +19,13 @@ const IDEAS = [
   { text: "Learn 20 songs on guitar", icon: "music", color: palette("teal").accent, chip: true },
 ];
 const N = IDEAS.length;
+
+const CHIP_WORDS = IDEAS.filter((i) => i.chip).map((i) => i.text.toLowerCase().split(" "));
+/** A title already under the box as a chip, word for word or with words added. */
+const echoesChip = (title: string) => {
+  const words = title.toLowerCase().split(" ");
+  return CHIP_WORDS.some((chip) => chip.every((w) => words.includes(w)));
+};
 const SLICE = 360 / N;
 
 type Phase = "idle" | "spinning" | "landed" | "typing" | "going";
@@ -74,7 +81,8 @@ export function StartBox({ examples }: { examples: string[] }) {
   const field = useRef<HTMLTextAreaElement>(null);
   const timer = useRef(0);
   useEffect(() => () => clearTimeout(timer.current), []);
-  const example = useTypedExample(examples, !focused && !idea && phase === "idle");
+  const fresh = useMemo(() => examples.filter((t) => !echoesChip(t)), [examples]);
+  const example = useTypedExample(fresh, !focused && !idea && phase === "idle");
 
   function go(text: string) {
     setFrom("box");
