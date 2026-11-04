@@ -30,7 +30,9 @@ type DemoUser = {
 
 type Camp = { title: string; detail: string; target: number; emoji: string } & ({ week: number } | { on: string });
 type QuestTpl = { title: string; detail: string; kind: "daily" | "weekly" | "boss" | "one_off"; xp: number };
-type Item = { label: string; note?: string; daysAgo?: number };
+/** A photo free to show (CC0 or public domain), its full copy's size, and its file page. Its files sit in storage under its id. */
+type Photo = { w: number; h: number; source: string };
+type Item = { label: string; note?: string; daysAgo?: number; photo?: Photo };
 type Beat = { daysAgo: number; value?: number | null; note: string; long?: boolean };
 
 type MemberSpec = {
@@ -3437,19 +3439,19 @@ const CHALLENGES: ChallengeSpec[] = [
           { label: "Green curry" },
           { label: "Cornbread" },
           { label: "Biryani", note: "Layered, sealed with dough, and opened at the table. Applause." },
-          { label: "Croissants", note: "Three days, 27 layers, one tiny kitchen covered in flour." },
+          { label: "Croissants", note: "Three days, 27 layers, one tiny kitchen covered in flour.", photo: { w: 1200, h: 1600, source: "https://commons.wikimedia.org/wiki/File:Croissants_au_beurre_(18953292873).jpg" } },
           { label: "Whole roast fish" },
-          { label: "Pupusas" },
-          { label: "Pad thai" },
-          { label: "Borscht" },
-          { label: "Crème brûlée" },
-          { label: "Tteokbokki" },
-          { label: "Mole poblano", note: "Twenty-two ingredients. My blender will never be the same." },
+          { label: "Pupusas", photo: { w: 1600, h: 1507, source: "https://commons.wikimedia.org/wiki/File:Pupusas.jpg" } },
+          { label: "Pad thai", photo: { w: 1600, h: 1200, source: "https://commons.wikimedia.org/wiki/File:Pad_Thai_Noodles_-_Little_Thai,_Brighton_2024-03-21.jpg" } },
+          { label: "Borscht", photo: { w: 1600, h: 1200, source: "https://commons.wikimedia.org/wiki/File:Belorussian_borscht_-_2015_AD.JPG" } },
+          { label: "Crème brûlée", photo: { w: 1600, h: 1200, source: "https://commons.wikimedia.org/wiki/File:Cr%C3%A8me_br%C3%BBl%C3%A9e_at_restaurant_in_Zushi.jpg" } },
+          { label: "Tteokbokki", photo: { w: 1200, h: 1600, source: "https://commons.wikimedia.org/wiki/File:Vegen_rice_pasta_(spicy_ver.)_-_korpan.jpg" } },
+          { label: "Mole poblano", note: "Twenty-two ingredients. My blender will never be the same.", photo: { w: 1280, h: 960, source: "https://commons.wikimedia.org/wiki/File:Mole_con_pollo_2008-10-31.JPG" } },
           { label: "Bouillabaisse" },
-          { label: "Injera with misir wot", note: "Fermented the batter for three days. Ate with my hands." },
+          { label: "Injera with misir wot", note: "Fermented the batter for three days. Ate with my hands.", photo: { w: 1600, h: 900, source: "https://commons.wikimedia.org/wiki/File:Veggie_combo_at_Fassil_Restaurant.jpg" } },
           { label: "Peking-style duck" },
-          { label: "Baklava" },
-          { label: "Eggs Benedict", note: "Number 72. Hollandaise on the second try." },
+          { label: "Baklava", photo: { w: 1542, h: 1024, source: "https://commons.wikimedia.org/wiki/File:Baklava_-_Turkish_special,_80-ply.JPEG" } },
+          { label: "Eggs Benedict", note: "Number 72. Hollandaise on the second try.", photo: { w: 1600, h: 1200, source: "https://commons.wikimedia.org/wiki/File:Eggs_Benedict_-_the_M%26S_Caf%C3%A9.jpg" } },
         ],
         plan: {
           summary:
@@ -3960,7 +3962,7 @@ const HOUR = 3_600_000;
 const DAY = 86_400_000;
 
 /** Stable ids, so a re-seed keeps the same rows (and their covers and spaces). */
-function demoId(prefix: "chl" | "usr", key: string): string {
+function demoId(prefix: "chl" | "usr" | "med", key: string): string {
   const h = sha256(`misogi-demo:${prefix}:${key}`);
   let out = "";
   for (let i = 0; i < 8; i++) out += ALPHABET[parseInt(h.slice(i * 2, i * 2 + 2), 16) % 36];
@@ -4449,6 +4451,8 @@ function onPace(ms: Milestone[], logs: LogRec[], metric: HistorySpec["metric"], 
   return out;
 }
 
+const photoOf = (m: MemberSpec, l: LogRec) => (l.label != null ? m.items?.find((it) => it.label === l.label)?.photo : undefined);
+
 type Raw = { d: number; value: number | null; label: string | null; note: string | null; hour?: number; long?: boolean };
 
 function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
@@ -4629,7 +4633,16 @@ function simulateMember(
         kind: "logged",
         at: log.at,
         userId: user.id,
-        data: { log_id: log.id, value: log.value, label: log.label, unit: spec.metric.unit, metric: spec.metric.name, note: log.note.slice(0, 140), xp: log.xp },
+        data: {
+          log_id: log.id,
+          value: log.value,
+          label: log.label,
+          unit: spec.metric.unit,
+          metric: spec.metric.name,
+          note: log.note.slice(0, 140),
+          xp: log.xp,
+          ...(photoOf(m, log) ? { media: 1 } : {}),
+        },
       });
     spec.camps.forEach((c, ci) => {
       if (!doneAt.has(ci) && total >= c.target - 1e-9) {
@@ -4784,6 +4797,22 @@ function simulateMember(
       isoAt(l.at),
     );
     counts.logs++;
+    const photo = photoOf(m, l);
+    if (photo) {
+      const mid = demoId("med", `dish:${l.label}`);
+      exec(
+        `INSERT INTO media (id, kind, challenge_id, user_id, path, mime, width, height, created_at, log_id)
+         VALUES (?, 'photo', ?, ?, ?, 'image/webp', ?, ?, ?, ?)`,
+        mid,
+        cid,
+        user.id,
+        `logs/${mid}`,
+        photo.w,
+        photo.h,
+        isoAt(l.at),
+        l.id,
+      );
+    }
   }
   for (const a of acts) insertActivity(cid, a, counts);
 
@@ -4840,6 +4869,8 @@ export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
   const out: SeedSummary["challenges"] = [];
   tx(() => {
     const cheers = realCheers();
+    // A seeded photo's sticker and caption were made once, from its stored file; they outlive the log they hang on.
+    const photos = all<{ id: string; sticker: string | null; caption: string | null }>("SELECT id, sticker, caption FROM media WHERE substr(id, 1, 8) = 'med_demo'");
     if (force) resetDemoHistory();
     const users = new Map<string, SeedUser>();
     for (const u of USERS) users.set(u.handle, upsertUser(u, now));
@@ -4850,6 +4881,7 @@ export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
     }
     for (const spec of FRIENDS) if (seedFriend(spec, now, counts)) out.push({ slug: spec.slug, title: spec.title, status: "active", members: 1 });
     keepCheers(cheers);
+    for (const p of photos) exec("UPDATE media SET sticker = ?, caption = ? WHERE id = ?", p.sticker, p.caption, p.id);
     finishUsers(users, now, counts);
     placeDemoClimbers();
   });
