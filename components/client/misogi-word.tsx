@@ -10,7 +10,8 @@ type Spot = { left: number; top?: number; bottom?: number; thread: number; side:
 
 /**
  * The word misogi, marked with a stitched underline. A mouse resting on it, or a tap, hangs a felt tag from it on a
- * thread that explains the word. `side` is where the tag prefers to hang; it flips when there isn't room.
+ * thread that explains the word. `side` is where the tag prefers to hang; it flips when there isn't room. The tag has
+ * nothing to press, so every tap and click goes through it to what's underneath, such as the box or Plan my year.
  */
 export function MisogiWord({ children = "misogi", side = "below" }: { children?: ReactNode; side?: "below" | "above" }) {
   const id = useId();
@@ -19,13 +20,11 @@ export function MisogiWord({ children = "misogi", side = "below" }: { children?:
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
   const [spot, setSpot] = useState<Spot | null>(null);
+  const pressedBy = useRef<string | null>(null);
 
   const later = (fn: () => void, ms: number) => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(fn, ms);
-  };
-  const hold = () => {
-    if (timer.current) clearTimeout(timer.current);
   };
 
   const place = useCallback(() => {
@@ -48,8 +47,7 @@ export function MisogiWord({ children = "misogi", side = "below" }: { children?:
   useEffect(() => {
     if (!open) return;
     const away = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (!word.current?.contains(t) && !card.current?.contains(t)) setOpen(false);
+      if (!word.current?.contains(e.target as Node)) setOpen(false);
     };
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -69,7 +67,12 @@ export function MisogiWord({ children = "misogi", side = "below" }: { children?:
     };
   }, [open, place]);
 
-  useEffect(() => () => hold(), []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const mouse = (e: React.PointerEvent) => e.pointerType === "mouse";
 
@@ -82,7 +85,13 @@ export function MisogiWord({ children = "misogi", side = "below" }: { children?:
         aria-controls={open ? id : undefined}
         onPointerEnter={(e) => mouse(e) && later(() => setOpen(true), 140)}
         onPointerLeave={(e) => mouse(e) && later(() => setOpen(false), 220)}
-        onClick={() => setOpen((o) => !o)}
+        onPointerDown={(e) => (pressedBy.current = e.pointerType)}
+        onClick={() => {
+          // A mouse has already opened it by resting on the word, so its click only keeps it open; a tap or a key toggles.
+          if (pressedBy.current === "mouse") setOpen(true);
+          else setOpen((o) => !o);
+          pressedBy.current = null;
+        }}
         className="misogi-word inline cursor-help rounded-[4px] p-0 [font:inherit] [color:inherit] [letter-spacing:inherit]"
       >
         {children}
@@ -94,9 +103,7 @@ export function MisogiWord({ children = "misogi", side = "below" }: { children?:
             id={id}
             role="dialog"
             aria-label="What misogi means"
-            onPointerEnter={(e) => mouse(e) && hold()}
-            onPointerLeave={(e) => mouse(e) && later(() => setOpen(false), 220)}
-            className="fixed z-[60] w-[min(310px,calc(100vw-24px))]"
+            className="pointer-events-none fixed z-[60] w-[min(310px,calc(100vw-24px))]"
             style={{
               left: spot?.left ?? -9999,
               top: spot?.top,
