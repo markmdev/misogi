@@ -23,8 +23,9 @@ const DATA_CONTRACT = `type SpaceData = {
   facts: null | (same object as member.facts);   // convenience copy; null on the shared page
   members: { handle; name; total; progress: number|null; rank; streak; level }[];   // leaderboard, best first
   logs: { who; date; value: number|null; label: string|null; note;
-          photos: { url; full; width: number|null; height: number|null; caption: string|null }[] }[];  // newest first (max 400)
-          // a photo's url is a small copy (up to 640 px), full the whole photo (up to 1600 px); both are Misogi paths an <img> can show
+          photos: { url; full; width: number|null; height: number|null; caption: string|null; sticker: string|null }[] }[];  // newest first (max 400)
+          // a photo's url is a small copy (up to 640 px), full the whole photo (up to 1600 px), sticker what it shows (the dish, the cake)
+          // cut out as a felt sticker, when there is one; all are Misogi paths an <img> can show
   stickers: { name; what; url }[];         // felt stickers drawn for this page, and the climber's dressed Muse ("muse"); url is a Misogi path an <img> can show
   generated_at: string;
   saved: unknown | null;                   // what this viewer last kept with misogiSave on this page; null until they have
@@ -74,7 +75,8 @@ Hard rules:
   and photo.full anywhere bigger, so it stays sharp on a phone's screen.
 - data.stickers are die-cut felt stickers drawn for this page, in Misogi's own felt look. When the request asks for stickers, place them where
   it says, found by name (data.stickers.find((s) => s.name === "medal")), as an <img> from their url at their own shape (object-fit: contain),
-  40–160 px, a slight tilt welcome, never stretched, cropped or recoloured. One the page doesn't have is left out, not drawn another way.
+  40–160 px, a slight tilt welcome, never stretched or cropped, and never over a word or number. One for something not reached yet may be
+  faded or grey; otherwise keep its colours. One the page doesn't have is left out, not drawn another way. A photo's sticker shows the same way.
 - It's embedded below Misogi's own header (title, join button, leaderboard already shown). Don't add site navigation or repeat the title as a giant banner; lead with the content that's special to this person.
 - Under 60 KB. Respect prefers-reduced-motion.
 - Under 3,000 px tall at 390 px wide; the frame cuts a page off at 6,000 and grows to fit the page, so size nothing with vh. Summarize long collections (what's done, then a count of what's left) instead of drawing a tile for every unit of the target.
