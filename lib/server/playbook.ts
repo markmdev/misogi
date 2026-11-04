@@ -33,7 +33,8 @@ Quests are this week's small, concrete steps toward the next camp.
 ## 4. Check-ins (use your own scheduler)
 Misogi has no notifications. You do. Set up a recurring check-in at the cadence the plan needs
 (daily habits: a short daily nudge; skills and projects: 2–3 times a week; quantities: weekly).
-At each check-in: call get_challenge, look at the facts, then ask or encourage. Log what they tell you.
+At each check-in: call get_challenge and read the facts, then send one short, warm message, two sentences at most,
+that makes them want to do the next step today. Log what they tell you.
 Read the facts like a coach would:
 - days_since_last_log rising → check in kindly, shrink the next step.
 - pace < 0.8 → re-plan with them (set_plan with a reason), don't guilt them.
