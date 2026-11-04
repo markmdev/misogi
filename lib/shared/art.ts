@@ -154,6 +154,7 @@ const COVER_LOOPS = new Set([
   "chl_47cxii3t3we3-8gj54bqm", "chl_4oshy6hee506-92e1v2s2", "chl_m128c6dojpzn-c2em2hb9", "chl_5u1naa2skvcu-q8dq356i", "chl_6mftr12tc3dz-w6jo1rz4",
   "chl_o7sdbnuprf6c-vkgb6ruv", "chl_50ck9cv7qxsc-72mmj7sg", "chl_uk5f0m7o82s8-6l8ioewd", "chl_5nzhlkevct8l-op5xhpaq",
   "chl_ygk8yphtgdo7-84sclb1p",
+  "chl_demogngceon0-j0mv0awp", "chl_democp5u9j1u-74zlb55h", "chl_demo9ssixzxf-ubwalxyg", "chl_demoej3133qj-otkxagpo", "chl_32dgbt4i4hy6-uxx0bx6s",
 ]);
 
 /** The loop for this cover, when it's one of those exact pictures; a redrawn cover has none. */
@@ -177,6 +178,7 @@ const VIRGIL_LOOPS = new Set([
   "chl_47cxii3t3we3-2k2s6dy8", "chl_4oshy6hee506-y9esd211", "chl_m128c6dojpzn-8ujn3akh", "chl_5u1naa2skvcu-yd4nhk2y", "chl_6mftr12tc3dz-h40gxyvh",
   "chl_o7sdbnuprf6c-4n1tvown", "chl_50ck9cv7qxsc-awqi5mih", "chl_uk5f0m7o82s8-9eo71e5h", "chl_5nzhlkevct8l-6aln7lzs",
   "chl_ygk8yphtgdo7-8t3nziyp",
+  "chl_demogngceon0-uj6qt07y", "chl_democp5u9j1u-7np4t5c5", "chl_demo9ssixzxf-5va2zlj0", "chl_demoej3133qj-z4kpam0w", "chl_32dgbt4i4hy6-bvaa1cjb",
 ]);
 
 /** The loop for this dressed Virgil, when it's one of those exact pictures; a redrawn one has none. */
