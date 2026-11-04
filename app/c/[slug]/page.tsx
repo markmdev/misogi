@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityRow, Leaderboard, sceneFor, sceneName } from "@/components/challenge";
-import { LiveScene } from "@/components/client/alive";
+import { LiveCover, LiveScene } from "@/components/client/alive";
 import { JoinButton, ShareButton } from "@/components/client/actions";
 import { LivePulse } from "@/components/client/live";
 import { SpaceFrame } from "@/components/client/space-frame";
@@ -10,9 +10,10 @@ import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
 import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, Ring, SectionTitle } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
-import { findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
+import { coverUrl, findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { challengeView, pulse } from "@/lib/server/views";
 import { firstName, foldRepeats, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { coverLoop } from "@/lib/shared/art";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +44,60 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
   const top = board.slice(0, 10);
   const stamp = pulse(c);
 
+  const cover = coverUrl(c);
+  const loop = coverLoop(cover);
+  const details = (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        {isTemplate ? (
+          <Pill tone="gold">
+            {c.template_label} · {c.template_year}
+          </Pill>
+        ) : (
+          <Pill style={{ background: pal.tint, color: pal.deep }}>{metricLine(metric)}</Pill>
+        )}
+        {!isTemplate && summary.active_this_week > 0 && (
+          <Pill tone="moss">
+            <span className="h-2 w-2 rounded-full bg-moss" />
+            {summary.active_this_week} active this week
+          </Pill>
+        )}
+      </div>
+      <h1 className="col-span-2 mt-4 text-[28px] leading-[34px] text-ink sm:mt-2 sm:text-[36px] sm:leading-[42px]">{c.title}</h1>
+      {c.tagline && <p className="col-span-2 mt-1.5 max-w-2xl text-[16px] leading-6 text-ink-2">{c.tagline}</p>}
+      {!isTemplate && (
+        <div className="col-span-2 mt-3 flex flex-wrap items-center gap-3 text-[14px] font-bold text-ink-2">
+          <div className="flex -space-x-1">
+            {board.slice(0, 5).map((s) => (
+              <Avatar key={s.handle} name={s.display_name} color={s.avatar} size={32} ring />
+            ))}
+          </div>
+          <span>
+            {summary.members} climbing{creator ? ` · started by ${firstName(creator.display_name)}` : ""}
+          </span>
+        </div>
+      )}
+    </>
+  );
+  const actions = (
+    <div className="flex shrink-0 flex-wrap items-center gap-2">
+      {isTemplate ? (
+        <Link href={`/start?idea=${encodeURIComponent(c.title)}`} className="btn grow sm:grow-0">
+          <Icon name="flag" size={24} />
+          Start this challenge
+        </Link>
+      ) : isMember ? (
+        <Link href={`/c/${c.slug}/${viewer!.handle}`} className="btn btn-moss grow sm:grow-0">
+          <Icon name="backpack" size={24} />
+          My climb
+        </Link>
+      ) : (
+        <JoinButton slug={c.slug} signedIn={!!viewer} title={c.title} className="grow sm:grow-0" />
+      )}
+      <ShareButton url={`/c/${c.slug}`} text={`${c.title} · climb it with me on Misogi`} className="grow sm:grow-0" />
+    </div>
+  );
+
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
       <TopBar user={viewer} />
@@ -58,63 +113,35 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
         </div>
         <div className="relative mx-auto -mt-20 max-w-6xl px-4 sm:-mt-24 sm:px-6">
           {c.virgil_path && (
-            <div className="pointer-events-none absolute right-8 bottom-full z-10 -mb-2 sm:right-14">
+            <div className="pointer-events-none absolute right-8 bottom-full z-10 -mb-2 flex items-end gap-1 sm:right-14">
+              <span className="mb-4 rounded-full bg-white/85 px-2.5 py-1 text-[12px] font-bold text-ink-2 shadow-sm">Dressed by Muse Image</span>
               <Mascot src={virgilUrl(c)} size={112} className="animate-bob drop-shadow-[0_6px_6px_rgb(46_42_38/0.18)]" alt={`Virgil, dressed for ${c.title}`} />
             </div>
           )}
-          <div className="card relative flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
-            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 sm:flex sm:items-start">
-              <IconTile name={c.emoji} size={76} bg={pal.tint} className="shadow-[0_4px_0_rgb(0_0_0/0.06)]" />
-              <div className="contents sm:block sm:min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  {isTemplate ? (
-                    <Pill tone="gold">
-                      {c.template_label} · {c.template_year}
-                    </Pill>
-                  ) : (
-                    <Pill style={{ background: pal.tint, color: pal.deep }}>{metricLine(metric)}</Pill>
-                  )}
-                  {!isTemplate && summary.active_this_week > 0 && (
-                    <Pill tone="moss">
-                      <span className="h-2 w-2 rounded-full bg-moss" />
-                      {summary.active_this_week} active this week
-                    </Pill>
-                  )}
+          {cover ? (
+            <div className="card flex flex-col gap-5 p-4 sm:p-5 md:flex-row md:gap-7">
+              <div className="relative aspect-[2/1] max-h-[260px] w-full shrink-0 overflow-hidden rounded-[20px] md:aspect-auto md:max-h-none md:min-h-[200px] md:w-[280px] lg:min-h-[228px] lg:w-[340px]" style={{ background: pal.sky }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover" />}
+                <div className="absolute bottom-3 left-3">
+                  <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
                 </div>
-                <h1 className="col-span-2 mt-4 text-[28px] leading-[34px] text-ink sm:mt-2 sm:text-[36px] sm:leading-[42px]">{c.title}</h1>
-                {c.tagline && <p className="col-span-2 mt-1.5 max-w-2xl text-[16px] leading-6 text-ink-2">{c.tagline}</p>}
-                {!isTemplate && (
-                  <div className="col-span-2 mt-3 flex flex-wrap items-center gap-3 text-[14px] font-bold text-ink-2">
-                    <div className="flex -space-x-1">
-                      {board.slice(0, 5).map((s) => (
-                        <Avatar key={s.handle} name={s.display_name} color={s.avatar} size={32} ring />
-                      ))}
-                    </div>
-                    <span>
-                      {summary.members} climbing{creator ? ` · started by ${firstName(creator.display_name)}` : ""}
-                    </span>
-                  </div>
-                )}
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-5 px-1 pb-1 md:px-0 md:py-2 md:pr-2">
+                <div>{details}</div>
+                <div className="md:mt-auto">{actions}</div>
               </div>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
-              {isTemplate ? (
-                <Link href={`/start?idea=${encodeURIComponent(c.title)}`} className="btn grow sm:grow-0">
-                  <Icon name="flag" size={24} />
-                  Start this challenge
-                </Link>
-              ) : isMember ? (
-                <Link href={`/c/${c.slug}/${viewer!.handle}`} className="btn btn-moss grow sm:grow-0">
-                  <Icon name="backpack" size={24} />
-                  My climb
-                </Link>
-              ) : (
-                <JoinButton slug={c.slug} signedIn={!!viewer} title={c.title} className="grow sm:grow-0" />
-              )}
-              <ShareButton url={`/c/${c.slug}`} text={`${c.title} · climb it with me on Misogi`} className="grow sm:grow-0" />
+          ) : (
+            <div className="card flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
+              <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 sm:flex sm:items-start">
+                <IconTile name={c.emoji} size={76} bg={pal.tint} className="shadow-[0_4px_0_rgb(0_0_0/0.06)]" />
+                <div className="contents sm:block sm:min-w-0">{details}</div>
+              </div>
+              {actions}
             </div>
-            {c.virgil_path && <span className="absolute top-2 right-5 text-[12px] font-bold text-ink-3 sm:right-8">Dressed by Muse Image</span>}
-          </div>
+          )}
         </div>
       </section>
 

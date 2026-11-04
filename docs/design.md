@@ -10,6 +10,7 @@ Misogi should feel like a warm, handmade place to climb one hard thing for a yea
 - **Icons** are the 3D pictures in `public/art/icons` through `Icon` and `IconTile`. Never emoji, never a line-icon set.
 - **The mascot** (`Mascot`, poses in `public/art/mascot`) shows up where a person waits or finishes something: drafting, empty states, the connect step.
 - **Each challenge has a palette** (`lib/shared/theme.ts`: tint, accent, deep, sky) and a matching mountain scene in `public/art/scenes`. A challenge's pages take its tint as the background and its accent for progress; the scene fades into the tint at the bottom.
+- **A challenge's cover** (drawn by Muse Image when it starts) is its picture wherever it shows: the top of its card on the home page and Explore, and beside its title on its own page, over its mountain scene. On a phone the cover sits above the title at 2:1. A challenge whose cover isn't drawn yet shows its icon tile in that place.
 
 ## Motion
 
