@@ -75,7 +75,7 @@ export function LiveMascot({ pose, still, size, alt, className, style }: { pose:
     <span className={cx("inline-block shrink-0 select-none", className)} style={{ width: size, height: size, ...style }}>
       <span className="relative block h-full w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={still} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-[visibility] delay-500", livePose === pose && "invisible")} draggable={false} />
+        <img src={still} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-opacity duration-0", livePose === pose ? "opacity-0 delay-500" : "delay-0")} draggable={false} />
         <Loop
           key={pose}
           src={() => `/art/motion/virgil/${pose}.${seeThroughType()}`}
