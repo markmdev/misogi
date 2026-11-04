@@ -15,7 +15,7 @@ export const DraftSchema = z.object({
   theme: z.enum(THEMES),
   metric: z.object({
     name: z.string().describe("What's counted, lower case, max 32 chars, e.g. 'miles run', 'books read', 'days practiced', 'HSK level'"),
-    unit: z.string().describe("Unit for values, e.g. 'mi', 'books', 'days', 'level'; empty if none"),
+    unit: z.string().describe("Unit shown after every number: what's counted or measured, plural, e.g. 'mi', 'books', 'parks', 'interviews', 'days', 'level'"),
     target: z.number().nullable().describe("Number to reach by the end of the year, or null if not numeric"),
     aggregation: z.enum(AGGREGATIONS),
     direction: z.enum(["up", "down"]),
