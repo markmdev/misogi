@@ -12,6 +12,8 @@ export function finishBeforeExit<T>(work: Promise<T>): Promise<T> {
   return work;
 }
 
+export const inProgress = () => unfinished().size > 0;
+
 /** Resolves once nothing is in progress, including work that finishing work started. */
 export async function allFinished(): Promise<void> {
   while (unfinished().size) await Promise.allSettled([...unfinished()]);

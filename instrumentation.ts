@@ -5,11 +5,11 @@ export async function register() {
     const { initSpaceQueue } = await import("./lib/server/spaces");
     initSpaceQueue();
     if (process.env.NEXT_MANUAL_SIG_HANDLE) {
-      const { allFinished } = await import("./lib/server/unfinished");
-      process.once("SIGTERM", () => {
-        // The extra second lets the last answers reach the browser.
-        void allFinished().then(() => setTimeout(() => process.exit(0), 1000));
-      });
+      const { allFinished, inProgress } = await import("./lib/server/unfinished");
+      // The server keeps serving while it waits, so it exits only after a quiet second: the last answers reach the
+      // browser, and nothing asked for in that second is cut off.
+      const stop = () => void allFinished().then(() => setTimeout(() => (inProgress() ? stop() : process.exit(0)), 1000));
+      process.once("SIGTERM", stop);
     }
   }
 }

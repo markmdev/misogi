@@ -231,10 +231,12 @@ function pump() {
     const job = q.waiting.shift()!;
     q.running++;
     void finishBeforeExit(
-      build(job.versionId, job.userId).finally(() => {
-        q.running--;
-        pump();
-      }),
+      build(job.versionId, job.userId)
+        .catch((e) => console.error("[space] build failed", job.versionId, e))
+        .finally(() => {
+          q.running--;
+          pump();
+        }),
     );
   }
 }
