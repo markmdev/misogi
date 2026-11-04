@@ -12,7 +12,7 @@ import { createUser } from "@/lib/server/domain/users";
 import { setCity } from "@/lib/server/geo";
 import { uploadLink } from "@/lib/server/log-media";
 import { connectCode } from "@/lib/server/oauth";
-import { queueChallengeApp, requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
+import { queueChallengeApp, rebuildChallengeApp, requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
 import { queueCover } from "@/lib/server/covers";
 import { queueStarterPlan } from "@/lib/server/starter";
 import { tx } from "@/lib/server/db";
@@ -200,6 +200,17 @@ export async function requestSpaceAction(slug: string, target: SpaceTarget, requ
     const user = await requireUser();
     rateLimit(`space:${user.id}`, 2, 4);
     requestSpace(user, slug, target, request, "web");
+    return { ok: true };
+  } catch (e) {
+    return failure(e);
+  }
+}
+
+export async function buildPageAgainAction(slug: string): Promise<ActionResult> {
+  try {
+    const user = await requireUser();
+    rateLimit(`space:${user.id}`, 2, 4);
+    await rebuildChallengeApp(user, slug);
     return { ok: true };
   } catch (e) {
     return failure(e);

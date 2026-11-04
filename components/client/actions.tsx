@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { cheerAction, joinAction, logFromWeb, skipQuestAction } from "@/app/actions";
+import { buildPageAgainAction, cheerAction, joinAction, logFromWeb, skipQuestAction } from "@/app/actions";
 import { shortDate } from "@/lib/shared/format";
 import type { Metric, Quest } from "@/lib/shared/types";
-import { cx, Icon, IconTile } from "../ui";
+import { cx, EmptyState, Icon, IconTile } from "../ui";
 import { CITY_HELP, CityPicker, type PickedCity } from "./city-picker";
 import { Fresh } from "./live";
 import { MediaPicker } from "./media";
@@ -18,6 +18,42 @@ function tz() {
   } catch {
     return "UTC";
   }
+}
+
+/** A new challenge's page that didn't build: its creator starts it again and sees it imagined, then built, as the first time. */
+export function BuildPageAgain({ slug, title, body, imagining }: { slug: string; title: string; body: string; imagining: { title: string; body: string } }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (busy) return <EmptyState pose="think" title={imagining.title} body={imagining.body} />;
+  return (
+    <EmptyState
+      pose="flag"
+      title={title}
+      body={body}
+      action={
+        <>
+          <button
+            className="btn"
+            onClick={async () => {
+              setError(null);
+              setBusy(true);
+              const r = await buildPageAgainAction(slug);
+              if (!r.ok) {
+                setBusy(false);
+                return setError(r.error);
+              }
+              router.refresh();
+            }}
+          >
+            Build it again
+          </button>
+          {error && <p className="mt-2 text-[14px] font-bold text-coral-deep">{error}</p>}
+        </>
+      }
+    />
+  );
 }
 
 export function JoinButton({ slug, signedIn, title, className }: { slug: string; signedIn: boolean; title: string; className?: string }) {

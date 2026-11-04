@@ -147,10 +147,23 @@ export function queueChallengeApp(challengeId: string): void {
     const c = one<ChallengeRow>("SELECT * FROM challenges WHERE id = ?", challengeId);
     const creator = c?.creator_id ? getUser(c.creator_id) : null;
     if (!c || !creator) return;
-    const camps = (currentPlan(c.id, creator.id)?.milestones ?? []).map((m) => m.title);
-    const brief = await writeAppBrief(c, camps, { visitor: creator.id });
-    requestSpace(creator, c.slug, "challenge", brief, "system");
+    await imagineChallengeApp(c, creator);
   })()).catch((e) => console.error("[app] failed", challengeId, e instanceof AppError ? e.message : e));
+}
+
+async function imagineChallengeApp(c: ChallengeRow, creator: UserRow) {
+  const camps = (currentPlan(c.id, creator.id)?.milestones ?? []).map((m) => m.title);
+  const brief = await writeAppBrief(c, camps, { visitor: creator.id });
+  requestSpace(creator, c.slug, "challenge", brief, "system");
+}
+
+/** The creator starts that page again when it didn't build; it returns once the build is queued. */
+export async function rebuildChallengeApp(user: UserRow, slug: string) {
+  const c = getChallenge(slug);
+  requireCreator(c, user.id);
+  const s = spaceStatus(c.id, "");
+  if (s.current || s.pending) throw new AppError("conflict", "This page is already built or being built.");
+  await imagineChallengeApp(c, user);
 }
 
 export function undoSpace(user: UserRow, slug: string, target: SpaceTarget) {
