@@ -116,6 +116,7 @@ export function MyCity({ initial }: { initial: PickedCity | null }) {
   const [saved, setSaved] = useState<PickedCity | null>(initial);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [round, setRound] = useState(0);
 
   async function save(next: PickedCity | null) {
     setPending(true);
@@ -131,9 +132,18 @@ export function MyCity({ initial }: { initial: PickedCity | null }) {
       <label className="label" htmlFor="my-city">
         Your city
       </label>
-      <div className="mt-2">
+      <div
+        className="mt-2"
+        onBlur={(e) => {
+          // Emptying the field doesn't take them off the map, so their city comes back.
+          if (saved && !(e.target as HTMLInputElement).value.trim()) {
+            setCity(saved);
+            setRound((n) => n + 1);
+          }
+        }}
+      >
         <CityPicker
-          key={saved?.key ?? "none"}
+          key={`${saved?.key ?? "none"}-${round}`}
           id="my-city"
           value={city}
           onChange={(c) => {
