@@ -7,6 +7,7 @@ import { getMembership, metricOf, standings, type ChallengeRow } from "./domain/
 import { currentPlan, listQuests, memberFacts } from "./domain/progress";
 import { getUser } from "./domain/users";
 import { mediaForLogs } from "./log-media";
+import { pageStickers, type PageSticker } from "./page-stickers";
 
 export type SpaceData = {
   kind: "challenge" | "member";
@@ -42,6 +43,8 @@ export type SpaceData = {
     note: string;
     photos: { url: string; full: string; width: number | null; height: number | null; caption: string | null; sticker: string | null }[];
   }[];
+  /** Felt stickers drawn for this page, and the climber's dressed Muse ("muse"). */
+  stickers: PageSticker[];
   generated_at: string;
 };
 
@@ -113,6 +116,7 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
         .filter((m) => m.kind === "photo")
         .map((m) => ({ url: m.thumb_url!, full: m.url, width: m.width, height: m.height, caption: clean(m.caption), sticker: m.sticker?.url ?? null })),
     })),
+    stickers: pageStickers(c, ownerUserId ?? ""),
     generated_at: new Date().toISOString(),
   };
 }

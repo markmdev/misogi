@@ -14,6 +14,7 @@ import { getChallenge, requireCreator, requireMember, type ChallengeRow } from "
 import { recordActivity } from "./domain/feed";
 import { currentPlan } from "./domain/progress";
 import { getUser } from "./domain/users";
+import { drawPageStickers } from "./page-stickers";
 import { AppError, id, nowIso } from "./util";
 import { finishBeforeExit } from "./unfinished";
 
@@ -255,6 +256,8 @@ async function build(versionId: string, userId: string) {
     )?.html;
     const repair = repairMap().get(versionId) ?? null;
     repairMap().delete(versionId);
+    // Stickers are the page's art, not its content: a build goes on with the ones that came out.
+    await drawPageStickers(c, v.owner_key, v.request, userId).catch((e) => console.error("[space] stickers", versionId, e instanceof Error ? e.message : e));
     const { html, model } = await buildSpaceHtml({
       challenge: c,
       ownerUserId: v.owner_key || null,
