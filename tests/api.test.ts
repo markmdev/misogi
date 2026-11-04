@@ -171,6 +171,28 @@ describe("a full climb over the HTTP API", () => {
     expect(log.status).toBe(200);
   });
 
+  test("the world map shows only people who picked a city, and only the city", async () => {
+    const map = async () => ((await (await fetch(`${BASE}/api/map`)).json()) as { climbers: Json[] }).climbers;
+    expect((await map()).some((c) => c.handle === bob.handle)).toBe(false);
+
+    const set = await tool(bob.key, "set_city", { city: "Lisbon" });
+    expect(set.status).toBe(200);
+    expect(set.body.city).toBe("Lisbon, Portugal");
+    const me = (await map()).find((c) => c.handle === bob.handle)!;
+    expect(me.city).toMatchObject({ name: "Lisbon", country: "Portugal" });
+    expect(Math.abs(me.city.lat - 38.72) + Math.abs(me.city.lon + 9.14)).toBeLessThan(0.1);
+    expect(Object.keys(me).sort()).toEqual(["challenges", "city", "demo", "handle", "muse", "name"]);
+    expect(me.demo).toBe(false);
+    expect(me.challenges.map((c: Json) => c.slug)).toContain(slug);
+
+    const unsure = await tool(bob.key, "set_city", { city: "Springfield" });
+    expect(unsure.body.choices.length).toBeGreaterThan(1);
+    expect((await map()).find((c) => c.handle === bob.handle)!.city.name).toBe("Lisbon");
+
+    await tool(bob.key, "set_city", { city: null });
+    expect((await map()).some((c) => c.handle === bob.handle)).toBe(false);
+  });
+
   test("leaderboard orders by progress and the metric locks", async () => {
     const ctx = await tool(alice.key, "get_challenge", { challenge: slug });
     expect(ctx.body.leaderboard[0].handle).toBe(bob.handle);

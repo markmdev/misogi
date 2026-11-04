@@ -19,6 +19,8 @@ export type UserRow = {
   /** How many times an agent has connected with a Connect message; it signs the current one (lib/server/oauth.ts). */
   connect_epoch: number;
   is_demo: number;
+  /** The city they picked for the world map (lib/server/geo.ts), or null. */
+  city: string | null;
   created_at: string;
 };
 

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MyCity } from "@/components/client/city-picker";
 import { Footer, TopBar } from "@/components/nav";
 import { Avatar, Icon, IconTile, Pill, ProgressBar } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { getChallenge, getMembership, myChallenges } from "@/lib/server/domain/challenges";
 import { memberFacts } from "@/lib/server/domain/progress";
 import { getUserByHandle } from "@/lib/server/domain/users";
+import { cityByKey, cityLabel } from "@/lib/server/cities";
 import { agentLabel, firstName, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
@@ -29,6 +31,8 @@ export default async function Profile(props: PageProps<"/u/[handle]">) {
       const ch = getChallenge(c.slug);
       return { c, facts: memberFacts(ch, getMembership(ch.id, u.id)!) };
     });
+  const mine = viewer?.id === u.id;
+  const city = mine ? cityByKey(u.city) : null;
   const guide = agentLabel(u.agent_kind, u.agent_name, viewer?.id === u.id ? "your" : `${firstName(u.display_name)}'s`);
   return (
     <>
@@ -44,6 +48,7 @@ export default async function Profile(props: PageProps<"/u/[handle]">) {
             </Pill>
           )}
         </div>
+        {mine && <MyCity initial={city ? { key: city.key, label: cityLabel(city, true) } : null} />}
         <div className="mt-8 flex flex-col gap-3">
           {climbs.map(({ c, facts }) => {
             const pal = palette(c.theme);

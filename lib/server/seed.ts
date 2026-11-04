@@ -8,6 +8,7 @@ import type { Milestone, Theme } from "@/lib/shared/types";
 import { all, db, one, tx } from "./db";
 import { levelFor, MILESTONE_XP } from "./facts";
 import { addDays, addYear, dateIn, id, randomToken, sha256 } from "./util";
+import { findCity } from "./cities";
 
 // ---------- Spec types ----------
 
@@ -101,6 +102,55 @@ type TemplateSpec = {
 const q = (title: string, detail: string, kind: QuestTpl["kind"], xp: number): QuestTpl => ({ title, detail, kind, xp });
 
 // ---------- People ----------
+
+/** Where each demo climber lives, in their own time zone, for the world map. */
+const DEMO_CITIES: Record<string, [name: string, country: string]> = {
+  danielokafor: ["London", "GB"],
+  sofiam: ["Madrid", "ES"],
+  kenjimorita: ["Osaka", "JP"],
+  hannahlevi: ["New York City", "US"],
+  arjunm: ["San Francisco", "US"],
+  chloedubois: ["Montreal", "CA"],
+  tomasherrera: ["Houston", "US"],
+  ingrid: ["Oslo", "NO"],
+  weizhang: ["Singapore", "SG"],
+  femi: ["Berlin", "DE"],
+  rachelkim: ["Seattle", "US"],
+  noahb: ["Denver", "US"],
+  amara: ["Atlanta", "US"],
+  lucasf: ["Porto", "PT"],
+  yukitanaka: ["Tokyo", "JP"],
+  graceoc: ["Dublin", "IE"],
+  raviiyer: ["Bengaluru", "IN"],
+  emmal: ["Stockholm", "SE"],
+  samwhit: ["Portland", "US"],
+  jordanruns: ["Boston", "US"],
+  mayac: ["Los Angeles", "US"],
+  aidenm: ["Kansas City", "US"],
+  lenafischer: ["Munich", "DE"],
+  priyar: ["Toronto", "CA"],
+  kwame: ["Manchester", "GB"],
+  jiwoo: ["Seoul", "KR"],
+  elenap: ["Philadelphia", "US"],
+  claireb: ["Bristol", "GB"],
+  marcob: ["Milan", "IT"],
+  nadiah: ["Paris", "FR"],
+  carmenontheroad: ["Phoenix", "US"],
+  tylerb: ["Nashville", "US"],
+  mianguyen: ["Austin", "US"],
+  ellie808: ["Honolulu", "US"],
+  benlarsen: ["Minneapolis", "US"],
+  olliegrant: ["Edinburgh", "GB"],
+  anacosta: ["Lisbon", "PT"],
+  rohank: ["Mumbai", "IN"],
+  helennovak: ["Chicago", "US"],
+  waltjensen: ["Omaha", "US"],
+  jadedraws: ["Pittsburgh", "US"],
+  joannareyes: ["San Antonio", "US"],
+  paolosantos: ["Dubai", "AE"],
+  debcollins: ["Charlotte", "US"],
+};
+
 
 const USERS: DemoUser[] = [
   { handle: "danielokafor", name: "Daniel Okafor", tz: "Europe/London", avatar: "sky", agent: "muse", agentName: "Juno", style: "Gentle and specific. Remind me why I started when I drift.", hours: [[7, 8], [21, 22]] },
@@ -3910,6 +3960,19 @@ function finishUsers(users: Map<string, SeedUser>, now: number, counts: Counts) 
   }
 }
 
+/** Puts each demo climber at their city on the world map. */
+export function placeDemoClimbers(): number {
+  let n = 0;
+  for (const u of USERS) {
+    const [name, cc] = DEMO_CITIES[u.handle] ?? [];
+    const c = name ? findCity(name, cc) : null;
+    if (!c) continue;
+    exec("UPDATE users SET city = ? WHERE id = ?", c.key, demoId("usr", u.handle));
+    n++;
+  }
+  return n;
+}
+
 /** Seeds the demo data. Skips if it's already there, unless `force` (which rebuilds the history in place). */
 export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
   const force = !!opts.force;
@@ -3930,6 +3993,7 @@ export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
       out.push({ slug: r.slug, title: spec.title, status: "active", members: r.members });
     }
     finishUsers(users, now, counts);
+    placeDemoClimbers();
   });
   stmts.clear();
   return { seeded: true, forced: force, counts, challenges: out };

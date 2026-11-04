@@ -3,7 +3,7 @@ import { all } from "@/lib/server/db";
 import { findChallenge } from "@/lib/server/domain/challenges";
 import { getUser, getUserByHandle } from "@/lib/server/domain/users";
 import { adminAuthorized, errorJson, json } from "@/lib/server/http";
-import { demoSpaces, seedDemo, seededChallenges } from "@/lib/server/seed";
+import { demoSpaces, placeDemoClimbers, seedDemo, seededChallenges } from "@/lib/server/seed";
 import { ownerKeyFor, queueChallengeApp, requestSpace, spaceStatus, type SpaceTarget } from "@/lib/server/spaces";
 import { AppError } from "@/lib/server/util";
 import { queueVirgil } from "@/lib/server/virgils";
@@ -19,11 +19,12 @@ export const dynamic = "force-dynamic";
  * spaces: build each live demo challenge's shared page, and each demo member page the seed asks for, that doesn't have one yet.
  * redesign: [{ slug, request }] asks for a new version of any page, built on the current one; slug is "challenge" for its shared page
  * or "challenge/handle" for a member's own.
+ * cities: puts each demo climber at their city on the world map (a forced seed does it too).
  */
 export async function POST(req: Request) {
   if (!adminAuthorized(req)) return json({ error: { code: "unauthorized", message: "Missing or wrong x-admin-key." } }, { status: 401 });
   try {
-    let body: { force?: unknown; covers?: unknown; virgils?: unknown; apps?: unknown; spaces?: unknown; redesign?: unknown } = {};
+    let body: { force?: unknown; covers?: unknown; virgils?: unknown; apps?: unknown; spaces?: unknown; redesign?: unknown; cities?: unknown } = {};
     const text = await req.text();
     if (text.trim()) {
       try {
@@ -124,6 +125,7 @@ export async function POST(req: Request) {
       apps: Array.isArray(body.apps) ? { queued: apps } : null,
       spaces: body.spaces === true ? spaces : null,
       redesigned: Array.isArray(body.redesign) ? redesigned : null,
+      placed: body.cities === true ? placeDemoClimbers() : null,
     });
   } catch (e) {
     return errorJson(e);

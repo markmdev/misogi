@@ -9,6 +9,7 @@ import { palette } from "@/lib/shared/theme";
 import type { Milestone, Theme } from "@/lib/shared/types";
 import { CAMP_STEP_MS, CampPath, sceneFor, trailX } from "../challenge";
 import { cx, Icon, IconTile, Mascot } from "../ui";
+import { CITY_HELP, CityPicker, type PickedCity } from "./city-picker";
 import { ConnectPanel } from "./connect";
 import { LINE } from "./start-box";
 import { Spinner } from "./space-frame";
@@ -50,6 +51,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   const [pairs, setPairs] = useState<Pair[] | null>(null);
   const [choices, setChoices] = useState<("gentle" | "firm")[]>([]);
   const [name, setName] = useState(signedInName ?? "");
+  const [city, setCity] = useState<PickedCity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ slug: string; connectCode: string; handle: string } | null>(null);
   const [line, setLine] = useState(0);
@@ -103,7 +105,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
     setError(null);
     setStep("creating");
     start(async () => {
-      const r = await startChallenge({ draft, name: name.trim(), timezone: tz(), choices, idea });
+      const r = await startChallenge({ draft, name: name.trim(), city: city?.key ?? null, timezone: tz(), choices, idea });
       if (!r.ok) {
         setError(r.error);
         setStep("name");
@@ -272,6 +274,11 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             }}
           >
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="First name is fine" maxLength={40} autoFocus />
+            <label className="label mt-2" htmlFor="start-city">
+              Your city (optional)
+            </label>
+            <CityPicker id="start-city" value={city} onChange={setCity} />
+            <p className="-mt-1 text-[13px] leading-5 text-ink-3">{CITY_HELP}</p>
             {error && <p className="text-[14px] font-bold text-coral-deep">{error}</p>}
             <button className="btn" disabled={!name.trim()}>
               Start my climb

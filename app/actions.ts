@@ -9,6 +9,7 @@ import { normalizeDraft, DraftSchema, styleFromChoices } from "@/lib/server/ai/d
 import { createChallenge, getChallenge, joinChallenge } from "@/lib/server/domain/challenges";
 import { addQuests, cheer, logProgress, setPlan, skipQuest } from "@/lib/server/domain/progress";
 import { createUser } from "@/lib/server/domain/users";
+import { setCity } from "@/lib/server/geo";
 import { uploadLink } from "@/lib/server/log-media";
 import { connectCode } from "@/lib/server/oauth";
 import { queueChallengeApp, requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
@@ -44,6 +45,7 @@ async function requireUser() {
 const StartInput = z.object({
   draft: DraftSchema,
   name: z.string().min(1).max(40),
+  city: z.string().max(20).nullish(),
   timezone: z.string().max(64),
   choices: z.array(z.enum(["gentle", "firm"])).max(5),
   idea: z.string().max(300),
@@ -61,6 +63,7 @@ export async function startChallenge(input: unknown): Promise<ActionResult<{ slu
     const existing = await currentUser();
     const result = tx(() => {
       const user = existing ?? createUser({ display_name: name, timezone: tz, motivation_style: styleFromChoices(choices) });
+      if (!existing && parsed.data.city) setCity(user.id, parsed.data.city);
       const c = createChallenge(user, {
         title: draft.title,
         tagline: draft.tagline,
@@ -96,14 +99,18 @@ export async function startChallenge(input: unknown): Promise<ActionResult<{ slu
 }
 
 /** Joins a challenge, creating a lightweight account first if needed. */
-export async function joinAction(slug: string, name?: string, timezone?: string): Promise<ActionResult<{ handle: string }>> {
+export async function joinAction(slug: string, name?: string, timezone?: string, city?: string | null): Promise<ActionResult<{ handle: string }>> {
   try {
     let user = await currentUser();
     if (!user) {
       await limitByIp("join", 2, 6);
       if (!name?.trim()) throw new AppError("invalid", "Tell us your name to join.");
       const tz = timezone && isValidTimeZone(timezone) ? timezone : "UTC";
-      user = createUser({ display_name: name, timezone: tz });
+      user = tx(() => {
+        const u = createUser({ display_name: name, timezone: tz });
+        if (city) setCity(u.id, city);
+        return u;
+      });
       // No API key yet: the Your AI panel makes one when they connect an agent.
       await startSession(user.id);
     }
@@ -111,6 +118,19 @@ export async function joinAction(slug: string, name?: string, timezone?: string)
     if (!joined.already) queueStarterPlan(user, slug);
     revalidatePath(`/c/${slug}`);
     return { ok: true, data: { handle: user.handle } };
+  } catch (e) {
+    return failure(e);
+  }
+}
+
+/** Sets or clears the city that puts the signed-in person on the world map. */
+export async function setCityAction(city: string | null): Promise<ActionResult> {
+  try {
+    const user = await requireUser();
+    setCity(user.id, city);
+    revalidatePath(`/u/${user.handle}`);
+    revalidatePath("/explore");
+    return { ok: true };
   } catch (e) {
     return failure(e);
   }
