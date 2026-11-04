@@ -120,7 +120,7 @@ const COVER_LOOPS = new Set([
   "chl_demo9m966gr6-whrdiniz", "chl_demobnlfdz36-eo93kjrw", "chl_demobxw1dw1x-t60imbo2", "chl_demobz5307og-tkbmbjb9", "chl_demod8j2fvyu-dz108edw",
   "chl_demodocj0gjv-w3ye3g5r", "chl_demogvedtcsv-4q74v95e", "chl_demok0n7ppto-b3gy94p3", "chl_demol4evv73u-bhhgpy92", "chl_demolnjh0p4m-wuzvc3aj",
   "chl_demolx5lj3n1-ndlyxh5m", "chl_demoo1vcw5o3-pn3t6kb4", "chl_demopivi7ux9-q0namgza", "chl_demorn0urysa-f37pkdnq", "chl_demosali7j3c-iin07otc",
-  "chl_demov6s9qc4o-rhdkpesv", "chl_demowew4z4h3-kto6in9l", "chl_demoy30vwjcp-vzbzvhsr", "chl_demozlc9srp0-7jh7ij9k",
+  "chl_demov6s9qc4o-rhdkpesv", "chl_demowew4z4h3-kto6in9l", "chl_demoy30vwjcp-vzbzvhsr", "chl_demozlc9srp0-7jh7ij9k", "chl_jt7xa93js083-054r15hh",
 ]);
 
 /** The loop for this cover, when it's one of those exact pictures; a redrawn cover has none. */

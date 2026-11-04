@@ -19,7 +19,7 @@ export function warmMascot(pose: string) {
 }
 
 /**
- * A muted loop over its still. It loads only once its spot is on screen, plays while it stays there, fades in over
+ * A muted loop over its still. It loads as its spot nears the screen, so it's playing by the time it arrives, plays while it stays near, fades in over
  * the still and never starts under reduced motion. Once it shows it stays, only pausing off screen, so the still never
  * comes back over a frame that has moved. `onShown` says when it starts fading in.
  */
@@ -33,7 +33,7 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
   useEffect(() => {
     if (calm()) return;
     const el = spot.current!;
-    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting));
+    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { rootMargin: "60% 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, []);
