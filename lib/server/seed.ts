@@ -28,7 +28,7 @@ type DemoUser = {
   hours: [number, number][];
 };
 
-type Camp = { title: string; detail: string; target: number; week: number; emoji: string };
+type Camp = { title: string; detail: string; target: number; emoji: string } & ({ week: number } | { on: string });
 type QuestTpl = { title: string; detail: string; kind: "daily" | "weekly" | "boss" | "one_off"; xp: number };
 type Item = { label: string; note?: string; daysAgo?: number };
 type Beat = { daysAgo: number; value?: number; note: string; long?: boolean };
@@ -155,6 +155,7 @@ const DEMO_CITIES: Record<string, [name: string, country: string]> = {
   joannareyes: ["San Antonio", "US"],
   paolosantos: ["Dubai", "AE"],
   debcollins: ["Charlotte", "US"],
+  oscarruns: ["Vancouver", "CA"],
 };
 
 
@@ -205,6 +206,7 @@ const USERS: DemoUser[] = [
   { handle: "debcollins", name: "Deb Collins", tz: "America/New_York", avatar: "rose", agent: "virgil", style: "Straightforward. I'm 52 and stubborn, use it.", hours: [[6, 7], [18, 20]] },
   { handle: "tobyreid", name: "Toby Reid", tz: "Europe/London", avatar: "sky", agent: "muse", agentName: "Pip", style: "Correct my French, don't flatter it.", hours: [[7, 8], [20, 22]] },
   { handle: "marisol", name: "Marisol Vega", tz: "America/Los_Angeles", avatar: "peach", agent: "muse", agentName: "Saffron", style: "Hype me up, then tell me what to cook next.", hours: [[18, 21]] },
+  { handle: "oscarruns", name: "Oscar", tz: "America/Vancouver", avatar: "sky", agent: "muse", style: "Direct. Give me the plan and hold me to it.", hours: [[6, 8], [17, 19]] },
 ];
 
 // ---------- Templates (Zuckerberg's yearly challenges) ----------
@@ -3598,6 +3600,72 @@ const CHALLENGES: ChallengeSpec[] = [
     space:
       "A hand-drawn trail map of the Camino Francés across northern Spain, from Saint-Jean-Pied-de-Port to Santiago de Compostela, with the stage towns as dots along a dotted yellow-arrow path (Pamplona, Logroño, Burgos, León, Astorga, O Cebreiro, Sarria, Santiago). Each pilgrim is a marker at the km they've walked. Lead with the km walked and what's left to Santiago, and show the newest days as stamps in a pilgrim's credencial. Dusty sand, ochre, sky blue and the yellow Camino arrow.",
   },
+
+  // ----- Oscar's half marathon -----
+  {
+    key: "oscar-half",
+    slug: "strong-half-marathon",
+    title: "Run a strong SF half marathon",
+    tagline: "Prove your training on those SF hills and finish with gas left.",
+    description:
+      "The SF Marathon's half on July 25, run well. Three runs a week (easy, a workout and a long run that grows a little each week), strength on other days, and a taper into race day.\n\n" +
+      "Log each run in miles, with its time and pace in the note.",
+    emoji: "running",
+    theme: "peach",
+    category: "fitness",
+    metric: { name: "miles run", unit: "mi", target: 600, aggregation: "sum" },
+    step: 0.1,
+    camps: [
+      { title: "Base is back", detail: "You can run 60 minutes without stopping.", target: 80, on: "2026-11-29", emoji: "flag" },
+      { title: "Run a fast 10K", detail: "Speed and hills feel controlled, not survival.", target: 220, on: "2027-02-14", emoji: "target" },
+      { title: "Nail the 12 miler", detail: "You hold pace when tired past mile 10.", target: 380, on: "2027-04-25", emoji: "map" },
+      { title: "Tune up half", detail: "Race pace feels familiar for 10 miles.", target: 520, on: "2027-06-20", emoji: "summit" },
+      { title: "Race day", detail: "13.1 miles through SF, strong to the line.", target: 600, on: "2027-07-25", emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "oscarruns",
+        daysAgo: 28,
+        weekdays: [0, 0, 0, 0, 0, 0, 0],
+        beats: [
+          { daysAgo: 28, value: 1.5, note: "First run · 16:45 · 11:10/mi · 1.5 miles easy at Jonathan Rogers Park, 3 laps, feeling great." },
+          { daysAgo: 26, value: 1.5, note: "Easy run · 16:33 · 11:02/mi · Same 3 laps. Legs a bit heavy, kept it slow." },
+          { daysAgo: 24, value: 2, long: true, note: "Long run · 22:48 · 11:24/mi · 4 laps of Jonathan Rogers Park. Walked 30 seconds after lap 3." },
+          { daysAgo: 21, value: 2, note: "Easy run · 21:56 · 10:58/mi · Main Street down to the park and back." },
+          { daysAgo: 19, value: 2.1, note: "Workout · 22:14 · 10:35/mi · Easy mile, then 4 strides of 20 seconds." },
+          { daysAgo: 17, value: 2.6, long: true, note: "Long run · 28:52 · 11:06/mi · Seawall from Science World. First time past 2.5." },
+          { daysAgo: 14, value: 2.2, note: "Easy run · 23:48 · 10:49/mi · Jonathan Rogers Park, 4 laps and a bit." },
+          { daysAgo: 12, value: 2.5, note: "Workout · 25:40 · 10:16/mi · Tempo: the middle mile at 9:52." },
+          { daysAgo: 10, value: 3.1, long: true, note: "Long run · 34:03 · 10:59/mi · First 5K ever. Trout Lake loops, ran the whole thing." },
+          { daysAgo: 7, value: 2.4, note: "Easy run · 25:53 · 10:47/mi · Rain. Went anyway." },
+          { daysAgo: 5, value: 2.6, note: "Workout · 26:23 · 10:09/mi · Hill repeats at Queen Elizabeth Park, 5 x 1 minute." },
+          { daysAgo: 3, value: 3.6, long: true, note: "Long run · 39:22 · 10:56/mi · Seawall again. Tried a gel at mile 2." },
+          { daysAgo: 1, value: 2.5, note: "Easy run · 26:42 · 10:41/mi · Back to Jonathan Rogers Park. 5 laps, felt easy." },
+        ],
+        plan: {
+          summary:
+            "Oscar runs three times a week: an easy run, a workout and a long run that grows a little each week, most of it slow enough to talk. He lifts on three other days and keeps one full rest day. The long run grows from 1.5 miles to 12 by late April. June is race pace and SF hills, then a two-week taper into race day at the SF Marathon on July 25.",
+          cadence: "3 runs + 3 strength days a week, 1 rest day. Check-in Sun.",
+        },
+        space:
+          "Make my page a running log like the best running apps: clean, sporty and all about my runs. Open with race day at the SF Marathon: one big count of the days until it, the race date, and a progress line from my first run to race day with each camp of my plan as a dot on it: the first run's date under its left end, race day's date under its right end, and only the next camp named, above the line. Then four stat tiles: total miles, longest run, average pace and this week's miles. Then a bar chart of my weekly miles, one bar per week since I started, with this week's bar highlighted. Weeks run Monday to Sunday, counted from the runs' own dates, in the chart and in the this-week tile alike. Then my newest five runs, each a card like a run activity: its name and date, then distance, pace and time side by side in big numbers with small units, so a pace like 10:56 /mi fits on a phone, and the rest of the note under it in small text. Then my earlier runs, one compact line each: date, name, distance and pace. Last, my personal bests in one row: longest run, fastest pace, and my first 5K, which is my earliest run of 3.1 miles or more. Each run's note starts with its name, time and pace, like \"Long run · 39:22 · 10:56/mi · ...\". White cards, one bold orange accent, crisp numbers, thin dividers. No maps, no favourites or stars, no buttons.",
+      },
+    ],
+    openQuests: [
+      q("Long run: 4 miles easy", "Slow enough to talk the whole way. Walk breaks are fine.", "weekly", 30),
+      q("Tempo: the middle mile at 9:45", "An easy mile either side.", "weekly", 25),
+      q("Easy run: 2.5 miles", "Any route. Keep it relaxed.", "weekly", 20),
+      q("Strength: legs and core, three times", "Squats, lunges, calf raises, plank. 30 minutes.", "weekly", 20),
+      q("Sign up for the SF Marathon half", "Make race day real.", "one_off", 15),
+    ],
+    doneQuest: (log) => {
+      const v = log.value ?? 0;
+      if (v >= 3) return q(`Long run: ${v} miles easy`, "Slow enough to talk. Walk breaks are fine.", "weekly", 30);
+      return q("Three runs this week", "An easy run, a workout and a long run.", "weekly", 25);
+    },
+    space:
+      "A dawn park loop seen from above, with mile cones out to a half-marathon finish arch at 13.1. Lead with the miles everyone has run together, then each runner's longest run as a figure on the loop, and the newest runs as small race-bib cards with their notes.",
+  },
 ];
 
 // ---------- The film's friends ----------
@@ -4502,7 +4570,7 @@ function simulateMember(
     spec.camps.map((c, ci) => {
       const reached = doneAt.get(ci);
       const done = reached != null && reached <= cutoff ? reached : null;
-      let due = campDue(startsOn, endsOn, c.week);
+      let due = "on" in c ? c.on : campDue(startsOn, endsOn, c.week);
       if (version === 2 && m.replan && (done == null || done > replanAt!)) {
         due = addDays(due, m.replan.shiftWeeks * 7);
         if (due > endsOn) due = endsOn;
