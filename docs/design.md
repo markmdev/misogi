@@ -25,6 +25,10 @@ Motion says what just happened, once, then stops.
 - **Moves between pages** run on the browser's view transitions (`ViewTransition` in each page, styles at the end of `globals.css`). Things you tap continue onto the next page: a challenge's cover grows from its card into the cover on its page, and the line you chose on the home box flies into your draft's title, with Virgil walking along on a wide screen. The page you leave frosts over in the first frame and fades. The top bar holds still. Shared things travel for 380 ms on `cubic-bezier(.16,1,.3,1)`, fast out and soft in, never bouncing. Only the thing you tapped carries the shared name, since two of one name cancel the move. A card starts loading its page when the pointer rests on it or a finger touches it, so the move starts at once.
 - Everything respects reduced motion (the rule at the end of `globals.css`; the wheel checks it itself and lands at once).
 
+## Sound
+
+Two small sounds, both made in code with Web Audio (`components/client/sounds.tsx`), so there are no sound files and nothing to license: a soft wooden tick when the mouse comes onto something you can press (a link, a button, a chip, a card), on one of five notes of a major pentatonic so a sweep across a row sounds like a toy xylophone; and a felt pop, a low note that drops, when you press it. On a phone only the pop plays, on the tap itself, so a swipe that starts on a card stays quiet. Nothing plays while the page scrolls under a still mouse, nothing before the visitor's first click, tap or key, and nothing under reduced motion. Both pass through a soft low-pass and stay quiet.
+
 ## Words
 
 - Use the climber's words: challenge, climb, camps, summit, quests, log, guide. Never a programmer's word on screen ("v2", "space", "agent kind", "null").
