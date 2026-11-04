@@ -10,7 +10,7 @@ import { one, run } from "./db";
 import type { ChallengeRow } from "./domain/challenges";
 import type { MediaRow } from "./log-media";
 import { floodFromEdges, samMasks } from "./sam";
-import { getObject, putObject } from "./storage";
+import { deleteObject, getObject, putObject } from "./storage";
 import { finishBeforeExit } from "./unfinished";
 
 /** What a sticker cut out, and where its picture sits over the photo, in fractions of the photo's width and height. */
@@ -39,7 +39,11 @@ export async function makeSticker(mediaId: string): Promise<StickerMeta | null> 
   if (!sticker) return null;
   await putObject(`${m.path}/sticker.webp`, sticker.image, "image/webp");
   const meta = { what: subject.what, ...sticker.box };
-  run("UPDATE media SET sticker = ? WHERE id = ?", JSON.stringify(meta), m.id);
+  // The log may have been removed while SAM worked; its files are gone then, so this one goes too.
+  if (!run("UPDATE media SET sticker = ? WHERE id = ?", JSON.stringify(meta), m.id).changes) {
+    await deleteObject(`${m.path}/sticker.webp`);
+    return null;
+  }
   return meta;
 }
 
@@ -110,15 +114,16 @@ async function stickerFrom(photo: Buffer, sams: string[], stitch: string): Promi
   const left = x0 - pad, top = y0 - pad;
   const cw = x1 - x0 + 1 + 2 * pad, ch = y1 - y0 + 1 + 2 * pad;
 
-  // The subject on its own canvas, with room around it for the border.
+  // The subject on its own canvas, with room around it for the border. Past the photo's edge the colour carries on from
+  // the edge, so the soft edge of a subject the frame cuts off blends into its own colour, not black.
   const cut = new Uint8Array(cw * ch);
   const colour = Buffer.alloc(cw * ch * 3);
   for (let y = 0; y < ch; y++)
     for (let x = 0; x < cw; x++) {
-      const sx = left + x, sy = top + y;
-      if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
-      const i = sy * W + sx, o = y * cw + x;
-      cut[o] = subject[i] * 255;
+      const sx = left + x, sy = top + y, o = y * cw + x;
+      const inside = sx >= 0 && sy >= 0 && sx < W && sy < H;
+      const i = Math.min(H - 1, Math.max(0, sy)) * W + Math.min(W - 1, Math.max(0, sx));
+      if (inside) cut[o] = subject[i] * 255;
       colour[o * 3] = rgb[i * 3];
       colour[o * 3 + 1] = rgb[i * 3 + 1];
       colour[o * 3 + 2] = rgb[i * 3 + 2];
