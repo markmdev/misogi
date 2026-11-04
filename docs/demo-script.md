@@ -15,7 +15,6 @@ Judges score Impact 30%, use of Meta's models 25%, technical depth 20%, demo 25%
 | 2:50–3:00 | Zuckerberg templates row, then the logo | "From 2009 to 2019, Mark picked one hard thing a year. Now anyone can, with a guide that already knows them. What's your misogi?" |
 
 ## Before recording
-- Switch `AI_PROVIDER=meta` once credits land, so every call on screen is a Meta model (see README).
 - In Muse, choose "Always allow this site" so approvals don't interrupt the take.
 - Seeded challenges make the gallery and leaderboards look alive; check `/explore` first.
 - Refresh the demo climbers' history to today so streaks and "active this week" are current (real accounts, spaces and covers are untouched):

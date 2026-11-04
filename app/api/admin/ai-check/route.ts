@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { functionCalls, generateImage, modelFor, outputText, provider, respond, streamText, structured, type Job } from "@/lib/server/ai/client";
+import { functionCalls, generateImage, modelFor, outputText, respond, streamText, structured, type Job } from "@/lib/server/ai/client";
 import { adminAuthorized, json } from "@/lib/server/http";
 import { AppError } from "@/lib/server/util";
 
@@ -20,8 +20,7 @@ async function check(name: string, job: Job, fn: () => Promise<string>): Promise
 }
 
 /**
- * One small call per kind of model use, with the provider that's configured right now.
- * Run it after switching AI_PROVIDER (e.g. to meta) to see that everything works before recording.
+ * One small call per kind of model use. Run it before recording to see that everything works.
  * Body: { image?: boolean } (the image check is opt-in because it's the slowest and priciest).
  */
 export async function POST(req: Request) {
@@ -68,7 +67,7 @@ export async function POST(req: Request) {
               name: "log_progress",
               description: "Record what the person did.",
               parameters: { type: "object", properties: { value: { type: "number" }, note: { type: "string" } }, required: ["value"] },
-              ...(provider() === "meta" ? { strict: false } : {}),
+              strict: false,
             },
           ],
           max_output_tokens: 2000,
@@ -98,5 +97,5 @@ export async function POST(req: Request) {
       : []),
   ]);
 
-  return json({ provider: provider(), ok: checks.every((c) => c.ok), checks });
+  return json({ ok: checks.every((c) => c.ok), checks });
 }

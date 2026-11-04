@@ -7,30 +7,26 @@ About five minutes from clone to a working app with demo data. There's no Docker
 - **bun** 1.3.6 or newer (`curl -fsSL https://bun.sh/install | bash`)
 - **Node.js** 20 or newer. Next.js and SQLite run on Node; production uses 24.
 - macOS or Linux
-- An AI key from Java (see step 2)
+- A Meta Model API key (see step 2)
 
 ## 1. Install
 
 ```sh
-git clone https://github.com/markmdev/meta-hackathon.git
-cd meta-hackathon
+git clone https://github.com/markmdev/misogi.git
+cd misogi
 bun install
 cp .env.example .env.local
 ```
 
-## 2. Add the AI key
+## 2. Add your Meta key
 
-Put the values Java sent you in `.env.local`. Use one of these:
+Put your Meta Model API key in `.env.local`:
 
-| Option | Set in `.env.local` | Notes |
-|---|---|---|
-| Team xAI key API (recommended) | `GROK_KEY_API_URL`, `GROK_KEY_API_PASSWORD` | The app fetches the current xAI key and fetches it again when it rotates (every 2 hours). |
-| A fixed xAI key | `XAI_API_KEY` | Overrides the key API. Stops working when the key rotates. |
-| Meta, once credits land | `AI_PROVIDER=meta` and `META_API_KEY` or `GATEWAY_KEY` | `META_API_KEY` calls `api.meta.ai` directly. `GATEWAY_KEY` goes through Mark's gateway. |
+```sh
+META_API_KEY=your-key-here
+```
 
-These values are secrets. Keep them in `.env.local`, which git ignores, and never put them in code, commits, issues, screenshots or agent transcripts you share. Restart `bun dev` after you change `.env.local`.
-
-The whole team shares the xAI key pool. When xAI reports a real usage limit, the app asks the key API to switch accounts (at most once an hour per server), and that changes the key for everyone. So don't run model-heavy jobs in a loop.
+Set `META_BASE_URL` only if you run a proxy that speaks the same API; otherwise calls go straight to `https://api.meta.ai/v1`. The key is a secret. Keep it in `.env.local`, which git ignores, and never put it in code, commits, issues, screenshots or agent transcripts you share. Restart `bun dev` after you change `.env.local`.
 
 ## 3. Run it
 

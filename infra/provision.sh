@@ -9,15 +9,13 @@
 #   MISOGI_DOMAIN     public hostname                 (default getmisogi.com)
 #   MISOGI_SSH_KEY    SSH private key                 (default ~/.ssh/misogi-hackathon.pem)
 #   MISOGI_SSH_USER   SSH user                        (default ubuntu)
-#   GROK_KEY_API_DIR  folder with `url` and `password` (default ~/.config/grok-key-api)
 #   BUN_VERSION       bun version to install          (default: packageManager in package.json)
 #   MISOGI_REBOOT     auto | never: reboot if a kernel/libc update needs it (default auto)
 #
-# Secrets never appear in this file, on a command line or in the output. The Grok key API URL
-# and password are read from GROK_KEY_API_DIR on the operator's machine and streamed to the
-# server over SSH stdin. SESSION_SECRET and ADMIN_KEY are generated on the server the first time
-# and kept on re-runs, so re-provisioning doesn't log everyone out. Lines added to /etc/misogi/env
-# by hand (AI_PROVIDER=meta, Meta keys, model overrides) survive re-runs too.
+# Secrets never appear in this file, on a command line or in the output. SESSION_SECRET
+# and ADMIN_KEY are generated on the server the first time and kept on re-runs, so
+# re-provisioning doesn't log everyone out. Lines added to /etc/misogi/env by hand (the Meta
+# key, model overrides) survive re-runs too.
 #
 # How it works: the script copies itself, Caddyfile and misogi.service to the server, then runs
 # itself there as root with --remote.
@@ -40,16 +38,15 @@ apt_get() {
 }
 
 # Prints the service environment. The first block is rewritten on every run. SESSION_SECRET and
-# ADMIN_KEY are generated once and kept; AI_PROVIDER keeps its current value (the last one wins,
-# as in systemd). Any other line added by hand (Meta keys, AI_MODEL_* overrides) is kept as is.
-render_env() { # <current env file, may not exist> <domain> <grok url> <grok password>
-	local env=$1 domain=$2 grok_url=$3 grok_password=$4
-	local session_secret="" admin_key="" ai_provider=""
-	local managed='^(NODE_ENV|PORT|HOSTNAME|DATABASE_PATH|DATA_DIR|PUBLIC_URL|SESSION_SECRET|ADMIN_KEY|AI_PROVIDER|GROK_KEY_API_URL|GROK_KEY_API_PASSWORD)='
+# ADMIN_KEY are generated once and kept. Any other line added by hand (the Meta key, AI_MODEL_*
+# overrides) is kept as is.
+render_env() { # <current env file, may not exist> <domain>
+	local env=$1 domain=$2
+	local session_secret="" admin_key=""
+	local managed='^(NODE_ENV|PORT|HOSTNAME|DATABASE_PATH|DATA_DIR|PUBLIC_URL|SESSION_SECRET|ADMIN_KEY)='
 	if [[ -f $env ]]; then
 		session_secret=$(sed -n 's/^SESSION_SECRET=//p' "$env" | tail -n 1)
 		admin_key=$(sed -n 's/^ADMIN_KEY=//p' "$env" | tail -n 1)
-		ai_provider=$(sed -n 's/^AI_PROVIDER=//p' "$env" | tail -n 1)
 	fi
 	if [[ -z $session_secret ]]; then
 		session_secret=$(openssl rand -base64 48 | tr -d '\n')
@@ -67,9 +64,6 @@ render_env() { # <current env file, may not exist> <domain> <grok url> <grok pas
 	echo "PUBLIC_URL=https://$domain"
 	printf 'SESSION_SECRET=%s\n' "$session_secret"
 	printf 'ADMIN_KEY=%s\n' "$admin_key"
-	printf 'AI_PROVIDER=%s\n' "${ai_provider:-xai}"
-	printf 'GROK_KEY_API_URL=%s\n' "$grok_url"
-	printf 'GROK_KEY_API_PASSWORD=%s\n' "$grok_password"
 	if [[ -f $env ]]; then
 		grep -vE "$managed" "$env" | grep -vE '^[[:space:]]*$' || true
 	fi
@@ -80,20 +74,9 @@ remote() {
 	local src
 	src=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-	# Secrets arrive on stdin: line 1 = Grok key API URL, line 2 = its password. Read them first,
-	# then detach stdin so apt/dpkg can't swallow or block on it.
-	local grok_url="" grok_password=""
-	IFS= read -r grok_url || true
-	IFS= read -r grok_password || true
+	# Detach stdin so apt/dpkg can't swallow or block on it.
 	exec </dev/null
 	[[ $EUID -eq 0 ]] || die "--remote must run as root"
-	[[ -n $grok_url && -n $grok_password ]] || die "expected the Grok key API URL and password on stdin"
-	local v
-	for v in "$grok_url" "$grok_password"; do
-		# Keep values safe to use unquoted in a systemd EnvironmentFile.
-		[[ $v =~ ^[A-Za-z0-9_.~+/=:@%-]+$ ]] ||
-			die "a Grok key API value has characters that would need quoting in /etc/misogi/env"
-	done
 
 	export DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a
 
@@ -181,7 +164,7 @@ remote() {
 	tmp=$(mktemp /etc/misogi/.env.XXXXXX)
 	chown root:misogi "$tmp"
 	chmod 640 "$tmp"
-	render_env "$env" "$domain" "$grok_url" "$grok_password" >"$tmp"
+	render_env "$env" "$domain" >"$tmp"
 	if [[ -f $env ]] && cmp -s "$tmp" "$env"; then
 		rm -f "$tmp"
 		echo "unchanged"
@@ -190,7 +173,6 @@ remote() {
 		env_changed=1
 		echo "written (root:misogi 640)"
 	fi
-	unset grok_url grok_password
 
 	step "systemd unit misogi.service"
 	local unit_changed=0
@@ -283,13 +265,11 @@ HOST=${MISOGI_HOST:-35.171.183.237}
 DOMAIN=${MISOGI_DOMAIN:-getmisogi.com}
 SSH_KEY=${MISOGI_SSH_KEY:-$HOME/.ssh/misogi-hackathon.pem}
 SSH_USER=${MISOGI_SSH_USER:-ubuntu}
-GROK_DIR=${GROK_KEY_API_DIR:-$HOME/.config/grok-key-api}
 REBOOT=${MISOGI_REBOOT:-auto}
 BUN_VERSION=${BUN_VERSION:-$(sed -n 's/.*"packageManager"[[:space:]]*:[[:space:]]*"bun@\([^"]*\)".*/\1/p' "$REPO/package.json")}
 
 [[ -n $BUN_VERSION ]] || die "couldn't read the bun version from package.json; set BUN_VERSION"
 [[ -r $SSH_KEY ]] || die "SSH key not found: $SSH_KEY"
-[[ -s $GROK_DIR/url && -s $GROK_DIR/password ]] || die "missing $GROK_DIR/url or $GROK_DIR/password"
 serves_domain "$REPO/infra/Caddyfile" "$DOMAIN" || die "infra/Caddyfile doesn't serve $DOMAIN; update it first"
 
 CTL_DIR=$(mktemp -d /tmp/misogi-ssh.XXXXXX)
@@ -320,13 +300,7 @@ remote_sh 'rm -rf /tmp/misogi-provision && mkdir -m 700 /tmp/misogi-provision'
 scp -q "${SSH_OPTS[@]}" "$REPO/infra/provision.sh" "$REPO/infra/Caddyfile" "$REPO/infra/misogi.service" \
 	"$SSH_USER@$HOST:/tmp/misogi-provision/"
 
-# Secrets go over stdin only (never argv): line 1 = URL, line 2 = password.
-{
-	tr -d '\r\n' <"$GROK_DIR/url"
-	echo
-	tr -d '\r\n' <"$GROK_DIR/password"
-	echo
-} | remote_sh "sudo bash /tmp/misogi-provision/provision.sh --remote $(printf '%q %q %q' "$DOMAIN" "$HOST" "$BUN_VERSION")"
+remote_sh "sudo bash /tmp/misogi-provision/provision.sh --remote $(printf '%q %q %q' "$DOMAIN" "$HOST" "$BUN_VERSION")" </dev/null
 remote_sh 'rm -rf /tmp/misogi-provision'
 
 if [[ $REBOOT == auto ]] && remote_sh 'test -f /var/run/reboot-required'; then

@@ -1,34 +1,20 @@
-// One client for every model call. Both providers speak the Responses API
-// (`POST /v1/responses`), so switching from xAI to Meta is a config change.
+// One client for every model call, on Meta's Responses API (`POST /v1/responses`).
 //
-//   AI_PROVIDER=xai   (default until Meta credits land) — key from XAI_API_KEY or the team key API
-//   AI_PROVIDER=meta  — Meta Model API through the team gateway (GATEWAY_KEY, x-visitor header)
+//   META_API_KEY   Meta Model API key (required)
+//   META_BASE_URL  optional proxy that speaks the same API (default https://api.meta.ai/v1)
 
 import crypto from "node:crypto";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import { z } from "zod";
 import { AppError } from "../util";
 
 export type Job = "agent" | "draft" | "codegen" | "fast" | "image";
-export type Provider = "xai" | "meta";
 
-const MODELS: Record<Provider, Record<Job, string>> = {
-  xai: {
-    agent: "grok-4.7",
-    draft: "grok-4.20-0309-non-reasoning",
-    codegen: "grok-build-0.1",
-    fast: "grok-4.20-0309-non-reasoning",
-    image: "grok-imagine-image-2.0",
-  },
-  meta: {
-    agent: "muse-spark-1.3",
-    draft: "muse-spark-1.3",
-    codegen: "muse-wonder-1.0",
-    fast: "muse-spark-1.3",
-    image: "muse-image-1.0",
-  },
+const MODELS: Record<Job, string> = {
+  agent: "muse-spark-1.3",
+  draft: "muse-spark-1.3",
+  codegen: "muse-wonder-1.0",
+  fast: "muse-spark-1.3",
+  image: "muse-image-1.0",
 };
 
 // Muse models always reason first, and their reasoning counts against max_output_tokens: left at
@@ -41,108 +27,27 @@ const META_EFFORT: Record<Exclude<Job, "image">, string> = {
 };
 
 function withEffort(job: Job, body: Record<string, unknown>): Record<string, unknown> {
-  if (provider() !== "meta" || job === "image") return body;
+  if (job === "image") return body;
   return { ...body, reasoning: { effort: META_EFFORT[job] } };
-}
-
-export function provider(): Provider {
-  return process.env.AI_PROVIDER === "meta" ? "meta" : "xai";
 }
 
 export function modelFor(job: Job): string {
   const env = process.env[`AI_MODEL_${job.toUpperCase()}`];
-  return env || MODELS[provider()][job];
+  return env || MODELS[job];
 }
 
 function baseUrl(): string {
-  if (provider() === "meta") {
-    // A personal Meta key talks to Meta directly; otherwise go through the team gateway.
-    const fallback = process.env.META_API_KEY ? "https://api.meta.ai/v1" : "https://meta-gateway.<account>.workers.dev/v1";
-    return (process.env.META_BASE_URL || fallback).replace(/\/$/, "");
-  }
-  return "https://api.x.ai/v1";
+  return (process.env.META_BASE_URL || "https://api.meta.ai/v1").replace(/\/$/, "");
 }
 
 // ---------- Keys ----------
 
-const keyState = globalThis as unknown as {
-  __xaiKey?: { value: string; fetchedAt: number };
-  __xaiRotateAt?: number;
-};
-
-function keyApiConfig(): { url: string; password: string } | null {
-  if (process.env.GROK_KEY_API_URL && process.env.GROK_KEY_API_PASSWORD)
-    return { url: process.env.GROK_KEY_API_URL.trim(), password: process.env.GROK_KEY_API_PASSWORD.trim() };
-  // Local development on the owner's machine: read the key API config in place.
-  try {
-    const dir = path.join(os.homedir(), ".config/grok-key-api");
-    return {
-      url: fs.readFileSync(path.join(dir, "url"), "utf8").trim(),
-      password: fs.readFileSync(path.join(dir, "password"), "utf8").trim(),
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function xaiKey(force = false): Promise<string> {
-  if (process.env.XAI_API_KEY) return process.env.XAI_API_KEY;
-  const cached = keyState.__xaiKey;
-  // The pool hands out a new key every ~2 hours; refetch every 20 minutes or on demand.
-  if (!force && cached && Date.now() - cached.fetchedAt < 20 * 60_000) return cached.value;
-  const cfg = keyApiConfig();
-  if (!cfg) throw new AppError("resting", "No AI key is configured.");
-  const res = await fetch(`${cfg.url.replace(/\/$/, "")}/key`, {
-    headers: { Authorization: `Bearer ${cfg.password}` },
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!res.ok) throw new AppError("resting", "The AI key service is unavailable right now.");
-  const value = (await res.text()).trim();
-  keyState.__xaiKey = { value, fetchedAt: Date.now() };
-  return value;
-}
-
-/** Asks the key pool to switch accounts after a real limit error. At most once an hour per server. */
-async function rotateXaiKey() {
-  const cfg = keyApiConfig();
-  if (!cfg || process.env.XAI_API_KEY) return;
-  if (keyState.__xaiRotateAt && Date.now() - keyState.__xaiRotateAt < 60 * 60_000) return;
-  keyState.__xaiRotateAt = Date.now();
-  const before = keyState.__xaiKey?.value;
-  try {
-    await fetch(`${cfg.url.replace(/\/$/, "")}/rotate`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${cfg.password}` },
-      signal: AbortSignal.timeout(10_000),
-    });
-  } catch {
-    return;
-  }
-  // Poll in the background until the pool serves a different key.
-  void (async () => {
-    for (let i = 0; i < 9; i++) {
-      await new Promise((r) => setTimeout(r, 20_000));
-      try {
-        const k = await xaiKey(true);
-        if (k !== before) return;
-      } catch {
-        /* keep polling */
-      }
-    }
-  })();
-}
-
-async function authHeaders(opts: { visitor?: string; judge?: boolean }): Promise<Record<string, string>> {
-  if (provider() === "meta") {
-    const key =
-      process.env.META_API_KEY ||
-      (opts.judge ? process.env.GATEWAY_JUDGES_KEY || process.env.GATEWAY_KEY : process.env.GATEWAY_KEY);
-    if (!key) throw new AppError("resting", "The Meta key isn't configured.");
-    const h: Record<string, string> = { Authorization: `Bearer ${key}` };
-    if (opts.visitor) h["x-visitor"] = crypto.createHash("sha256").update(opts.visitor).digest("hex");
-    return h;
-  }
-  return { Authorization: `Bearer ${await xaiKey()}` };
+async function authHeaders(opts: { visitor?: string }): Promise<Record<string, string>> {
+  const key = process.env.META_API_KEY;
+  if (!key) throw new AppError("resting", "The Meta key isn't configured.");
+  const h: Record<string, string> = { Authorization: `Bearer ${key}` };
+  if (opts.visitor) h["x-visitor"] = crypto.createHash("sha256").update(opts.visitor).digest("hex");
+  return h;
 }
 
 // ---------- Responses API ----------
@@ -158,13 +63,12 @@ export type ResponsesResult = {
 
 export type CallOptions = {
   visitor?: string;
-  judge?: boolean;
   timeoutMs?: number;
 };
 
 const TIMEOUTS: Record<Job, number> = { agent: 90_000, draft: 90_000, codegen: 300_000, fast: 45_000, image: 120_000 };
 
-async function post(pathname: string, body: unknown, job: Job, opts: CallOptions, attempt = 0): Promise<Response> {
+async function post(pathname: string, body: unknown, job: Job, opts: CallOptions): Promise<Response> {
   const res = await fetch(`${baseUrl()}${pathname}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await authHeaders(opts)) },
@@ -174,14 +78,8 @@ async function post(pathname: string, body: unknown, job: Job, opts: CallOptions
     const timeout = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
     throw new AppError("resting", timeout ? "The model took too long to answer." : "Couldn't reach the model.");
   });
-  if (res.status === 401 && provider() === "xai" && attempt === 0) {
-    await xaiKey(true);
-    return post(pathname, body, job, opts, 1);
-  }
   if (res.status === 429) {
     const text = await res.text().catch(() => "");
-    // Rotate the shared key pool only on a real usage/credit limit, never on a per-minute rate limit.
-    if (provider() === "xai" && /credit|quota|spend|usage limit|billing|exhaust|insufficient/i.test(text)) void rotateXaiKey();
     if (text.includes("gateway_resting")) throw new AppError("resting", "Misogi's AI is resting for now. Try again later.");
     throw new AppError("resting", "The AI is busy right now. Try again in a minute.");
   }
@@ -333,7 +231,7 @@ function sniffMime(data: Buffer): string {
   return "image/webp";
 }
 
-/** `reference`, an image to draw from (Meta only), such as a character to keep on model. */
+/** `reference`, an image to draw from, such as a character to keep on model. */
 export async function generateImage(
   prompt: string,
   aspect: Aspect = "1:1",
@@ -341,50 +239,34 @@ export async function generateImage(
   reference?: Buffer,
 ): Promise<{ data: Buffer; mime: string; model: string }> {
   const model = modelFor("image");
-  if (provider() === "meta") {
-    // Muse Image answers on /v1/responses with an image_generation_call item (base64).
-    const res = await post(
-      "/responses",
-      {
-        model,
-        input: reference
-          ? [{ role: "user", content: [{ type: "input_text", text: prompt }, { type: "input_image", image_url: dataUrl(reference) }] }]
-          : prompt,
-        tools: [
-          {
-            type: "image_generation",
-            size: META_SIZES[aspect],
-            output_format: "png",
-            // Keeping a character on model takes the refining passes; the price is the same.
-            reasoning_strength: reference ? "high" : "low",
-            enable_web_search: false,
-            enable_shell: false,
-          },
-        ],
-      },
-      "image",
-      opts,
-    );
-    const json = (await res.json()) as ResponsesResult;
-    const item = json.output?.find((i) => i.type === "image_generation_call");
-    const b64 = item?.result as string | undefined;
-    if (!b64) throw new AppError("resting", "The image model returned nothing.");
-    const data = Buffer.from(b64, "base64");
-    return { data, mime: sniffMime(data), model };
-  }
-  if (reference) throw new AppError("internal", "Drawing from a reference image needs Meta's models.");
+  // Muse Image answers on /v1/responses with an image_generation_call item (base64).
   const res = await post(
-    "/images/generations",
-    { model, prompt, n: 1, aspect_ratio: aspect, response_format: "b64_json" },
+    "/responses",
+    {
+      model,
+      input: reference
+        ? [{ role: "user", content: [{ type: "input_text", text: prompt }, { type: "input_image", image_url: dataUrl(reference) }] }]
+        : prompt,
+      tools: [
+        {
+          type: "image_generation",
+          size: META_SIZES[aspect],
+          output_format: "png",
+          // Keeping a character on model takes the refining passes; the price is the same.
+          reasoning_strength: reference ? "high" : "low",
+          enable_web_search: false,
+          enable_shell: false,
+        },
+      ],
+    },
     "image",
     opts,
   );
-  const json = (await res.json()) as { data?: { b64_json?: string; url?: string }[] };
-  const first = json.data?.[0];
-  let data: Buffer;
-  if (first?.b64_json) data = Buffer.from(first.b64_json, "base64");
-  else if (first?.url) data = Buffer.from(await (await fetch(first.url, { signal: AbortSignal.timeout(30_000) })).arrayBuffer());
-  else throw new AppError("resting", "The image model returned nothing.");
+  const json = (await res.json()) as ResponsesResult;
+  const item = json.output?.find((i) => i.type === "image_generation_call");
+  const b64 = item?.result as string | undefined;
+  if (!b64) throw new AppError("resting", "The image model returned nothing.");
+  const data = Buffer.from(b64, "base64");
   return { data, mime: sniffMime(data), model };
 }
 
@@ -393,11 +275,10 @@ function dataUrl(image: Buffer): string {
 }
 
 /**
- * Segments every match of `concept` (a short noun phrase) in an image with SAM 3.1 (Meta only).
+ * Segments every match of `concept` (a short noun phrase) in an image with SAM 3.1.
  * Returns SAM's output line: a box and a mask per match, decoded with @meta-sam/parser.
  */
 export async function segment(image: Buffer, concept: string, opts: CallOptions = {}): Promise<string> {
-  if (provider() !== "meta") throw new AppError("internal", "Segmenting needs Meta's models.");
   const res = await post(
     "/responses",
     {

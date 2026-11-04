@@ -5,7 +5,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { decodeMaskToRaster } from "@meta-sam/parser";
 import sharp from "sharp";
-import { generateImage, outputText, provider, respond, segment, type CallOptions } from "./ai/client";
+import { generateImage, outputText, respond, segment, type CallOptions } from "./ai/client";
 import { all, dataDir, one, run } from "./db";
 import { setVirgil, type ChallengeRow } from "./domain/challenges";
 import { queueImageJob } from "./image-jobs";
@@ -16,9 +16,8 @@ import { AppError, id, nowIso } from "./util";
 const BACKDROP = { r: 220, g: 229, b: 236 };
 const PLAIN = path.join(process.cwd(), "public/art/mascot/idle.webp");
 
-/** Queues this challenge's Virgil, in the given outfit or one Muse Spark picks. Needs Meta's models (Muse Image and SAM 3.1); a no-op otherwise. */
+/** Queues this challenge's Virgil, in the given outfit or one Muse Spark picks. */
 export function queueVirgil(challengeId: string, outfit?: string): void {
-  if (provider() !== "meta") return;
   queueImageJob(`virgil:${challengeId}`, () => makeVirgil(challengeId, outfit));
 }
 
