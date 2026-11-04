@@ -2,6 +2,9 @@
 //
 //   META_API_KEY   Meta Model API key (required)
 //   META_BASE_URL  optional proxy that speaks the same API (default https://api.meta.ai/v1)
+//
+// The coach on the site runs on Muse Spark Open, Meta's open-weight model, served by Baseten, which takes the same
+// requests: the team's gateway sends it there and everything else to Meta.
 
 import crypto from "node:crypto";
 import { z } from "zod";
@@ -10,7 +13,7 @@ import { AppError } from "../util";
 export type Job = "agent" | "draft" | "codegen" | "fast" | "image";
 
 const MODELS: Record<Job, string> = {
-  agent: "muse-spark-1.3",
+  agent: "meta-models/muse-spark-open",
   draft: "muse-spark-1.3",
   codegen: "muse-wonder-1.0",
   fast: "muse-spark-1.3",

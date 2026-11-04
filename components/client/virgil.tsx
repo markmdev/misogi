@@ -307,7 +307,7 @@ export function Virgil({
               </button>
             </form>
             <p className="mt-2 text-center text-[12px] font-bold text-ink-3">
-              Prefer your Muse? <Link href="/connect" className="underline decoration-line-2 underline-offset-2 hover:text-ink">Connect it</Link>
+              Built with Muse Spark Open · Prefer your Muse? <Link href="/connect" className="underline decoration-line-2 underline-offset-2 hover:text-ink">Connect it</Link>
             </p>
           </div>
         )}

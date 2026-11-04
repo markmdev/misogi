@@ -18,13 +18,14 @@ Built for the Meta Global AI Developer Hackathon, Indie track.
 
 | | What it does in Misogi | Where |
 |---|---|---|
-| **Muse Spark** | Drafts the year from one line as structured output: the measure, the camps, this week's quests. Writes the gentle-or-firm check-in examples you pick your coaching style from, runs the preview for people without Muse with tool calls, picks what the mascot wears for each challenge, and imagines each new challenge's own app. | [`lib/server/ai/draft.ts`](lib/server/ai/draft.ts), [`lib/server/ai/virgil.ts`](lib/server/ai/virgil.ts), [`lib/server/virgils.ts`](lib/server/virgils.ts), [`lib/server/ai/app-brief.ts`](lib/server/ai/app-brief.ts) |
+| **Muse Spark** | Drafts the year from one line as structured output: the measure, the camps, this week's quests. Writes the gentle-or-firm check-in examples you pick your coaching style from, picks what the mascot wears for each challenge, and imagines each new challenge's own app. | [`lib/server/ai/draft.ts`](lib/server/ai/draft.ts), [`lib/server/virgils.ts`](lib/server/virgils.ts), [`lib/server/ai/app-brief.ts`](lib/server/ai/app-brief.ts) |
+| **Muse Spark Open**, Meta's open-weight model | Runs the coach for people without Muse ("Try it without Muse"): an agent loop over the same tools their own Muse would call, to plan, log, add quests and rebuild the page. Served by Baseten. | [`lib/server/ai/virgil.ts`](lib/server/ai/virgil.ts), [`lib/server/ai/client.ts`](lib/server/ai/client.ts) |
 | **Muse Wonder** | Writes a whole web page for a challenge or a climber from one sentence ("make my page a wedding scrapbook in red and gold"), streamed, checked and run in a locked sandbox with live data. Every new challenge gets one without asking, built from Muse Spark's brief. | [`lib/server/ai/codegen.ts`](lib/server/ai/codegen.ts), [`lib/server/spaces.ts`](lib/server/spaces.ts) |
 | **Muse Image** | Draws the cover of each challenge started on the site; the mascot, which is each climber's Muse, dressed for the challenge (drawn from the plain mascot as its reference, so it stays itself); and the badge a climber earns at each camp. | [`lib/server/covers.ts`](lib/server/covers.ts), [`lib/server/virgils.ts`](lib/server/virgils.ts), [`lib/server/badges.ts`](lib/server/badges.ts) |
 | **SAM 3.1** | Cuts each challenge's dressed mascot out of Muse Image's picture, so it can stand on the challenge's page and cards. | [`lib/server/virgils.ts`](lib/server/virgils.ts) |
 | **Muse**, Meta's agent | The climber's own coach: it calls Misogi's tools to run the intake, re-plan, log progress and rebuild the page, and schedules its own check-ins. | [`lib/server/agent-guide.ts`](lib/server/agent-guide.ts), [`lib/server/tools.ts`](lib/server/tools.ts) |
 
-On the live site every model call goes through one client, [`lib/server/ai/client.ts`](lib/server/ai/client.ts), on Meta's Responses API, with a reasoning level per job: minimal for drafts, low for the preview's tool calls, medium for writing pages. The site names the model at work where you see it: "Drafted by Muse Spark" under the year, "Built by Muse Wonder" over each page.
+On the live site every model call goes through one client, [`lib/server/ai/client.ts`](lib/server/ai/client.ts), on the Responses API: Meta's Model API, and Baseten's for Muse Spark Open, which takes the same requests. Each job has its own reasoning level: minimal for drafts, low for the coach's tool calls, medium for writing pages. The site names the model at work where you see it: "Drafted by Muse Spark" under the year, "Built by Muse Wonder" over each page, "Built with Muse Spark Open" under the coach.
 
 | Drafted by Muse Spark | Built by Muse Wonder | Covers by Muse Image |
 |---|---|---|
@@ -54,7 +55,7 @@ flowchart LR
   web --> virgil[Preview without Muse] --> tools[One tool registry]
   tools --> db[(SQLite)]
   web -->|draft the year| spark[Muse Spark]
-  virgil --> spark
+  virgil --> open[Muse Spark Open<br/>on Baseten]
   web -->|build a page| wonder[Muse Wonder]
   tools -->|build a page| wonder
   wonder --> frame[Sandboxed page<br/>with live data]
