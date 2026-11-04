@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
-import { startChallenge } from "@/app/actions";
+import { joinAction, liveTwinAction, startChallenge } from "@/app/actions";
+import type { LiveTwin } from "@/lib/server/domain/challenges";
 import { withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { Milestone, Theme } from "@/lib/shared/types";
@@ -28,7 +29,7 @@ type Draft = {
   first_quests: { title: string; detail: string; kind: string; xp: number }[];
 };
 type Pair = { situation: string; gentle: string; firm: string };
-type Step = "idea" | "drafting" | "draft" | "style" | "name" | "creating" | "connect";
+type Step = "idea" | "drafting" | "draft" | "style" | "match" | "name" | "creating" | "connect";
 
 const IDEAS = ["Hold a conversation in Mandarin", "Read 25 books", "Build a smart home", "Run 365 miles", "Write 52 essays", "Learn 20 songs on guitar"];
 const DRAFTING_LINES = ["Reading your idea…", "Choosing how to measure it…", "Placing the camps…", "Writing this week's quests…"];
@@ -54,6 +55,9 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
   const [city, setCity] = useState<PickedCity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{ slug: string; connectCode: string; handle: string } | null>(null);
+  // A live challenge with the drafted title: joining it beats starting a near-empty copy of it.
+  const [twin, setTwin] = useState<LiveTwin | null>(null);
+  const [joining, setJoining] = useState(false);
   const [line, setLine] = useState(0);
   const [, start] = useTransition();
   const started = useRef(false);
@@ -112,6 +116,34 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
         return;
       }
       setCreated(r.data!);
+      setStep("connect");
+    });
+  }
+
+  async function afterStyle() {
+    const found = draft ? await liveTwinAction(draft.title).catch(() => null) : null;
+    setTwin(found);
+    setJoining(false);
+    setStep(found ? "match" : signedInName ? "creating" : "name");
+  }
+
+  function choose(join: boolean) {
+    setJoining(join);
+    setStep(signedInName ? "creating" : "name");
+  }
+
+  function join() {
+    if (!twin) return;
+    setError(null);
+    setStep("creating");
+    start(async () => {
+      const r = await joinAction(twin.slug, name.trim(), tz(), city?.key ?? null, choices);
+      if (!r.ok) {
+        setError(r.error);
+        setStep("name");
+        return;
+      }
+      setCreated({ slug: twin.slug, ...r.data! });
       setStep("connect");
     });
   }
@@ -251,11 +283,38 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                   </div>
                 </div>
               ))}
-              <button className="btn" disabled={choices.filter(Boolean).length < pairs.length} onClick={() => setStep(signedInName ? "creating" : "name")}>
+              <button className="btn" disabled={choices.filter(Boolean).length < pairs.length} onClick={() => void afterStyle()}>
                 Continue
               </button>
             </div>
           )}
+        </section>
+      )}
+
+      {step === "match" && twin && (
+        <section className="animate-rise">
+          <div className="text-center">
+            <h2 className="text-[26px] leading-8 text-ink">
+              {twin.members === 1 ? "Someone is already climbing this" : `${twin.members} people are already climbing this`}
+            </h2>
+            <p className="mt-2 text-[15px] text-ink-2">Join them on the same mountain and leaderboard, or start your own.</p>
+          </div>
+          <div className="card mt-6 flex items-center gap-4 p-5">
+            <IconTile name={twin.emoji} size={56} />
+            <div className="min-w-0">
+              <p className="font-display text-[20px] leading-7 font-semibold text-ink">{twin.title}</p>
+              {twin.tagline && <p className="mt-0.5 text-[14px] leading-5 text-ink-2">{twin.tagline}</p>}
+              <p className="label mt-1.5">{twin.members === 1 ? "1 climber" : `${twin.members} climbers`}</p>
+            </div>
+          </div>
+          <div className="mt-6 flex flex-col gap-2.5">
+            <button className="btn" onClick={() => choose(true)}>
+              Join them
+            </button>
+            <button className="btn btn-ghost" onClick={() => choose(false)}>
+              Start my own
+            </button>
+          </div>
         </section>
       )}
 
@@ -270,7 +329,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             className="mt-6 flex flex-col gap-3"
             onSubmit={(e) => {
               e.preventDefault();
-              if (name.trim()) create();
+              if (name.trim()) (joining ? join : create)();
             }}
           >
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="First name is fine" maxLength={40} autoFocus />
@@ -281,14 +340,14 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             <p className="-mt-1 text-[13px] leading-5 text-ink-3">{CITY_HELP}</p>
             {error && <p className="text-[14px] font-bold text-coral-deep">{error}</p>}
             <button className="btn" disabled={!name.trim()}>
-              Start my climb
+              {joining ? "Join them" : "Start my climb"}
             </button>
             <p className="text-center text-[13px] leading-5 text-ink-3">No email or password. Your AI can send you a sign-in link anytime.</p>
           </form>
         </section>
       )}
 
-      {step === "creating" && <CreatingEffect onReady={create} signedIn={!!signedInName} />}
+      {step === "creating" && <CreatingEffect onReady={joining ? join : create} signedIn={!!signedInName} />}
 
       {step === "connect" && created && (
         <section className="animate-rise">
@@ -306,7 +365,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             No Muse handy? Tap <b>Try it without Muse</b> on your page for a preview of what it does.
           </p>
           <div className="mt-6">
-            <ConnectPanel origin={origin} title={draft?.title} connectCode={created.connectCode} initialStatus={null} />
+            <ConnectPanel origin={origin} title={joining && twin ? twin.title : draft?.title} connectCode={created.connectCode} initialStatus={null} />
           </div>
         </section>
       )}
@@ -530,7 +589,7 @@ function CreatingEffect({ onReady, signedIn }: { onReady: () => void; signedIn: 
 const ORDER: Step[] = ["idea", "draft", "style", "name", "connect"];
 
 function Progress({ step }: { step: Step }) {
-  const map: Partial<Record<Step, Step>> = { drafting: "idea", creating: "name" };
+  const map: Partial<Record<Step, Step>> = { drafting: "idea", match: "name", creating: "name" };
   const idx = ORDER.indexOf(map[step] ?? step);
   return (
     <div className="mx-auto mb-8 flex max-w-xl items-center gap-1.5" aria-hidden>
