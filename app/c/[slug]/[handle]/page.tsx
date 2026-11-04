@@ -53,7 +53,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const imagining = isOwner && v.justJoined && c.creator_id === v.userId;
   const imaginer = museName(modelFor("draft"));
   const builder = museName(modelFor("codegen"));
-  const askWho = user.agent_kind === "virgil" ? "Virgil" : user.agent_kind === "mcp" || user.agent_kind === "agent" ? "your AI" : "your Muse";
+  const askWho = user.agent_kind === "virgil" ? "Virgil" : guide?.endsWith("AI") ? "your AI" : "your Muse";
 
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">

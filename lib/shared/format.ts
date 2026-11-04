@@ -125,5 +125,6 @@ export function agentLabel(kind: string | null | undefined, name: string | null 
   if (k === "virgil") return "Virgil";
   const brand = k === "muse" ? "Muse" : k === "mcp" || k === "agent" ? "AI" : null;
   if (!brand) return name ?? null;
+  if (name?.trim().toLowerCase() === "muse") return `${whose} Muse`;
   return name ? `${name}, ${whose.toLowerCase() === "your" ? "your" : whose} ${brand}` : `${whose} ${brand}`;
 }
