@@ -63,7 +63,7 @@ function connectSection(origin: string, person?: GuideFor): string {
 \`\`\`json
 ${JSON.stringify(museCall, null, 2)}
 \`\`\`
-${person.name} taps Connect on your card once. Tell them only that, in one short line, without technical words. This link names ${person.name}'s account, and it replaces any Misogi connection you already have: if \`custom.misogi\` is already connected, call again with \`"reconnect": true\`.`;
+${person.name} taps Connect on your card once. Tell them only that, in one short line, without technical words. This link names ${person.name}'s account, and it replaces any Misogi connection you already have: if \`custom.misogi\` is already connected by sign-in, call again with \`"reconnect": true\`. If it's connected with an API key instead, a reconnect can't switch it to sign-in and its Connect fails: ask ${person.name} to open Settings → Connectors → Misogi → Disconnect, then call again without \`reconnect\`.`;
   }
   return `## Connect once
 ${connect}${person ? "" : key}
