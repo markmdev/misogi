@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { coverLoop, SCENES, smallCopy } from "@/lib/shared/art";
-import { activityText, firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { activityText, firstName, metricLine, shortDate, shownTotal, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { ActivityItem, ChallengeSummary, Direction, Metric, Milestone, Standing } from "@/lib/shared/types";
 import { LiveCover } from "./client/alive";
@@ -169,7 +169,7 @@ export function Leaderboard({ rows, metric, slug, highlight, accent }: { rows: S
               </div>
             </Link>
             <div className="min-w-[5.5rem] text-right">
-              <div className="font-display text-[16px] font-semibold text-ink tabular-nums">{withUnit(s.total, metric.unit)}</div>
+              <div className="font-display text-[16px] font-semibold text-ink tabular-nums">{shownTotal(s.total, metric)}</div>
               {s.streak > 0 ? (
                 <div className="flex items-center justify-end gap-0.5 text-[12px] font-extrabold text-flame">
                   <Icon name="streak" size={16} />

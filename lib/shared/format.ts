@@ -55,6 +55,25 @@ export function withUnit(n: number | null | undefined, unit: string): string {
   return `${num(n)} ${singular}`;
 }
 
+/** A climber's number; none yet when lower is better and nothing has been timed, where 0 would read as a record. */
+export function shownTotal(total: number, m: Metric): string {
+  return withUnit(m.direction === "down" && !total ? null : total, m.unit);
+}
+
+/** The goal beside a climber's number: "of 365 mi", or "goal 8 min" when lower is better. */
+export function againstGoal(target: number, m: Metric): string {
+  return `${m.direction === "down" ? "goal" : "of"} ${withUnit(target, m.unit)}`;
+}
+
+/** How far a climber is from the summit: a share of the way, or when lower is better, what's left to cut from their best. */
+export function toSummit(f: { total: number; target: number | null; progress: number | null }, m: Metric): string {
+  const progress = f.progress ?? 0;
+  if (m.direction !== "down" || f.target == null) return `${Math.round(progress * 100)}% to the summit`;
+  if (f.total === 0) return "No time logged yet";
+  if (progress >= 1) return "Summit reached";
+  return `${withUnit(Math.round((f.total - f.target) * 100) / 100, m.unit)} to cut`;
+}
+
 export function metricLine(m: Metric): string {
   const target = m.target != null ? withUnit(m.target, m.unit) : null;
   switch (m.aggregation) {

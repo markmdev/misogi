@@ -3,7 +3,7 @@ import { findChallenge, getMembership, metricOf } from "@/lib/server/domain/chal
 import { memberFacts } from "@/lib/server/domain/progress";
 import { getUserByHandle } from "@/lib/server/domain/users";
 import { ogFonts, ogIcon, ogMuse, ogScene } from "@/lib/server/og";
-import { firstName, withUnit } from "@/lib/shared/format";
+import { againstGoal, firstName, shownTotal } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const alt = "A climb on Misogi";
@@ -43,8 +43,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           {f && metric ? (
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 12 }}>
-                <span style={{ fontFamily: "Fredoka", fontSize: 56, lineHeight: 1, color: "#2E2A26" }}>{withUnit(f.total, metric.unit)}</span>
-                <span style={{ fontSize: 28, fontWeight: 800, color: "#6B635B", paddingBottom: 4 }}>{f.target != null ? `of ${withUnit(f.target, metric.unit)}` : "so far"}</span>
+                <span style={{ fontFamily: "Fredoka", fontSize: 56, lineHeight: 1, color: "#2E2A26" }}>{shownTotal(f.total, metric)}</span>
+                <span style={{ fontSize: 28, fontWeight: 800, color: "#6B635B", paddingBottom: 4 }}>{f.target != null ? againstGoal(f.target, metric) : "so far"}</span>
               </div>
               {f.progress != null ? (
                 <div style={{ display: "flex", marginTop: 20, height: 26, borderRadius: 999, background: "#EFE5D8", overflow: "hidden" }}>

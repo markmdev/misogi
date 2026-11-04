@@ -13,7 +13,7 @@ import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, Ring, Se
 import { currentUser } from "@/lib/server/auth";
 import { coverUrl, findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { challengeView, pulse } from "@/lib/server/views";
-import { askWhoFor, firstName, foldRepeats, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { againstGoal, askWhoFor, firstName, foldRepeats, metricLine, shortDate, shownTotal, timeAgo, withUnit } from "@/lib/shared/format";
 import { coverLoop } from "@/lib/shared/art";
 import { palette } from "@/lib/shared/theme";
 import { MisogiWord } from "@/components/client/misogi-word";
@@ -162,8 +162,12 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
               <div className="min-w-0 flex-1">
                 <div className="label">Your climb</div>
                 <div className="mt-0.5 font-display text-[20px] font-semibold text-ink">
-                  {withUnit(myFacts.total, metric.unit)}
-                  {myFacts.target != null && <span className="text-ink-3"> / {withUnit(myFacts.target, metric.unit)}</span>}
+                  {shownTotal(myFacts.total, metric)}
+                  {myFacts.target != null && (
+                    <span className="text-ink-3">
+                      {metric.direction === "down" ? ` · ${againstGoal(myFacts.target, metric)}` : ` / ${withUnit(myFacts.target, metric.unit)}`}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-bold text-ink-2">
                   <span className="flex items-center gap-1">
@@ -253,7 +257,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
             <SectionTitle title="About" icon="compass" />
             <div className="card flex flex-col gap-4 p-5">
               <Row icon="target" label="Goal" value={metric.target != null ? withUnit(metric.target, metric.unit) : metric.name} />
-              <Row icon="chart" label="How it counts" value={HOW[metric.aggregation]} />
+              <Row icon="chart" label="How it counts" value={metric.direction === "down" ? "Lower is better: your best try counts." : HOW[metric.aggregation]} />
               <Row icon="calendar" label="Length" value="One year from the day you start" />
               {!isTemplate && <Row icon="flag" label="Started" value={shortDate(startedOn, true)} />}
               {c.description_md && !isTemplate && <p className="border-t border-line pt-4 text-[14px] leading-6 text-ink-2">{c.description_md}</p>}

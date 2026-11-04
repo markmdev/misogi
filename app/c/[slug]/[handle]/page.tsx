@@ -17,7 +17,7 @@ import { getUserByHandle } from "@/lib/server/domain/users";
 import { modelFor } from "@/lib/server/ai/client";
 import { connectCode } from "@/lib/server/oauth";
 import { memberView, pulse } from "@/lib/server/views";
-import { agentLabel, askWhoFor, firstName, isCheckin, museName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { againstGoal, agentLabel, askWhoFor, firstName, isCheckin, museName, shortDate, shownTotal, timeAgo, toSummit, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -147,8 +147,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
           <Fresh key={`total-${facts.total}`} className="rounded-[22px]">
             <Stat
               icon={c.emoji}
-              value={withUnit(facts.total, metric.unit)}
-              label={facts.target != null ? `of ${withUnit(facts.target, metric.unit)}` : metric.name}
+              value={shownTotal(facts.total, metric)}
+              label={facts.target != null ? `${metric.direction === "down" && facts.total ? "best · " : ""}${againstGoal(facts.target, metric)}` : metric.name}
               tint={pal.tint}
             />
           </Fresh>
@@ -163,7 +163,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
         {facts.progress != null && (
           <section className="card p-5">
             <div className="mb-2 flex items-center justify-between text-[13px] font-extrabold text-ink-2">
-              <span>{Math.round(facts.progress * 100)}% to the summit</span>
+              <span>{toSummit(facts, metric)}</span>
               {planSays != null && planSays > 0 && facts.day >= 7 && <span className="text-ink-3">Plan says {withUnit(planSays, metric.unit)} by today</span>}
             </div>
             <div className="relative">

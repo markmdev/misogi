@@ -51,8 +51,10 @@ export function aggregate(logs: FactLog[], metric: MetricDef): number {
     case "distinct":
       return new Set(logs.map((l) => (l.label ?? "").trim().toLowerCase()).filter(Boolean)).size;
     case "latest": {
-      const withValue = sortLogs(logs).filter((l) => l.value != null);
-      return withValue.length ? (withValue[withValue.length - 1].value as number) : 0;
+      const values = sortLogs(logs).flatMap((l) => (l.value == null ? [] : [l.value]));
+      if (!values.length) return 0;
+      // Lower is better (a 5k time): the best try counts, as it does for camps; a slower day doesn't take it back.
+      return metric.direction === "down" ? Math.min(...values) : values[values.length - 1];
     }
   }
 }
