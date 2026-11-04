@@ -4019,6 +4019,60 @@ const FRIENDS: HistorySpec[] = [
     ],
     doneQuest: (log) => q(`Run ${log.value ?? 20} miles on trail`, "Eat every 40 minutes, walk the steep climbs.", "weekly", 30),
   },
+  {
+    key: "friend-nathan",
+    slug: "break-1000-elo-in-chess",
+    title: "Break 1000 Elo in chess",
+    practice: ["Twenty tactics puzzles.", "Reviewed yesterday's losses with the engine.", "Two 15-minute games, then a review.", "Endgame drill: ten king and pawn positions.", "Opening review: five lines of the Italian.", "Puzzles only today, no rated games."],
+    metric: { name: "online chess rating", unit: "elo", target: 1100, aggregation: "latest" },
+    camps: [
+      { title: "Reach 600 Elo", detail: "Opening basics solid and rating stable online.", target: 600, week: 4, emoji: "camp" },
+      { title: "Reach 750 Elo", detail: "Tactics and hanging pieces cleaned up.", target: 750, week: 13, emoji: "target" },
+      { title: "Reach 850 Elo", detail: "Consistent plans and cleaner endgames.", target: 850, week: 26, emoji: "chart" },
+      { title: "Reach 950 Elo", detail: "Near goal, beating 900s regularly.", target: 950, week: 39, emoji: "trophy" },
+      { title: "Break 1100 Elo", detail: "Peak over 1000 and hold it.", target: 1100, week: 52, emoji: "crown" },
+    ],
+    members: [
+      {
+        handle: "nathan",
+        daysAgo: 185,
+        pace: 0,
+        beats: [
+          { daysAgo: 185, value: 410, note: "First rated rapid games. Hung my queen twice. 410 is where I start." },
+          { daysAgo: 172, value: 455, note: "Twenty puzzles a day this week. Fewer pieces left hanging." },
+          { daysAgo: 158, value: 520, note: "Learned the Italian for white. My games feel less random." },
+          { daysAgo: 141, value: 580, note: "Won with a back-rank mate I saw three moves out." },
+          { daysAgo: 127, value: 610, note: "Past 600. Reviewed every loss this week: most came down to one blunder." },
+          { daysAgo: 110, value: 590, note: "Tilted after three losses and kept playing. Puzzles only for the rest of the week." },
+          { daysAgo: 98, value: 660, note: "Added the Caro-Kann for black. Fewer early disasters." },
+          { daysAgo: 81, value: 720, note: "King and pawn endgames: I finally get the opposition." },
+          { daysAgo: 66, value: 755, note: "Over 750. I check every capture and every check before I move now." },
+          { daysAgo: 49, value: 790, note: "Beat an 850 in a 15-minute game and converted the endgame instead of panicking." },
+          { daysAgo: 34, value: 820, note: "Time trouble cost me two won games. Using the clock earlier now." },
+          { daysAgo: 19, value: 855, note: "850! Played a club night in person and won two of four." },
+          { daysAgo: 6, value: 872, note: "Steady week. I lose to better players now, not to hung pieces." },
+        ],
+        plan: {
+          summary:
+            "Nathan builds a simple, repeatable game on one online account. Most weeks are tactics, 15-minute rapid games and short reviews of his losses. One opening for each colour, basic endgames and clock discipline come as the rating climbs. Bad weeks mean puzzles only, then back to rated games when focus returns.",
+          cadence: "4 short sessions a week, review on Sundays.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Twenty puzzles a day", "Mate in two and hanging pieces first.", "daily", 10),
+      q("Review every loss this week", "Find the one move that lost it.", "weekly", 20),
+      q("Learn one rook endgame", "The Lucena position, until you can play it without looking.", "weekly", 20),
+      q("Five 15-minute rapid games", "Use at least half your clock in every game.", "weekly", 20),
+      q("Beat a 950 in a rated game", "A full game, not a timeout.", "boss", 60),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Annotate one of your games by hand", "Before the engine: where did it turn?", "weekly", 20),
+        q("A hundred puzzles this week", "Fast ones first, then three hard ones a day.", "weekly", 20),
+        q("Play one longer game", "30 minutes a side, and write down your plan.", "weekly", 20),
+      ]),
+  },
 ];
 
 // ---------- Small helpers ----------
