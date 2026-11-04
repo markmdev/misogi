@@ -222,7 +222,7 @@ export const TOOLS = [
     label: "Logging progress",
     writes: true,
     description:
-      "Record what the person actually did. `value` is a number in the metric's unit (needed for sum/latest metrics; leave it out only for a practice check-in that doesn't change the number, and then add a note or a photo). `label` names the thing for distinct metrics (e.g. a state). Backdate with `date`. Pass quest_id to complete a quest, and `media` for photos or videos sent to get_upload_link's link. Returns updated facts.",
+      "Record what the person actually did. `value` is a number in the metric's unit (needed for sum/latest metrics; leave it out only for a practice check-in that doesn't change the number, and then add a note or a photo). On a count metric each log is one more unless `value` says how many; a practice check-in there is `value: 0` with a note or a photo. `label` names the thing for distinct metrics (e.g. a state). Backdate with `date`. Pass quest_id to complete a quest, and `media` for photos or videos sent to get_upload_link's link. Returns updated facts.",
     input: z.object({
       challenge: challengeArg,
       value: z.number().nullable().optional(),
