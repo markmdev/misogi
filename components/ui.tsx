@@ -27,7 +27,7 @@ export function Mascot({
   pose = "idle",
   size = 120,
   className,
-  alt = "Virgil, the Misogi mountain spirit",
+  alt = "Misogi's little felt mountain",
   style,
   src,
   eager,
