@@ -1,4 +1,5 @@
 import type { Facts, LogEntry, Milestone, Plan, Quest } from "@/lib/shared/types";
+import { isCheckin } from "@/lib/shared/format";
 import type { UserRow } from "../auth";
 import { all, one, run, tx } from "../db";
 import { aggregate, computeFacts, levelFor, MILESTONE_XP } from "../facts";
@@ -253,7 +254,7 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
   const media = input.media ?? [];
   // Practice that doesn't move the number (tone drills toward a conversation goal) still counts as a
   // check-in: it keeps the streak and earns XP. It needs a note, a quest or a photo so it says what happened.
-  const checkin = (agg === "sum" || agg === "latest") && value == null;
+  const checkin = isCheckin(value, agg);
   if (checkin && !note && !input.quest_id && !media.length)
     throw new AppError(
       "invalid",

@@ -266,7 +266,7 @@ export function QuestList({ slug, quests, metric, owner, today, accent }: { slug
     if (needsValue(metric) || metric.aggregation === "distinct") return setLogFor(q.id);
     setBusy(q.id);
     start(async () => {
-      await logFromWeb(slug, { quest_id: q.id, date: today });
+      await logFromWeb(slug, { quest_id: q.id, date: today, ...(metric.aggregation === "count" ? { value: 0 } : {}) });
       setBusy(null);
       router.refresh();
     });

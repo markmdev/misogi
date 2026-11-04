@@ -17,7 +17,7 @@ import { getUserByHandle } from "@/lib/server/domain/users";
 import { modelFor } from "@/lib/server/ai/client";
 import { connectCode } from "@/lib/server/oauth";
 import { memberView, pulse } from "@/lib/server/views";
-import { agentLabel, firstName, museName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { agentLabel, firstName, isCheckin, museName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -277,11 +277,10 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          {l.value != null ? (
-                            <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>
-                          ) : (
-                            (metric.aggregation === "sum" || metric.aggregation === "latest") &&
+                          {isCheckin(l.value, metric.aggregation) ? (
                             !l.quest_title && <Pill className="!min-h-6 !py-0.5 !text-[12px]">Practice</Pill>
+                          ) : (
+                            l.value != null && <span className="font-display text-[16px] font-semibold text-ink">{withUnit(l.value, metric.unit)}</span>
                           )}
                           {l.label && <span className="text-[15px] font-extrabold text-ink">{l.label}</span>}
                           {l.quest_title && <Pill tone="moss" className="!min-h-6 !py-0.5 !text-[12px]">✓ {l.quest_title}</Pill>}

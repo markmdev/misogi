@@ -37,6 +37,14 @@ export function num(n: number | null | undefined): string {
 }
 
 /** "12.5 mi", "3 books", "HSK 2", "V5" style value. */
+/**
+ * A log that keeps the streak without moving the number: no number on a sum or latest metric, or 0 on a count, where a
+ * log without a number is one more of the thing counted.
+ */
+export function isCheckin(value: number | null, aggregation: string): boolean {
+  return aggregation === "sum" || aggregation === "latest" ? value == null : aggregation === "count" && value === 0;
+}
+
 export function withUnit(n: number | null | undefined, unit: string): string {
   if (n == null) return "–";
   if (!unit) return num(n);
@@ -76,8 +84,8 @@ export function activityText(a: ActivityItem): string {
       const v = d.value as number | null;
       const label = d.label as string | null;
       if (label) return `logged ${label}`;
-      if (v != null) return `logged ${withUnit(v, String(d.unit ?? ""))}`;
       if (d.checkin) return "checked in";
+      if (v != null) return `logged ${withUnit(v, String(d.unit ?? ""))}`;
       const unit = String(d.unit ?? "");
       if (unit && unit !== "days") return `logged 1 ${unit.replace(/s$/, "")}`;
       return "checked in";
