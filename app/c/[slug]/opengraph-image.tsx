@@ -16,7 +16,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const theme = c?.theme ?? "teal";
   const pal = palette(theme);
   const s = c ? summarize(c) : null;
-  const title = c?.title ?? "One hard thing this year";
+  const title = c?.title ?? "Do one hard thing this year";
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: pal.sky, fontFamily: "Nunito" }}>
