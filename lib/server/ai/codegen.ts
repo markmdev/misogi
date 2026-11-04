@@ -64,13 +64,13 @@ Hard rules:
   viewBox and width: 100%, or CSS bars sized in %, never a fixed pixel width. Text that doesn't fit wraps between words onto
   another line: never overflow-wrap: anywhere or word-break: break-all. white-space: nowrap only together with overflow: hidden and
   text-overflow: ellipsis, so a one-line name or a single word too wide for its box ends in "…" instead of sticking out.
-- A person's photo (logs[].photos) always shows whole, at its own shape, never cropped: never object-fit: cover on it, and never a
-  box of another shape (a banner, a fixed height, an aspect-ratio of your own). Size it by its width or height and let the other side
-  follow from photo.width and photo.height (aspect-ratio: width / height), with max-height 420px on a card so a tall photo stays a
-  sensible size, centered. In a small fixed cell (a calendar day, a grid tile) it sits whole with object-fit: contain, centered on a
-  soft backing; its label sits under it on one line, ending in an ellipsis if it doesn't fit, and a day number over a photo stays
-  readable on a soft backing. Use photo.url only in small cells (up to about 200 px on its longer side) and photo.full anywhere
-  bigger, so it stays sharp on a phone's screen.
+- A person's photo (logs[].photos) shown as itself (a post, a recipe card, a log entry) shows whole, at its own shape, never cropped:
+  no object-fit: cover on it, and no box of another shape (a banner, a fixed height, an aspect-ratio of your own). Size it by its
+  width or height and let the other side follow from photo.width and photo.height (aspect-ratio: width / height), with max-height
+  420px on a card so a tall photo stays a sensible size, centered. A photo that fills a tile, such as a calendar day, fills it edge
+  to edge with object-fit: cover; its label sits over or under it on one line, ending in an ellipsis if it doesn't fit, and a day
+  number over a photo stays readable on a soft backing. Use photo.url only in small tiles (up to about 200 px on its longer side)
+  and photo.full anywhere bigger, so it stays sharp on a phone's screen.
 - It's embedded below Misogi's own header (title, join button, leaderboard already shown). Don't add site navigation or repeat the title as a giant banner; lead with the content that's special to this person.
 - Under 60 KB. Respect prefers-reduced-motion.
 - Under 3,000 px tall at 390 px wide; the frame cuts a page off at 6,000 and grows to fit the page, so size nothing with vh. Summarize long collections (what's done, then a count of what's left) instead of drawing a tile for every unit of the target.
