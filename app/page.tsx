@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ActivityRow, ChallengeCard } from "@/components/challenge";
 import { LiveScene } from "@/components/client/alive";
@@ -5,7 +6,7 @@ import { Film } from "@/components/client/film";
 import { StartBox } from "@/components/client/start-box";
 import { Footer, Recede, TopBar } from "@/components/nav";
 import { cx, Icon, Mascot, MuseLogo, ZuckAvatar } from "@/components/ui";
-import { currentUser } from "@/lib/server/auth";
+import { currentUser, publicOrigin } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
 import { siteFeed } from "@/lib/server/domain/feed";
 import { showcaseView } from "@/lib/server/views";
@@ -14,6 +15,19 @@ import { SCENES, virgilLoop } from "@/lib/shared/art";
 import { MisogiWord } from "@/components/client/misogi-word";
 
 export const dynamic = "force-dynamic";
+
+// Messages plays a linked mp4 in the preview itself; the still is its poster and what other apps show.
+export async function generateMetadata(): Promise<Metadata> {
+  const clip = `${await publicOrigin()}/film/preview.mp4`;
+  return {
+    openGraph: {
+      siteName: "Misogi",
+      type: "website",
+      images: [{ url: "/film/preview.jpg", width: 1280, height: 720, alt: "Eleven friends in a grid, each with the one hard thing they want to do this year." }],
+      videos: [{ url: clip, secureUrl: clip, type: "video/mp4", width: 1280, height: 720 }],
+    },
+  };
+}
 
 const STEPS = [
   {
