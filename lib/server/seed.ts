@@ -31,7 +31,7 @@ type DemoUser = {
 type Camp = { title: string; detail: string; target: number; emoji: string } & ({ week: number } | { on: string });
 type QuestTpl = { title: string; detail: string; kind: "daily" | "weekly" | "boss" | "one_off"; xp: number };
 type Item = { label: string; note?: string; daysAgo?: number };
-type Beat = { daysAgo: number; value?: number; note: string; long?: boolean };
+type Beat = { daysAgo: number; value?: number | null; note: string; long?: boolean };
 
 type MemberSpec = {
   handle: string;
@@ -3616,7 +3616,7 @@ const CHALLENGES: ChallengeSpec[] = [
     metric: { name: "miles run", unit: "mi", target: 600, aggregation: "sum" },
     step: 0.1,
     camps: [
-      { title: "Base is back", detail: "You can run 60 minutes without stopping.", target: 50, on: "2026-11-29", emoji: "flag" },
+      { title: "Base is back", detail: "You can run 60 minutes without stopping.", target: 80, on: "2026-11-29", emoji: "flag" },
       { title: "Run a fast 10K", detail: "Speed and hills feel controlled, not survival.", target: 220, on: "2027-02-14", emoji: "target" },
       { title: "Nail the 12 miler", detail: "You hold pace when tired past mile 10.", target: 380, on: "2027-04-25", emoji: "map" },
       { title: "Tune up half", detail: "Race pace feels familiar for 10 miles.", target: 520, on: "2027-06-20", emoji: "summit" },
@@ -3629,18 +3629,29 @@ const CHALLENGES: ChallengeSpec[] = [
         weekdays: [0, 0, 0, 0, 0, 0, 0],
         beats: [
           { daysAgo: 28, value: 1.5, note: "First run · 16:45 · 11:10/mi · 1.5 miles easy at Jonathan Rogers Park, 3 laps, feeling great." },
-          { daysAgo: 26, value: 1.5, note: "Easy run · 16:33 · 11:02/mi · Same 3 laps. Legs a bit heavy, kept it slow." },
-          { daysAgo: 24, value: 2, long: true, note: "Long run · 22:48 · 11:24/mi · 4 laps of Jonathan Rogers Park. Walked 30 seconds after lap 3." },
-          { daysAgo: 21, value: 2, note: "Easy run · 21:56 · 10:58/mi · Main Street down to the park and back." },
-          { daysAgo: 19, value: 2.1, note: "Workout · 22:14 · 10:35/mi · Easy mile, then 4 strides of 20 seconds." },
-          { daysAgo: 17, value: 2.6, long: true, note: "Long run · 28:52 · 11:06/mi · Seawall from Science World. First time past 2.5." },
-          { daysAgo: 14, value: 2.2, note: "Easy run · 23:48 · 10:49/mi · Jonathan Rogers Park, 4 laps and a bit." },
-          { daysAgo: 12, value: 2.5, note: "Workout · 25:40 · 10:16/mi · Tempo: the middle mile at 9:52." },
-          { daysAgo: 10, value: 3.1, long: true, note: "Long run · 34:03 · 10:59/mi · First 5K ever. Trout Lake loops, ran the whole thing." },
-          { daysAgo: 7, value: 2.4, note: "Easy run · 25:53 · 10:47/mi · Rain. Went anyway." },
-          { daysAgo: 5, value: 2.6, note: "Workout · 26:23 · 10:09/mi · Hill repeats at Queen Elizabeth Park, 5 x 1 minute." },
-          { daysAgo: 3, value: 3.6, long: true, note: "Long run · 39:22 · 10:56/mi · Seawall again. Tried a gel at mile 2." },
-          { daysAgo: 1, value: 2.5, note: "Easy run · 26:42 · 10:41/mi · Back to Jonathan Rogers Park. 5 laps, felt easy." },
+          { daysAgo: 26, value: 2, note: "Easy run · 22:04 · 11:02/mi · Same park, 4 laps. Legs a bit heavy, kept it slow." },
+          { daysAgo: 25, value: null, note: "Strength · 30 min · squats, lunges, calf raises, plank." },
+          { daysAgo: 24, value: 3.1, long: true, note: "Long run · 35:08 · 11:20/mi · First 5K ever. Trout Lake loops, walked 30 seconds twice." },
+          { daysAgo: 23, value: null, note: "Strength · 30 min · legs and core." },
+          { daysAgo: 22, value: null, note: "Strength · 35 min · deadlifts, step-ups, side planks." },
+          { daysAgo: 21, value: 2.5, note: "Easy run · 27:25 · 10:58/mi · Main Street down to the park and back." },
+          { daysAgo: 19, value: 3, note: "Workout · 31:45 · 10:35/mi · Easy miles, then 4 strides of 20 seconds." },
+          { daysAgo: 18, value: null, note: "Strength · 35 min · squats, lunges, calf raises, plank." },
+          { daysAgo: 17, value: 4, long: true, note: "Long run · 44:24 · 11:06/mi · Seawall from Science World. First time past 4." },
+          { daysAgo: 16, value: null, note: "Strength · 30 min · upper body and core." },
+          { daysAgo: 15, value: null, note: "Strength · 40 min · deadlifts, step-ups, side planks." },
+          { daysAgo: 14, value: 3, note: "Easy run · 32:27 · 10:49/mi · Jonathan Rogers Park, 6 laps." },
+          { daysAgo: 12, value: 3.5, note: "Workout · 35:56 · 10:16/mi · Tempo: the middle mile at 9:52." },
+          { daysAgo: 11, value: null, note: "Strength · 35 min · legs and core." },
+          { daysAgo: 10, value: 5, long: true, note: "Long run · 54:55 · 10:59/mi · Five miles on the Seawall past Granville Island, ran the whole thing." },
+          { daysAgo: 9, value: null, note: "Strength · 30 min · upper body and core." },
+          { daysAgo: 8, value: null, note: "Strength · 40 min · squats, single-leg deadlifts, plank." },
+          { daysAgo: 7, value: 3.2, note: "Easy run · 34:30 · 10:47/mi · Rain. Went anyway." },
+          { daysAgo: 5, value: 3.6, note: "Workout · 36:32 · 10:09/mi · Hill repeats at Queen Elizabeth Park, 5 x 1 minute." },
+          { daysAgo: 4, value: null, note: "Strength · 35 min · legs and core." },
+          { daysAgo: 3, value: 6, long: true, note: "Long run · 1:05:36 · 10:56/mi · The whole False Creek loop, 6 miles. Tried a gel at mile 4." },
+          { daysAgo: 2, value: null, note: "Strength · 30 min · upper body and core." },
+          { daysAgo: 1, value: 3.5, note: "Easy run · 37:24 · 10:41/mi · Back to Jonathan Rogers Park. 7 laps, felt easy." },
         ],
         plan: {
           summary:
@@ -3648,7 +3659,7 @@ const CHALLENGES: ChallengeSpec[] = [
           cadence: "3 runs + 3 strength days a week, 1 rest day. Check-in Sun.",
         },
         space:
-          "Make my page a running log like the best running apps: clean, sporty and all about my runs. Open with race day at the SF Marathon: one big count of the days until it, the race date, and a progress line from my first run to race day with each camp of my plan as a dot on it: the first run's date under its left end, race day's date under its right end, and only the next camp named, above the line. Then four stat tiles: total miles, longest run, average pace and this week's miles. Then a bar chart of my weekly miles, one bar per week since I started, with this week's bar highlighted. Weeks run Monday to Sunday, counted from the runs' own dates, in the chart and in the this-week tile alike. Then my newest five runs, each a card like a run activity: its name and date, then distance, pace and time side by side in big numbers with small units, so a pace like 10:56 /mi fits on a phone, and the rest of the note under it in small text. Then my earlier runs, one compact line each: date, name, distance and pace. Last, my personal bests in one row: longest run, fastest pace, and my first 5K, which is my earliest run of 3.1 miles or more. Each run's note starts with its name, time and pace, like \"Long run · 39:22 · 10:56/mi · ...\". White cards, one bold orange accent, crisp numbers, thin dividers. No maps, no favourites or stars, no buttons.",
+          "Make my page a running log like the best running apps: clean, sporty and all about my runs. Open with race day at the SF Marathon: one big count of the days until it, the race date, and a progress line from my first run to race day with each camp of my plan as a dot on it: the first run's date under its left end, race day's date under its right end, and only the next camp named, above the line. Then four stat tiles: total miles, longest run, average pace and this week's miles, and under them one small line with my strength sessions this week and in all (my logs without miles). Then a bar chart of my weekly miles, one bar per week since I started, with this week's bar highlighted. Weeks run Monday to Sunday, counted from the runs' own dates, in the chart and in the this-week tile alike. Then my newest five runs (my logs with miles), each a card like a run activity: its name and date, then distance, pace and time side by side in big numbers with small units, so a pace like 10:56 /mi fits on a phone, and the rest of the note under it in small text. Then my earlier runs, one compact line each: date, name, distance and pace. Last, my personal bests in one row: longest run, fastest pace, and my first 5K, which is my earliest run of 3.1 miles or more. Each run's note starts with its name, time and pace, like \"Long run · 39:22 · 10:56/mi · ...\". White cards, one bold orange accent, crisp numbers, thin dividers. No maps, no favourites or stars, no buttons.",
       },
     ],
     openQuests: [
@@ -3659,7 +3670,8 @@ const CHALLENGES: ChallengeSpec[] = [
       q("Sign up for the SF Marathon half", "Make race day real.", "one_off", 15),
     ],
     doneQuest: (log) => {
-      const v = log.value ?? 0;
+      if (log.value == null) return q("Strength: legs and core", "Squats, lunges, calf raises, plank. 30 minutes.", "weekly", 20);
+      const v = log.value;
       if (v >= 3) return q(`Long run: ${v} miles easy`, "Slow enough to talk. Walk breaks are fine.", "weekly", 30);
       return q("Three runs this week", "An easy run, a workout and a long run.", "weekly", 25);
     },
@@ -4430,7 +4442,8 @@ function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, 
     if (inGap(d)) continue;
     const beat = m.beats?.find((b) => b.daysAgo === d);
     if (beat) {
-      out.push({ d, value: val(beat.value ?? roundTo(rng.float(...(m.amount ?? [1, 2])), step)), label: null, note: beat.note, long: beat.long });
+      const value = beat.value === null ? null : val(beat.value ?? roundTo(rng.float(...(m.amount ?? [1, 2])), step));
+      out.push({ d, value, label: null, note: beat.note, long: beat.long });
       continue;
     }
     const date = addDays(today, -d);
