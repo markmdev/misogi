@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createApiKey, currentUser, endSession, keyStatus, rotateApiKey, startSession } from "@/lib/server/auth";
 import { normalizeDraft, DraftSchema, styleFromChoices } from "@/lib/server/ai/draft";
-import { createChallenge, getChallenge, joinChallenge } from "@/lib/server/domain/challenges";
+import { createChallenge, getChallenge, joinChallenge, liveTwin, type LiveTwin } from "@/lib/server/domain/challenges";
 import { addQuests, cheer, logProgress, setPlan, skipQuest } from "@/lib/server/domain/progress";
 import { createUser } from "@/lib/server/domain/users";
 import { setCity } from "@/lib/server/geo";
@@ -98,16 +98,28 @@ export async function startChallenge(input: unknown): Promise<ActionResult<{ slu
   }
 }
 
-/** Joins a challenge, creating a lightweight account first if needed. */
-export async function joinAction(slug: string, name?: string, timezone?: string, city?: string | null): Promise<ActionResult<{ handle: string }>> {
+/** The live challenge someone starting this title would copy, so the start flow can offer to join it instead. */
+export async function liveTwinAction(title: string): Promise<LiveTwin | null> {
+  return liveTwin(String(title).slice(0, 200));
+}
+
+/** Joins a challenge, creating a lightweight account first if needed (with the coaching style picked, from the start flow). */
+export async function joinAction(
+  slug: string,
+  name?: string,
+  timezone?: string,
+  city?: string | null,
+  choices?: ("gentle" | "firm")[],
+): Promise<ActionResult<{ handle: string; connectCode: string }>> {
   try {
     let user = await currentUser();
     if (!user) {
       await limitByIp("join", 2, 6);
       if (!name?.trim()) throw new AppError("invalid", "Tell us your name to join.");
       const tz = timezone && isValidTimeZone(timezone) ? timezone : "UTC";
+      const style = choices?.length ? styleFromChoices(choices.filter((c) => c === "gentle" || c === "firm").slice(0, 5)) : undefined;
       user = tx(() => {
-        const u = createUser({ display_name: name, timezone: tz });
+        const u = createUser({ display_name: name, timezone: tz, motivation_style: style });
         if (city) setCity(u.id, city);
         return u;
       });
@@ -117,7 +129,7 @@ export async function joinAction(slug: string, name?: string, timezone?: string,
     const joined = joinChallenge(user, slug);
     if (!joined.already) queueStarterPlan(user, slug);
     revalidatePath(`/c/${slug}`);
-    return { ok: true, data: { handle: user.handle } };
+    return { ok: true, data: { handle: user.handle, connectCode: connectCode(user) } };
   } catch (e) {
     return failure(e);
   }

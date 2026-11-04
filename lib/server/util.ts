@@ -70,6 +70,18 @@ export function slugify(s: string, max = 48): string {
   return slug.replace(/-+$/g, "") || "challenge";
 }
 
+// Words that only frame a goal in time, so "Read 25 books this year" and "Read 25 books" are the same climb.
+const FRAMING = new Set(["a", "an", "the", "my", "this", "next", "year", "in", "by", "within", "over", "during"]);
+
+/** A goal's title reduced to what it asks for: two titles that reduce alike are the same climb. */
+export function sameGoal(title: string): string {
+  return slugify(title, 200)
+    .split("-")
+    .filter((w) => !FRAMING.has(w) && !/^20\d\d$/.test(w))
+    .sort()
+    .join(" ");
+}
+
 export function isValidTimeZone(tz: string): boolean {
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: tz });

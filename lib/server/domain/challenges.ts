@@ -3,7 +3,7 @@ import { AGGREGATIONS, THEMES } from "@/lib/shared/types";
 import type { UserRow } from "../auth";
 import { all, one, run, tx } from "../db";
 import { aggregate, levelFor, MILESTONE_XP, progressOf, standingScore, streaks, type FactLog } from "../facts";
-import { addYear, AppError, dateIn, id, isIsoDate, nowIso, parseJson, slugify } from "../util";
+import { addYear, AppError, dateIn, id, isIsoDate, nowIso, parseJson, sameGoal, slugify } from "../util";
 import { recordActivity } from "./feed";
 import { publicUser } from "./users";
 
@@ -85,6 +85,29 @@ export function getChallenge(slug: string): ChallengeRow {
 
 export function findChallenge(slug: string): ChallengeRow | null {
   return one<ChallengeRow>("SELECT * FROM challenges WHERE slug = ?", slug.toLowerCase().trim()) ?? null;
+}
+
+export type LiveTwin = Pick<ChallengeRow, "slug" | "title" | "tagline" | "emoji" | "theme"> & { members: number };
+
+/** The titles of the live challenges, the most climbed first. */
+export function liveTitles(limit = 80): string[] {
+  return all<{ title: string }>(
+    `SELECT title FROM challenges c WHERE status = 'active'
+     ORDER BY (SELECT COUNT(*) FROM memberships m WHERE m.challenge_id = c.id AND m.status != 'left') DESC LIMIT ?`,
+    limit,
+  ).map((c) => c.title);
+}
+
+/** The live challenge a new one with this title would copy, the one most people climb when there are several. */
+export function liveTwin(title: string): LiveTwin | null {
+  const goal = sameGoal(title);
+  if (!goal) return null;
+  return (
+    all<LiveTwin>(
+      `SELECT slug, title, tagline, emoji, theme, (SELECT COUNT(*) FROM memberships m WHERE m.challenge_id = c.id AND m.status != 'left') AS members
+       FROM challenges c WHERE status = 'active' ORDER BY members DESC`,
+    ).find((c) => sameGoal(c.title) === goal) ?? null
+  );
 }
 
 export function getMembership(challengeId: string, userId: string): MembershipRow | null {

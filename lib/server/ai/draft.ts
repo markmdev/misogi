@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { CATEGORY_ICON, ICONS } from "@/lib/shared/art";
 import { AGGREGATIONS, THEMES } from "@/lib/shared/types";
-import { CATEGORIES } from "../domain/challenges";
+import { CATEGORIES, liveTitles } from "../domain/challenges";
 import { addDays, addYear, isIsoDate } from "../util";
 import { structured } from "./client";
 
@@ -60,6 +60,7 @@ Camps follow skill-building research: first win early, steady load increases, sl
 When the idea names a date or a dated event (a race, an exam, a trip), the last camp is that day, named for the event ("Race day", "Exam day"), and no camp comes after it.
 Every camp is a number of the metric, reached by logging it: camp targets use the metric's unit, rise from one camp to the next, and the last camp is the summit.
 Write like a sharp friend: short, specific, no clichés, no exclamation marks.
+People already climb these challenges on Misogi. When the idea is the same goal as one of them, give it that title exactly, so they can climb together: ${liveTitles().join("; ")}.
 ${AGG_GUIDE}
 Allowed icons: ${icons}.
 Pick a theme color that fits the mood: ${THEMES.join(", ")}.`,
