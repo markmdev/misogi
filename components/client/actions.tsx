@@ -100,6 +100,12 @@ export function QuickLog({
   const [note, setNote] = useState("");
   const [day, setDay] = useState<"today" | "yesterday">("today");
   const [quest, setQuest] = useState<string>(questId ?? "");
+  // The form stays mounted between opens, so each opening starts on the quest it was opened for.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setQuest(questId ?? "");
+  }
   const [media, setMedia] = useState<{ ids: string[]; busy: boolean }>({ ids: [], busy: false });
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string[] | null>(null);
