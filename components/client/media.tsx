@@ -150,19 +150,19 @@ function Viewer({ item, words, date, onClose }: { item: LogMedia | null; words?:
   );
 }
 
-/** The photo's own shape, kept between a tall phone shot and a wide one. */
+/** The photo's own shape, so a tile shows it whole. */
 function ratio(m: LogMedia) {
-  return m.width && m.height ? Math.min(1.6, Math.max(0.75, m.width / m.height)) : 1;
+  return m.width && m.height ? m.width / m.height : 1;
 }
 
-function Tile({ item, onOpen, className, keepShape, small }: { item: LogMedia; onOpen: () => void; className?: string; keepShape?: boolean; small?: boolean }) {
+function Tile({ item, onOpen, className, small }: { item: LogMedia; onOpen: () => void; className?: string; small?: boolean }) {
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={item.kind === "video" ? "Play the video" : "Open the photo"}
       className={cx("relative block overflow-hidden rounded-[14px] bg-cream-2 ring-1 ring-line", className)}
-      style={keepShape ? { aspectRatio: ratio(item) } : undefined}
+      style={{ aspectRatio: ratio(item) }}
     >
       {item.kind === "video" ? (
         <>
@@ -183,14 +183,14 @@ function Tile({ item, onOpen, className, keepShape, small }: { item: LogMedia; o
   );
 }
 
-/** A log's photos and videos as small squares under its words; the wall above is where they're big. */
+/** A log's photos and videos small under its words, each whole at its own shape; the wall above is where they're big. */
 export function LogMediaRow({ media, words, date }: { media: LogMedia[]; words?: string | null; date: string }) {
   const [open, setOpen] = useState<LogMedia | null>(null);
   return (
     <>
       <div className="mt-2 flex flex-wrap gap-2">
         {media.map((m) => (
-          <Tile key={m.id} item={m} onOpen={() => setOpen(m)} small className="h-[88px] w-[88px]" />
+          <Tile key={m.id} item={m} onOpen={() => setOpen(m)} small className="h-[88px] max-w-full" />
         ))}
       </div>
       <Viewer item={open} words={words} date={date} onClose={() => setOpen(null)} />
@@ -209,7 +209,7 @@ export function PhotoWall({ items }: { items: (LogMedia & { date: string; note: 
       <div className="columns-2 gap-2.5 sm:columns-3 lg:columns-4">
         {(all ? items : items.slice(0, WALL_FIRST)).map((m) => (
           <div key={m.id} className="mb-2.5 break-inside-avoid">
-            <Tile item={m} onOpen={() => setOpen(m)} keepShape className="w-full" />
+            <Tile item={m} onOpen={() => setOpen(m)} className="w-full" />
             <div className="mt-1 px-1 text-[12px] font-extrabold text-ink-3">{shortDate(m.date)}</div>
           </div>
         ))}

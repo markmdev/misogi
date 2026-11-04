@@ -1,10 +1,10 @@
 import { queueCover } from "@/lib/server/covers";
 import { all } from "@/lib/server/db";
 import { findChallenge } from "@/lib/server/domain/challenges";
-import { getUser } from "@/lib/server/domain/users";
+import { getUser, getUserByHandle } from "@/lib/server/domain/users";
 import { adminAuthorized, errorJson, json } from "@/lib/server/http";
 import { demoSpaces, seedDemo, seededChallenges } from "@/lib/server/seed";
-import { ownerKeyFor, queueChallengeApp, requestSpace, spaceStatus } from "@/lib/server/spaces";
+import { ownerKeyFor, queueChallengeApp, requestSpace, spaceStatus, type SpaceTarget } from "@/lib/server/spaces";
 import { AppError } from "@/lib/server/util";
 import { queueVirgil } from "@/lib/server/virgils";
 
@@ -17,7 +17,8 @@ export const dynamic = "force-dynamic";
  * virgils: draw Virgil dressed for every challenge on the site that doesn't have one yet; or, given a list of slugs, for each of those again; a { slug, outfit } entry dresses him in that outfit instead of one Muse Spark picks.
  * apps: [slug] gives each of those challenges that has no page yet its own app, as a new challenge gets one: Muse Spark writes the brief, Muse Wonder builds it.
  * spaces: build each live demo challenge's shared page, and each demo member page the seed asks for, that doesn't have one yet.
- * redesign: [{ slug, request }] asks for a new version of a demo page, built on the current one; slug is "challenge" or "challenge/handle".
+ * redesign: [{ slug, request }] asks for a new version of any page, built on the current one; slug is "challenge" for its shared page
+ * or "challenge/handle" for a member's own.
  */
 export async function POST(req: Request) {
   if (!adminAuthorized(req)) return json({ error: { code: "unauthorized", message: "Missing or wrong x-admin-key." } }, { status: 401 });
@@ -100,12 +101,11 @@ export async function POST(req: Request) {
 
     const redesigned: { slug: string; status: string; version_id?: string; error?: string }[] = [];
     if (Array.isArray(body.redesign)) {
-      const pages = demoSpaces();
       for (const item of body.redesign as { slug?: unknown; request?: unknown }[]) {
-        const h = pages.find((x) => x.page === item?.slug);
+        const h = pageAt(String(item?.slug ?? ""));
         const request = typeof item?.request === "string" ? item.request.trim() : "";
         if (!h || request.length < 10) {
-          redesigned.push({ slug: String(item?.slug), status: "error", error: "Unknown demo challenge or request too short." });
+          redesigned.push({ slug: String(item?.slug), status: "error", error: "No such page, or the request is too short." });
           continue;
         }
         try {
@@ -128,4 +128,14 @@ export async function POST(req: Request) {
   } catch (e) {
     return errorJson(e);
   }
+}
+
+/** A page by its address: "challenge" is its shared page, which its creator builds; "challenge/handle" is that member's own. */
+function pageAt(address: string): { page: string; slug: string; ownerId: string; target: SpaceTarget } | null {
+  const [slug, handle] = address.split("/");
+  const c = findChallenge(slug ?? "");
+  if (!c) return null;
+  if (!handle) return c.creator_id ? { page: c.slug, slug: c.slug, ownerId: c.creator_id, target: "challenge" } : null;
+  const u = getUserByHandle(handle);
+  return u ? { page: `${c.slug}/${u.handle}`, slug: c.slug, ownerId: u.id, target: "me" } : null;
 }
