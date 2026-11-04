@@ -66,7 +66,8 @@ export type CallOptions = {
   timeoutMs?: number;
 };
 
-const TIMEOUTS: Record<Job, number> = { agent: 90_000, draft: 90_000, codegen: 300_000, fast: 45_000, image: 120_000 };
+// A draft answers in about ten seconds, so one that has said nothing for 30 is stalled and is asked once more.
+const TIMEOUTS: Record<Job, number> = { agent: 90_000, draft: 30_000, codegen: 300_000, fast: 45_000, image: 120_000 };
 
 async function post(pathname: string, body: unknown, job: Job, opts: CallOptions, attempt = 0): Promise<Response> {
   const res = await fetch(`${baseUrl()}${pathname}`, {
@@ -74,10 +75,12 @@ async function post(pathname: string, body: unknown, job: Job, opts: CallOptions
     headers: { "Content-Type": "application/json", ...(await authHeaders(opts)) },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(opts.timeoutMs ?? TIMEOUTS[job]),
-  }).catch((e: unknown) => {
-    const timeout = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
-    throw new AppError("resting", timeout ? "The model took too long to answer." : "Couldn't reach the model.");
-  });
+  }).catch((e: unknown) => (e instanceof Error ? e : new Error(String(e))));
+  if (res instanceof Error) {
+    const timeout = res.name === "TimeoutError" || res.name === "AbortError";
+    if (timeout && job === "draft" && attempt === 0) return post(pathname, body, job, opts, 1);
+    throw new AppError("resting", timeout ? "Muse took too long to answer. Try again in a moment." : "Couldn't reach the model.");
+  }
   if (res.status === 429) {
     const text = await res.text().catch(() => "");
     if (text.includes("gateway_resting")) throw new AppError("resting", "Misogi's AI is resting for now. Try again later.");
