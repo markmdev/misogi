@@ -37,16 +37,18 @@ apt_get() {
 		-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold "$@"
 }
 
-# Prints the service environment. The first block is rewritten on every run. SESSION_SECRET and
-# ADMIN_KEY are generated once and kept. Any other line added by hand (the Meta key, AI_MODEL_*
+# Prints the service environment. The first block is rewritten on every run. SESSION_SECRET,
+# ADMIN_KEY and NEXT_SERVER_ACTIONS_ENCRYPTION_KEY are generated once and kept: the last keeps server
+# action ids the same from one build to the next, so a page opened before a deploy still works after it. Any other line added by hand (the Meta key, AI_MODEL_*
 # overrides) is kept as is.
 render_env() { # <current env file, may not exist> <domain>
 	local env=$1 domain=$2
-	local session_secret="" admin_key=""
-	local managed='^(NODE_ENV|PORT|HOSTNAME|DATABASE_PATH|DATA_DIR|PUBLIC_URL|SESSION_SECRET|ADMIN_KEY)='
+	local session_secret="" admin_key="" actions_key=""
+	local managed='^(NODE_ENV|PORT|HOSTNAME|DATABASE_PATH|DATA_DIR|PUBLIC_URL|SESSION_SECRET|ADMIN_KEY|NEXT_SERVER_ACTIONS_ENCRYPTION_KEY)='
 	if [[ -f $env ]]; then
 		session_secret=$(sed -n 's/^SESSION_SECRET=//p' "$env" | tail -n 1)
 		admin_key=$(sed -n 's/^ADMIN_KEY=//p' "$env" | tail -n 1)
+		actions_key=$(sed -n 's/^NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=//p' "$env" | tail -n 1)
 	fi
 	if [[ -z $session_secret ]]; then
 		session_secret=$(openssl rand -base64 48 | tr -d '\n')
@@ -56,6 +58,10 @@ render_env() { # <current env file, may not exist> <domain>
 		admin_key=$(openssl rand -hex 24)
 		echo "generated a new ADMIN_KEY (read it with: sudo grep ADMIN_KEY /etc/misogi/env)" >&2
 	fi
+	if [[ -z $actions_key ]]; then
+		actions_key=$(openssl rand -base64 32 | tr -d '\n')
+		echo "generated a new NEXT_SERVER_ACTIONS_ENCRYPTION_KEY" >&2
+	fi
 	echo "NODE_ENV=production"
 	echo "PORT=3000"
 	echo "HOSTNAME=127.0.0.1"
@@ -64,6 +70,7 @@ render_env() { # <current env file, may not exist> <domain>
 	echo "PUBLIC_URL=https://$domain"
 	printf 'SESSION_SECRET=%s\n' "$session_secret"
 	printf 'ADMIN_KEY=%s\n' "$admin_key"
+	printf 'NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=%s\n' "$actions_key"
 	if [[ -f $env ]]; then
 		grep -vE "$managed" "$env" | grep -vE '^[[:space:]]*$' || true
 	fi
