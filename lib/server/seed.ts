@@ -3327,15 +3327,19 @@ function emptyCounts(): Counts {
 
 const isSeeded = () => !!one("SELECT 1 FROM users WHERE is_demo = 1 AND substr(id, 1, 8) = 'usr_demo' LIMIT 1");
 
-/** Removes everything demo people did, but keeps the demo users and challenges (and their covers and spaces). */
+/**
+ * Removes everything demo people did in the demo challenges, but keeps the demo users and challenges (and their covers
+ * and spaces), and what demo people did in challenges they started themselves on the live site.
+ */
 function resetDemoHistory() {
   const who = "SELECT id FROM users WHERE is_demo = 1 AND substr(id, 1, 8) = 'usr_demo'";
-  exec(`DELETE FROM cheers WHERE user_id IN (${who})`);
-  exec(`DELETE FROM activity WHERE user_id IN (${who}) AND kind != 'space'`);
-  exec(`DELETE FROM logs WHERE user_id IN (${who})`);
-  exec(`DELETE FROM quests WHERE user_id IN (${who})`);
-  exec(`DELETE FROM plans WHERE user_id IN (${who})`);
-  exec(`DELETE FROM memberships WHERE user_id IN (${who})`);
+  const inDemo = "substr(challenge_id, 1, 8) = 'chl_demo'";
+  exec(`DELETE FROM cheers WHERE user_id IN (${who}) AND log_id IN (SELECT id FROM logs WHERE ${inDemo})`);
+  exec(`DELETE FROM activity WHERE user_id IN (${who}) AND kind != 'space' AND ${inDemo}`);
+  exec(`DELETE FROM logs WHERE user_id IN (${who}) AND ${inDemo}`);
+  exec(`DELETE FROM quests WHERE user_id IN (${who}) AND ${inDemo}`);
+  exec(`DELETE FROM plans WHERE user_id IN (${who}) AND ${inDemo}`);
+  exec(`DELETE FROM memberships WHERE user_id IN (${who}) AND ${inDemo}`);
   const ids = [...TEMPLATES.map((t) => demoId("chl", `tpl-${t.slug}`)), ...CHALLENGES.map((c) => demoId("chl", c.key))];
   exec(`DELETE FROM challenges WHERE substr(id, 1, 8) = 'chl_demo' AND id NOT IN (${ids.map(() => "?").join(",")})`, ...ids);
   const userIds = USERS.map((u) => demoId("usr", u.handle));
