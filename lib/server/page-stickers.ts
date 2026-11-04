@@ -51,8 +51,9 @@ async function stickersWanted(c: Pick<ChallengeRow, "title">, request: string, h
     {
       instructions:
         `A page for someone's challenge "${c.title}" is being built from this request. If it asks for stickers, list the stickers it needs ` +
-        `that the page doesn't have yet, at most ${room}. Each is one object that can be drawn as a needle-felted wool sticker: no people, ` +
-        `no words, letters or numbers on it. One per line: a name of one or two lowercase everyday words, ` +
+        `that the page doesn't have yet, at most ${room}. Each is one object that can be drawn as a needle-felted wool sticker, with no people ` +
+        `and nothing written on it: a thing that usually carries words or numbers (a race bib, a sign) is drawn blank, for the page to write on. ` +
+        `One per line: a name of one or two lowercase everyday words, ` +
         `a colon, and what it is in a few plain words that can't be drawn as anything else ("medal: a gold finisher's medal on a red ribbon", ` +
         `"race bib: a runner's blank race number bib, a white fabric rectangle with a safety pin at each corner"). ` +
         `The page already has: ${have.map((s) => s.name).join(", ") || "nothing"}. The climber's Muse is "muse": never list it again. ` +
