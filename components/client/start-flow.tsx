@@ -8,7 +8,7 @@ import { withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { Milestone, Theme } from "@/lib/shared/types";
 import { CAMP_STEP_MS, CampPath, sceneFor, trailX } from "../challenge";
-import { cx, Icon, IconTile, Mascot } from "../ui";
+import { cx, Icon, IconTile, Mascot, MuseLogo } from "../ui";
 import { CITY_HELP, CityPicker, type PickedCity } from "./city-picker";
 import { ConnectPanel } from "./connect";
 import { LINE } from "./start-box";
@@ -241,7 +241,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                         style={choices[i] === k ? { ["--tw-ring-color" as string]: pal.accent } : undefined}
                       >
                         <span className="flex h-6 items-center gap-2 text-[12px] font-extrabold tracking-wide text-ink-3 uppercase">
-                          <Icon name="orb" size={20} />
+                          <MuseLogo size={18} />
                           Muse
                           {choices[i] === k ? <Icon name="check" size={22} className="ml-auto animate-pop" /> : <span className="ml-auto font-bold tracking-normal normal-case">now</span>}
                         </span>
