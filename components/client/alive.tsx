@@ -30,6 +30,9 @@ function onPictureDone(changed: () => void) {
   };
 }
 
+/** Whether the first screen's pictures are all in, for anything heavy that should load after them. */
+export const useFirstScreenIn = () => useSyncExternalStore(onPictureDone, picturesIn, () => false);
+
 /** Fetches a pose's loop ahead of time, so it starts at once when that pose appears. */
 export function warmMascot(pose: string) {
   void fetch(`/art/motion/virgil/${pose}.${seeThroughType()}`).catch(() => {});
@@ -46,7 +49,7 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
   const [url, setUrl] = useState<string | null>(null);
   const [seen, setSeen] = useState(false);
   const [shown, setShown] = useState(false);
-  const pictures = useSyncExternalStore(onPictureDone, picturesIn, () => false);
+  const pictures = useFirstScreenIn();
 
   useEffect(() => {
     if (calm()) return;
