@@ -5,6 +5,7 @@ import { getUser, getUserByHandle } from "@/lib/server/domain/users";
 import { adminAuthorized, errorJson, json } from "@/lib/server/http";
 import { demoSpaces, placeDemoClimbers, seedDemo, seededChallenges } from "@/lib/server/seed";
 import { ownerKeyFor, queueChallengeApp, requestSpace, spaceStatus, type SpaceTarget } from "@/lib/server/spaces";
+import { makeSticker } from "@/lib/server/stickers";
 import { AppError } from "@/lib/server/util";
 import { queueVirgil } from "@/lib/server/virgils";
 
@@ -20,11 +21,12 @@ export const dynamic = "force-dynamic";
  * redesign: [{ slug, request }] asks for a new version of any page, built on the current one; slug is "challenge" for its shared page
  * or "challenge/handle" for a member's own.
  * cities: puts each demo climber at their city on the world map (a forced seed does it too).
+ * stickers: [mediaId] cuts each of those photos' subject into a sticker, as a new photo log gets, and answers with what it cut.
  */
 export async function POST(req: Request) {
   if (!adminAuthorized(req)) return json({ error: { code: "unauthorized", message: "Missing or wrong x-admin-key." } }, { status: 401 });
   try {
-    let body: { force?: unknown; covers?: unknown; virgils?: unknown; apps?: unknown; spaces?: unknown; redesign?: unknown; cities?: unknown } = {};
+    let body: { force?: unknown; covers?: unknown; virgils?: unknown; apps?: unknown; spaces?: unknown; redesign?: unknown; cities?: unknown; stickers?: unknown } = {};
     const text = await req.text();
     if (text.trim()) {
       try {
@@ -118,6 +120,9 @@ export async function POST(req: Request) {
       }
     }
 
+    const stickers: { id: string; sticker: Awaited<ReturnType<typeof makeSticker>> }[] = [];
+    if (Array.isArray(body.stickers)) for (const id of body.stickers) stickers.push({ id: String(id), sticker: await makeSticker(String(id)) });
+
     return json({
       ...seed,
       covers: body.covers === true || Array.isArray(body.covers) ? covers : null,
@@ -126,6 +131,7 @@ export async function POST(req: Request) {
       spaces: body.spaces === true ? spaces : null,
       redesigned: Array.isArray(body.redesign) ? redesigned : null,
       placed: body.cities === true ? placeDemoClimbers() : null,
+      stickers: Array.isArray(body.stickers) ? stickers : null,
     });
   } catch (e) {
     return errorJson(e);
