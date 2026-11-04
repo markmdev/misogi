@@ -256,11 +256,13 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
   // check-in: it keeps the streak and earns XP. It needs a note, a quest or a photo so it says what happened.
   const checkin = isCheckin(value, agg);
   if (checkin && !note && !input.quest_id && !media.length)
-    throw new AppError(
-      "invalid",
-      `This challenge counts ${c.metric_name}, so include a number in "value" (in ${c.metric_unit || "units"}).`,
-      "For practice that doesn't change the number, leave value out and add a note or a photo saying what was done.",
-    );
+    throw agg === "count"
+      ? new AppError("invalid", `A practice check-in (value 0) needs a note or a photo saying what was done; leave value out to log one more of the ${c.metric_name}.`)
+      : new AppError(
+          "invalid",
+          `This challenge counts ${c.metric_name}, so include a number in "value" (in ${c.metric_unit || "units"}).`,
+          "For practice that doesn't change the number, leave value out and add a note or a photo saying what was done.",
+        );
   if (agg === "sum" && value != null && value < 0) throw new AppError("invalid", "value can't be negative.");
   const label = (input.label ?? "").trim().slice(0, 80) || null;
   if (agg === "distinct" && !label)
