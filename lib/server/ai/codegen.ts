@@ -40,6 +40,8 @@ Hard rules:
 - Allowed external resources only: Google Fonts (<link href="https://fonts.googleapis.com/css2?...">) and Misogi art images:
   icons at /art/icons/<name>.webp (names: ${icons})
   mascot poses at /art/mascot/<pose>.webp (poses: ${poses}; the mascot is Virgil, a round fluffy mountain spirit).
+  Each has a small copy for drawing small: /art/icons/<name>-sm.webp for an icon up to 52 px, /art/mascot/<pose>-sm.webp
+  for Virgil up to 112 px. Use those there; the full pictures are only for drawing bigger.
   Draw charts, rings, maps and calendars with inline SVG or CSS.
 - Read all data at runtime: const data = JSON.parse(document.getElementById("misogi-data").textContent);
   Render everything from data. Never hard-code numbers, names or dates that come from data, because the data changes every day.
