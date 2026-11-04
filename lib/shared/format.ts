@@ -117,12 +117,12 @@ export function foldRepeats(items: ActivityItem[]): { a: ActivityItem; times: nu
 }
 
 /**
- * Who guides someone, the one way the site says it: "Bao, your Muse", "Helen's Muse", "Claude, your AI" or "Virgil",
- * Misogi's own guide. `whose` is how the owner reads in that spot: "Your" to open a line, "your", or "Helen's".
+ * Who coaches someone, the one way the site says it: "Bao, your Muse", "Helen's Muse", "Claude, your AI" or "Muse",
+ * the preview of Muse on Misogi for people without it. `whose` is how the owner reads in that spot: "Your" to open a line, "your", or "Helen's".
  */
 export function agentLabel(kind: string | null | undefined, name: string | null | undefined, whose = "Your"): string | null {
   const k = (kind ?? "").toLowerCase();
-  if (k === "virgil") return "Virgil";
+  if (k === "virgil") return "Muse";
   const brand = k === "muse" ? "Muse" : k === "mcp" || k === "agent" ? "AI" : null;
   if (!brand) return name ?? null;
   if (name?.trim().toLowerCase() === "muse") return `${whose} Muse`;

@@ -70,7 +70,7 @@ ${connect}${person ? "" : key}
 
 ## Then
 1. Check it works: \`list_my_challenges\`.
-2. Tell Misogi your name: \`set_preferences\` with \`{"agent_name": "<your name>"}\`. It appears on their page as their guide.
+2. Tell Misogi your name: \`set_preferences\` with \`{"agent_name": "<your name>"}\`. It appears on their page as their coach.
 3. Open their challenge with \`get_challenge\` (use \`"include_playbook": true\` the first time) and follow its \`setup\` list.
 4. Create your own recurring check-in with your scheduler, at the cadence in the plan. Misogi never messages the person; you do.
 
@@ -85,7 +85,7 @@ export function agentGuide(origin: string, person?: GuideFor): string {
   }).join("\n\n");
 
   const intro = person
-    ? `# Misogi: you're ${person.name}'s guide
+    ? `# Misogi: you're ${person.name}'s coach
 
 ${person.name} (@${person.handle}) asked you to coach them on Misogi, a site where people finish one hard challenge this year.
 ${person.challenges.length ? `Their climbs: ${person.challenges.map((c) => `"${c.title}" (\`${c.slug}\`)`).join(", ")}. Start with the first unless they say otherwise.` : "They haven't started a climb yet: offer to create one with them."}
@@ -94,7 +94,7 @@ Everything you write shows up on their public page at ${origin}/u/${person.handl
     : `# Misogi: guide for AI agents
 
 Misogi helps a person finish one hard challenge this year: learn a language, read 25 books, build something.
-You are their guide. Misogi keeps the record (plan, camps, quests, log, leaderboard) and builds their pages from your descriptions.
+You are their coach. Misogi keeps the record (plan, camps, quests, log, leaderboard) and builds their pages from your descriptions.
 Everything you write shows up on their public page at ${origin}.`;
 
   return `${intro}

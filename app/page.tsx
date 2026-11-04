@@ -149,10 +149,10 @@ export default async function Home() {
           <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
             <div className={cx("card grid grid-cols-[minmax(0,1fr)] items-center gap-8 overflow-hidden p-6 max-[239px]:p-4 sm:p-10", proof && "lg:grid-cols-2")}>
               <div>
-                <h2 className="text-[26px] leading-8 text-ink">Your Muse already knows you. Now it&apos;s your guide.</h2>
+                <h2 className="text-[26px] leading-8 text-ink">Your Muse already knows you. Now it&apos;s your coach.</h2>
                 <p className="mt-3 text-[16px] leading-7 text-ink-2">
                   Connect Meta&apos;s Muse with one message. It reads your plan, checks in when you go quiet, logs what you tell it, and
-                  redesigns your page when you ask. No Muse? Virgil, <MisogiWord>Misogi</MisogiWord>&apos;s own guide, does the same right here.
+                  redesigns your page when you ask. No Muse? Tap <b>Try it without Muse</b> to see what it does, right here.
                 </p>
                 <ul className="mt-5 flex flex-col gap-2.5">
                   {MODELS.map((m) => (

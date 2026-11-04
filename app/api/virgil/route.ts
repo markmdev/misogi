@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         try {
           await runVirgil(user, { thread, message: String(body.message ?? ""), challenge, origin }, emit);
         } catch (e) {
-          emit({ type: "error", message: e instanceof AppError ? e.message : "Virgil hit a snag. Try again." });
+          emit({ type: "error", message: e instanceof AppError ? e.message : "Something went wrong. Try again." });
           if (!(e instanceof AppError)) console.error("[virgil]", e);
         } finally {
           controller.close();

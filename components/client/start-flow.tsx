@@ -296,7 +296,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             See my page
           </button>
           <p className="mt-3 text-center text-[13px] text-ink-3">
-            No AI handy? Tap <b>Ask Virgil</b> on your page and <MisogiWord>Misogi</MisogiWord>&apos;s own guide takes it from there.
+            No Muse handy? Tap <b>Try it without Muse</b> on your page for a preview of what it does.
           </p>
           <div className="mt-6">
             <ConnectPanel origin={origin} title={draft?.title} connectCode={created.connectCode} initialStatus={null} />
@@ -416,7 +416,7 @@ function DraftYear({
 
       <div className="animate-rise" style={after(at.quests + 80 + draft.first_quests.length * 110 + 60)}>
         <p className="text-[14px] leading-6 text-ink-2">
-          This is a first draft. Your guide tunes it to your life after a short chat.
+          This is a first draft. Your Muse tunes it to your life after a short chat.
         </p>
         <div className="mt-4 flex gap-3">
           <button className="btn btn-ghost flex-1" onClick={onRetry}>

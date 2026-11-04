@@ -53,7 +53,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const imagining = isOwner && v.justJoined && c.creator_id === v.userId;
   const imaginer = museName(modelFor("draft"));
   const builder = museName(modelFor("codegen"));
-  const askWho = user.agent_kind === "virgil" ? "Virgil" : guide?.endsWith("AI") ? "your AI" : "your Muse";
+  const askWho = user.agent_kind === "virgil" ? "Muse" : guide?.endsWith("AI") ? "your AI" : "your Muse";
 
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
@@ -117,7 +117,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               <div>
                 <h2 className="text-[22px] leading-7 text-ink">You&apos;re on the mountain.</h2>
                 <p className="mt-1 text-[15px] leading-6 text-ink-2">
-                  Connect your Muse so it can plan with you and keep this page up to date. Or tap <b>Ask Virgil</b> to start right here.
+                  Connect your Muse so it can plan with you and keep this page up to date. Or tap <b>Try it without Muse</b> to start right here.
                 </p>
               </div>
             </div>
@@ -186,7 +186,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               <EmptyState
                 pose="read"
                 title={drafting ? "Picking your first quests…" : "No quests yet"}
-                body={drafting ? "They show up here in a few seconds." : isOwner ? "Ask your AI or Virgil for this week's quests." : `${guideDoes} hasn't set quests yet.`}
+                body={drafting ? "They show up here in a few seconds." : isOwner ? `Ask ${askWho} for this week's quests.` : `${guideDoes} hasn't set quests yet.`}
               />
             )}
           </section>
@@ -392,7 +392,7 @@ function sourceLabel(source: string, agentName: string | null) {
     case "agent":
       return agentName ?? "AI agent";
     case "virgil":
-      return "Virgil";
+      return "Muse";
     case "web":
       return "web";
     default:
