@@ -13,6 +13,7 @@ export function CityPicker({ id, value, onChange }: { id?: string; value: Picked
   const [options, setOptions] = useState<PickedCity[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [up, setUp] = useState(false);
   const asked = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,16 +54,16 @@ export function CityPicker({ id, value, onChange }: { id?: string; value: Picked
         placeholder="Start typing your city"
         value={text}
         onChange={(e) => {
+          // Near the bottom of a sheet, or above a phone's keyboard, the suggestions open upwards instead.
+          const r = e.currentTarget.getBoundingClientRect();
+          const below = (window.visualViewport?.height ?? innerHeight) - r.bottom;
+          setUp(below < 200 && r.top > below);
           setText(e.target.value);
           setOpen(true);
           suggest(e.target.value);
           if (value) onChange(null);
         }}
-        onFocus={(e) => {
-          setOpen(true);
-          // On a phone the keyboard covers the bottom half: bring the field up so its suggestions show above it.
-          if (matchMedia("(pointer: coarse)").matches) e.currentTarget.scrollIntoView({ block: "start", behavior: "smooth" });
-        }}
+        onFocus={() => setOpen(true)}
         onBlur={() => {
           setOpen(false);
           // Typed in full but not picked ("Lisbon"): take the first suggestion, which is the biggest place by that name.
@@ -81,7 +82,8 @@ export function CityPicker({ id, value, onChange }: { id?: string; value: Picked
         }}
       />
       {showing && (
-        <ul id={list} role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-[18px] bg-white py-1 text-left shadow-[var(--shadow-float)] ring-1 ring-line">
+        <ul id={list} role="listbox" className={`absolute inset-x-0 z-20 overflow-hidden ${up ? "bottom-full mb-1" : "top-full mt-1"} rounded-[18px] bg-white py-1 text-left shadow-[var(--shadow-float)] ring-1 ring-line`}
+        >
           {options.map((c, i) => (
             <li
               key={c.key}
