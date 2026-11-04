@@ -25,7 +25,7 @@ export const DraftSchema = z.object({
       z.object({
         title: z.string().describe("Camp name in sentence case, max 40 chars, no numbering (e.g. 'First five', not 'Camp 1: First Five')"),
         detail: z.string().describe("What being here means, one short sentence"),
-        target: z.number().nullable().describe("Metric value that marks this camp, or null"),
+        target: z.number().describe("Metric value that marks this camp, higher than the camp before it (lower when lower is better)"),
         due_on: z.string().describe("YYYY-MM-DD"),
         icon: z.string(),
       }),
@@ -58,6 +58,7 @@ Today is ${today}; the challenge runs to ${end}.
 Make the goal concrete and measurable while keeping their intent. Ambitious but possible in a year for a busy adult.
 Camps follow skill-building research: first win early, steady load increases, slack for bad weeks, a hard final test.
 When the idea names a date or a dated event (a race, an exam, a trip), the last camp is that day, named for the event ("Race day", "Exam day"), and no camp comes after it.
+Every camp is a number of the metric, reached by logging it: camp targets use the metric's unit, rise from one camp to the next, and the last camp is the summit.
 Write like a sharp friend: short, specific, no clichés, no exclamation marks.
 ${AGG_GUIDE}
 Allowed icons: ${icons}.
