@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { uploadLinkAction } from "@/app/actions";
 import { shortDate } from "@/lib/shared/format";
 import type { LogMedia } from "@/lib/shared/types";
@@ -244,8 +244,9 @@ export function StickerBoard({ items }: { items: WallItem[] }) {
   return (
     <>
       <div className="sticker-board flex flex-wrap gap-x-3 gap-y-4 sm:gap-x-7 sm:gap-y-5">
-        {(all ? stuck : stuck.slice(0, STICKERS_FIRST)).map((m) => (
-          <Fresh key={m.id} arrive="sticker-arrive">
+        {/* All mount at once, so the ones behind "Show all" don't play a landing when they appear. */}
+        {stuck.map((m, i) => (
+          <Fresh key={m.id} arrive="sticker-arrive" className={!all && i >= STICKERS_FIRST ? "hidden" : undefined}>
             <Sticker item={m} onOpen={() => setOpen(m)} />
           </Fresh>
         ))}
@@ -284,10 +285,21 @@ function Sticker({ item, onOpen }: { item: Stuck; onOpen: () => void }) {
             />
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt={what} draggable={false} className="sticker-art absolute inset-0 h-full w-full select-none" style={{ ["--tilt" as string]: `${tilt}deg` }} />
+          <img src={url} alt={what} loading="lazy" draggable={false} className="sticker-art absolute inset-0 h-full w-full select-none" style={{ ["--tilt" as string]: `${tilt}deg` }} />
         </span>
       </span>
-      <span className="mt-2 line-clamp-2 text-center text-[13px] leading-4 font-extrabold text-ink-2 [overflow-wrap:anywhere] first-letter:uppercase">{name}</span>
+      <span className="mt-2 line-clamp-2 text-center text-[13px] leading-4 font-extrabold text-ink-2 break-words first-letter:uppercase">
+        {name.split("/").map((part, i) => (
+          <Fragment key={i}>
+            {i > 0 && (
+              <>
+                /<wbr />
+              </>
+            )}
+            {part}
+          </Fragment>
+        ))}
+      </span>
       <span className="mt-0.5 text-[12px] font-bold text-ink-3">{shortDate(item.date)}</span>
     </button>
   );

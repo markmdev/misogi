@@ -177,12 +177,10 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
         )}
 
         {wall.some((m) => m.sticker) && (
-          <Fresh arrive="animate-rise">
-            <section>
-              <SectionTitle title="Stickers" icon="sparkles" action={<span className="text-[13px] font-bold text-ink-3">Cut out by SAM 3.1</span>} />
-              <StickerBoard items={wall} />
-            </section>
-          </Fresh>
+          <section>
+            <SectionTitle title="Stickers" icon="sparkles" action={<span className="text-[13px] font-bold text-ink-3">Cut out by SAM 3.1</span>} />
+            <StickerBoard items={wall} />
+          </section>
         )}
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
