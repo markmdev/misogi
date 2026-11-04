@@ -231,4 +231,7 @@ export const migrations: string[] = [
   /* 6: the city a person picked for the world map, a key into lib/server/geo/cities.json; nobody has one unless they pick it */ `
   ALTER TABLE users ADD COLUMN city TEXT;
   `,
+  /* 7: the sticker SAM cut from a photo on a log, as JSON (lib/server/stickers.ts); its picture sits beside the photo */ `
+  ALTER TABLE media ADD COLUMN sticker TEXT;
+  `,
 ];

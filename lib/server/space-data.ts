@@ -40,7 +40,7 @@ export type SpaceData = {
     value: number | null;
     label: string | null;
     note: string;
-    photos: { url: string; full: string; width: number | null; height: number | null; caption: string | null }[];
+    photos: { url: string; full: string; width: number | null; height: number | null; caption: string | null; sticker: string | null }[];
   }[];
   generated_at: string;
 };
@@ -111,7 +111,7 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
       note: clean(l.note),
       photos: (media.get(l.id) ?? [])
         .filter((m) => m.kind === "photo")
-        .map((m) => ({ url: m.thumb_url!, full: m.url, width: m.width, height: m.height, caption: clean(m.caption) })),
+        .map((m) => ({ url: m.thumb_url!, full: m.url, width: m.width, height: m.height, caption: clean(m.caption), sticker: m.sticker?.url ?? null })),
     })),
     generated_at: new Date().toISOString(),
   };

@@ -15,6 +15,7 @@ import {
 import { recordActivity } from "./feed";
 import { queueBadge } from "../badges";
 import { attachMedia, dropLogMedia, mediaForLogs, queueCaption } from "../log-media";
+import { queueSticker } from "../stickers";
 import { getUser, publicUser } from "./users";
 
 // ---------- Plans (the curriculum) ----------
@@ -320,6 +321,7 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
     return { log_id: logId, xp, milestones_reached: reached.map((r) => ({ id: r.id, title: r.title })) };
   });
   if (media.length && !note) queueCaption(result.log_id);
+  if (media.length) queueSticker(result.log_id);
   return result;
 }
 

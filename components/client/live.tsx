@@ -75,13 +75,14 @@ export function LivePulse({ slug, stamp, interval = 6000 }: { slug: string; stam
 
 /**
  * Wraps something that can change while the page is open. When it first appears after a live refresh
- * (a new log, a finished quest, a changed number: key it by what changed), it rises in and glows once.
+ * (a new log, a finished quest, a changed number: key it by what changed), it rises in and glows once,
+ * or plays `arrive` instead.
  */
-export function Fresh({ children, className }: { children: ReactNode; className?: string }) {
+export function Fresh({ children, className, arrive = "animate-fresh" }: { children: ReactNode; className?: string; arrive?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    if (settled) ref.current?.classList.add("animate-fresh");
-  }, []);
+    if (settled) ref.current?.classList.add(arrive);
+  }, [arrive]);
   return (
     <div ref={ref} className={className}>
       {children}

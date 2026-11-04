@@ -3,13 +3,13 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { decodeMaskToRaster } from "@meta-sam/parser";
 import sharp from "sharp";
 import { generateImage, outputText, respond, segment, type CallOptions } from "./ai/client";
 import { all, dataDir, one, run } from "./db";
 import { setVirgil, type ChallengeRow } from "./domain/challenges";
 import { queueImageJob } from "./image-jobs";
 import { toWebp } from "./images";
+import { floodFromEdges, samMasks } from "./sam";
 import { AppError, id, nowIso } from "./util";
 
 /** Flat, and far from his beige, white and pink, so the background can't be mistaken for him. */
@@ -106,20 +106,7 @@ async function cutOut(png: Buffer, sam: string): Promise<Buffer> {
   const { data: rgb, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H } = info;
   const solid = new Uint8Array(W * H);
-
-  for (const m of sam.matchAll(/<\|box;x1=(\d+);y1=(\d+);x2=(\d+);y2=(\d+);[^|]*\|><\|mask;[^|]*?data=(\d+),(\d+),([^|]*)\|>/g)) {
-    const [x1, y1, x2, y2, mh, mw] = m.slice(1, 7).map(Number);
-    const payload = m[7];
-    const raster = decodeMaskToRaster({ encoding: payload[0] === "!" ? "one_bit" : "lossless", payload, width: mw, height: mh });
-    const bw = x2 - x1 + 1;
-    const bh = y2 - y1 + 1;
-    const { data: box, info: bi } = await sharp(Buffer.from(raster.map((v) => v * 255)), { raw: { width: mw, height: mh, channels: 1 } })
-      .resize(bw, bh, { fit: "fill" })
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    for (let y = 0; y < bh; y++)
-      for (let x = 0; x < bw; x++) if (box[(y * bw + x) * bi.channels] > 127 && y1 + y < H && x1 + x < W) solid[(y1 + y) * W + x1 + x] = 1;
-  }
+  for (const mask of await samMasks(sam, W, H)) for (let i = 0; i < W * H; i++) solid[i] |= mask[i];
 
   const backdrop = (i: number) =>
     Math.hypot(rgb[i * 3] - BACKDROP.r, rgb[i * 3 + 1] - BACKDROP.g, rgb[i * 3 + 2] - BACKDROP.b) < 26;
@@ -137,36 +124,6 @@ async function cutOut(png: Buffer, sam: string): Promise<Buffer> {
     rgba[i * 4 + 3] = soft[i * si.channels];
   }
   return sharp(rgba, { raw: { width: W, height: H, channels: 4 } }).png().toBuffer();
-}
-
-function floodFromEdges(W: number, H: number, open: (i: number) => boolean): Uint8Array {
-  const seen = new Uint8Array(W * H);
-  // Each pixel goes on the stack at most once, so the stack never outgrows the image.
-  const stack = new Int32Array(W * H);
-  let top = 0;
-  const visit = (i: number) => {
-    if (!seen[i] && open(i)) {
-      seen[i] = 1;
-      stack[top++] = i;
-    }
-  };
-  for (let x = 0; x < W; x++) {
-    visit(x);
-    visit((H - 1) * W + x);
-  }
-  for (let y = 0; y < H; y++) {
-    visit(y * W);
-    visit(y * W + W - 1);
-  }
-  while (top) {
-    const i = stack[--top];
-    const x = i % W;
-    if (x > 0) visit(i - 1);
-    if (x < W - 1) visit(i + 1);
-    if (i >= W) visit(i - W);
-    if (i < W * (H - 1)) visit(i + W);
-  }
-  return seen;
 }
 
 /** On the plain Virgil's canvas: the same height, his feet on the same line, centered where he stands. */

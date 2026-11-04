@@ -76,6 +76,8 @@ export type LogMedia = {
   height: number | null;
   /** What Muse Spark read in the photo, shown as the log's words when it has none. */
   caption: string | null;
+  /** The photo's subject cut out by SAM 3.1 as a sticker, and where it sits over the photo, in fractions of its size. */
+  sticker: { url: string; what: string; x: number; y: number; w: number; h: number } | null;
 };
 
 export type PublicUser = {

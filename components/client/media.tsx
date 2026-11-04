@@ -5,6 +5,7 @@ import { uploadLinkAction } from "@/app/actions";
 import { shortDate } from "@/lib/shared/format";
 import type { LogMedia } from "@/lib/shared/types";
 import { cx, Icon } from "../ui";
+import { Fresh } from "./live";
 import { Sheet } from "./sheet";
 
 const MAX = 4;
@@ -201,7 +202,7 @@ export function LogMediaRow({ media, words, date }: { media: LogMedia[]; words?:
 const WALL_FIRST = 8;
 
 /** Every photo and video on a climb, newest first: the wall, its newest few until someone asks for all. */
-export function PhotoWall({ items }: { items: (LogMedia & { date: string; note: string })[] }) {
+export function PhotoWall({ items }: { items: WallItem[] }) {
   const [open, setOpen] = useState<(typeof items)[number] | null>(null);
   const [all, setAll] = useState(false);
   return (
@@ -223,5 +224,71 @@ export function PhotoWall({ items }: { items: (LogMedia & { date: string; note: 
       )}
       <Viewer item={open} words={open ? open.note || open.caption : null} date={open?.date} onClose={() => setOpen(null)} />
     </>
+  );
+}
+
+type WallItem = LogMedia & { date: string; note: string; label: string | null };
+type Stuck = WallItem & { sticker: NonNullable<LogMedia["sticker"]> };
+
+const STICKERS_FIRST = 12;
+const TILTS = [-6, 4, -3, 6, -5, 3];
+
+/**
+ * The things SAM 3.1 cut out of a climber's photos, as felt stickers, newest first. One that lands while the page
+ * is open shows its photo first, then SAM's cut lights up as the rest dims, lifts off and the photo falls away.
+ */
+export function StickerBoard({ items }: { items: WallItem[] }) {
+  const stuck = items.filter((m): m is Stuck => !!m.sticker);
+  const [open, setOpen] = useState<Stuck | null>(null);
+  const [all, setAll] = useState(false);
+  return (
+    <>
+      <div className="sticker-board flex flex-wrap gap-x-3 gap-y-4 sm:gap-x-7 sm:gap-y-5">
+        {(all ? stuck : stuck.slice(0, STICKERS_FIRST)).map((m) => (
+          <Fresh key={m.id} arrive="sticker-arrive">
+            <Sticker item={m} onOpen={() => setOpen(m)} />
+          </Fresh>
+        ))}
+      </div>
+      {!all && stuck.length > STICKERS_FIRST && (
+        <div className="mt-3 flex justify-center">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAll(true)}>
+            Show all {stuck.length}
+          </button>
+        </div>
+      )}
+      <Viewer item={open} words={open ? open.note || open.caption : null} date={open?.date} onClose={() => setOpen(null)} />
+    </>
+  );
+}
+
+function Sticker({ item, onOpen }: { item: Stuck; onOpen: () => void }) {
+  const { url, what, x, y, w, h } = item.sticker;
+  const shape = ((item.width ?? 1) * w) / ((item.height ?? 1) * h);
+  const tilt = TILTS[[...item.id].reduce((n, ch) => n + ch.charCodeAt(0), 0) % TILTS.length];
+  const name = item.label || what;
+  return (
+    <button type="button" onClick={onOpen} aria-label={`Open the photo of ${name}`} className="group flex w-[var(--cell)] flex-col items-center">
+      <span className="grid size-[var(--cell)] place-items-center">
+        <span className="relative block" style={{ width: `calc(var(--cell) * ${Math.min(1, shape).toFixed(3)})`, aspectRatio: shape }}>
+          <span className="sticker-photo absolute inset-0 overflow-hidden rounded-[10px]">
+            <span
+              className="absolute"
+              style={{
+                left: `${(-x / w) * 100}%`,
+                top: `${(-y / h) * 100}%`,
+                width: `${100 / w}%`,
+                height: `${100 / h}%`,
+                ["--photo" as string]: `url(${item.thumb_url ?? item.url})`,
+              }}
+            />
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt={what} draggable={false} className="sticker-art absolute inset-0 h-full w-full select-none" style={{ ["--tilt" as string]: `${tilt}deg` }} />
+        </span>
+      </span>
+      <span className="mt-2 line-clamp-2 text-center text-[13px] leading-4 font-extrabold text-ink-2 [overflow-wrap:anywhere] first-letter:uppercase">{name}</span>
+      <span className="mt-0.5 text-[12px] font-bold text-ink-3">{shortDate(item.date)}</span>
+    </button>
   );
 }

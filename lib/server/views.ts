@@ -86,7 +86,8 @@ export function pulse(c: Pick<ChallengeRow, "id" | "updated_at">): string {
   const l = one<{ n: number }>("SELECT COUNT(*) n FROM logs WHERE challenge_id = ? AND deleted_at IS NULL", c.id);
   const q = one<{ t: string | null }>("SELECT MAX(COALESCE(completed_at, created_at)) t FROM quests WHERE challenge_id = ?", c.id);
   const ch = one<{ n: number }>("SELECT COUNT(*) n FROM cheers ch JOIN logs l ON l.id = ch.log_id WHERE l.challenge_id = ?", c.id);
-  return [c.updated_at, a?.t, a?.n, s?.t, sp?.t, l?.n, q?.t, ch?.n].join("|");
+  const st = one<{ n: number }>("SELECT COUNT(sticker) n FROM media WHERE challenge_id = ?", c.id);
+  return [c.updated_at, a?.t, a?.n, s?.t, sp?.t, l?.n, q?.t, ch?.n, st?.n].join("|");
 }
 
 /** The climber's page the home page shows as proof of what Muse builds: Amara's bookshelf, from one plain request. */
