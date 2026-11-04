@@ -23,7 +23,7 @@ export const DraftSchema = z.object({
   camps: z
     .array(
       z.object({
-        title: z.string().describe("Camp name in sentence case, max 40 chars, no numbering (e.g. 'First five', not 'Camp 1: First Five')"),
+        title: z.string().describe("Camp name in sentence case, max 40 chars, no numbering, any number in digits as the page writes it (e.g. 'First 5 books', 'Sub-1:45 half', not 'Camp 1: First Five' or 'Summit in one forty five')"),
         detail: z.string().describe("What being here means, one short sentence"),
         target: z.number().describe("Metric value that marks this camp, higher than the camp before it (lower when lower is better)"),
         due_on: z.string().describe("YYYY-MM-DD"),

@@ -64,7 +64,7 @@ const metricSchema = z.object({
 
 const milestoneSchema = z.object({
   id: z.string().optional().describe("Keep an existing camp's id when re-planning so progress carries over"),
-  title: z.string().describe("Camp name, max 80 chars"),
+  title: z.string().describe("Camp name, max 80 chars, any number in digits as the page writes it (\"Sub-1:45 half\", not \"one forty five\")"),
   detail: z.string().optional(),
   target: z.number().nullable().optional().describe("Metric value that marks this camp (it's then marked reached automatically)"),
   due_on: date.nullable().optional(),
