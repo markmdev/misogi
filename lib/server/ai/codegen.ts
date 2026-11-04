@@ -22,7 +22,7 @@ const DATA_CONTRACT = `type SpaceData = {
   };
   facts: null | (same object as member.facts);   // convenience copy; null on the shared page
   members: { handle; name; total; progress: number|null; rank; streak; level }[];   // leaderboard, best first
-  logs: { who; date; value: number|null; label: string|null; note;
+  logs: { who /* the climber's name, as in members[].name: join on it, not on handle */; date; value: number|null; label: string|null; note;
           photos: { url; full; width: number|null; height: number|null; caption: string|null; sticker: string|null }[] }[];  // newest first (max 400)
           // a photo's url is a small copy (up to 640 px), full the whole photo (up to 1600 px), sticker what it shows (the dish, the cake)
           // cut out as a felt sticker, when there is one; all are Misogi paths an <img> can show
