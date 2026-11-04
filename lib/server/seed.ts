@@ -4371,6 +4371,32 @@ function seedFriend(spec: HistorySpec, now: number, counts: Counts): string | nu
   return spec.slug;
 }
 
+type RealCheer = { log_id: string; user_id: string; created_at: string; challenge_id: string; member_id: string; note: string; label: string | null; place: number };
+
+/** Real people's cheers on demo climbers' logs, with where each log stood in its climber's story. */
+function realCheers(): RealCheer[] {
+  return all<RealCheer>(
+    `SELECT ch.log_id, ch.user_id, ch.created_at, l.challenge_id, l.user_id AS member_id, l.note, l.label,
+       (SELECT COUNT(*) FROM logs n WHERE n.challenge_id = l.challenge_id AND n.user_id = l.user_id AND n.deleted_at IS NULL AND n.created_at > l.created_at) AS place
+     FROM cheers ch JOIN logs l ON l.id = ch.log_id JOIN users a ON a.id = l.user_id JOIN users u ON u.id = ch.user_id
+     WHERE a.is_demo = 1 AND u.is_demo = 0`,
+  );
+}
+
+/** Puts each back on the same entry of the climber's new story: the same note or item, else the same place from the end. */
+function keepCheers(cheers: RealCheer[]) {
+  for (const c of cheers) {
+    if (one("SELECT 1 FROM logs WHERE id = ?", c.log_id)) continue;
+    const logs = all<{ id: string; note: string; label: string | null }>(
+      "SELECT id, note, label FROM logs WHERE challenge_id = ? AND user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC",
+      c.challenge_id,
+      c.member_id,
+    );
+    const to = (c.note && logs.find((l) => l.note === c.note)) || (c.label && logs.find((l) => l.label === c.label)) || logs[Math.min(c.place, logs.length - 1)];
+    if (to) exec("INSERT OR IGNORE INTO cheers (log_id, user_id, created_at) VALUES (?, ?, ?)", to.id, c.user_id, c.created_at);
+  }
+}
+
 type Raw = { d: number; value: number | null; label: string | null; note: string | null; hour?: number; long?: boolean };
 
 function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
@@ -4753,6 +4779,7 @@ export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
   const counts = emptyCounts();
   const out: SeedSummary["challenges"] = [];
   tx(() => {
+    const cheers = realCheers();
     if (force) resetDemoHistory();
     const users = new Map<string, SeedUser>();
     for (const u of USERS) users.set(u.handle, upsertUser(u, now));
@@ -4762,6 +4789,7 @@ export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
       out.push({ slug: r.slug, title: spec.title, status: "active", members: r.members });
     }
     for (const spec of FRIENDS) if (seedFriend(spec, now, counts)) out.push({ slug: spec.slug, title: spec.title, status: "active", members: 1 });
+    keepCheers(cheers);
     finishUsers(users, now, counts);
     placeDemoClimbers();
   });

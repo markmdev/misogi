@@ -17,7 +17,7 @@ Judges score Impact 30%, use of Meta's models 25%, technical depth 20%, demo 25%
 ## Before recording
 - In Muse, choose "Always allow this site" so approvals don't interrupt the take.
 - Seeded challenges make the gallery and leaderboards look alive; check `/explore` first.
-- Refresh the demo climbers' history to today so streaks and "active this week" are current (real accounts, spaces and covers are untouched):
+- The demo climbers' history is brought up to today every day at 15:55 UTC, so streaks and "active this week" stay current (real accounts, their logs and cheers, spaces and covers are untouched). To refresh it right before a take:
   `curl -s -X POST https://<host>/api/admin/seed -H "x-admin-key: $ADMIN_KEY" -d '{"force":true}'`
 - Check every model job once: `curl -s -X POST https://<host>/api/admin/ai-check -H "x-admin-key: $ADMIN_KEY"`
 - Record Try it without Muse (the button on any page) as the preview for people without Muse.
