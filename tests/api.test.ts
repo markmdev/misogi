@@ -157,6 +157,38 @@ describe("a full climb over the HTTP API", () => {
     expect(JSON.stringify(feed.body)).toContain("checked in");
   });
 
+  test("a time goal reaches each camp once a logged time is at or under it", async () => {
+    const c = await tool(alice.key, "create_challenge", {
+      title: `Swim 1500m under 30 minutes ${run}`,
+      tagline: "Lower is better.",
+      metric: { name: "1500m time", unit: "min", target: 30, aggregation: "latest", direction: "down" },
+      category: "fitness",
+      emoji: "swimming",
+      theme: "sky",
+    });
+    expect(c.status).toBe(200);
+    const swim = c.body.slug;
+    await tool(alice.key, "set_plan", {
+      challenge: swim,
+      summary_md: "Steady laps, one timed swim a week.",
+      cadence: "3 swims a week",
+      milestones: [
+        { title: "Under 38", target: 38 },
+        { title: "Under 36", target: 36 },
+        { title: "Summit", target: 30, emoji: "summit" },
+      ],
+      reason: "first plan",
+    });
+    const note = await tool(alice.key, "log_progress", { challenge: swim, note: "Drills only, no timed swim" });
+    expect(note.body.milestones_reached).toHaveLength(0);
+    const first = await tool(alice.key, "log_progress", { challenge: swim, value: 37 });
+    expect(first.body.milestones_reached.map((m: { title: string }) => m.title)).toEqual(["Under 38"]);
+    const slower = await tool(alice.key, "log_progress", { challenge: swim, value: 39 });
+    expect(slower.body.milestones_reached).toHaveLength(0);
+    const exact = await tool(alice.key, "log_progress", { challenge: swim, value: 36 });
+    expect(exact.body.milestones_reached.map((m: { title: string }) => m.title)).toEqual(["Under 36"]);
+  });
+
   test("permissions: outsiders can't log, members can't change the shared page", async () => {
     bob = await signup(`Bob ${run}`);
     const outsider = await tool(bob.key, "log_progress", { challenge: slug, value: 1 });

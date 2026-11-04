@@ -117,19 +117,21 @@ export function setPlan(
   });
 }
 
-/** Marks numeric camps as reached once the member's total passes their target. */
+/** Marks numeric camps as reached once the member's total passes their target, or, when lower is better, once their best time is at or under it. */
 function autoReachMilestones(c: ChallengeRow, userId: string): Milestone[] {
   const plan = one<PlanRow>("SELECT * FROM plans WHERE challenge_id = ? AND user_id = ? ORDER BY version DESC LIMIT 1", c.id, userId);
   if (!plan) return [];
   const milestones = parseJson<Milestone[]>(plan.milestones_json, []);
   const metric = metricOf(c);
-  if (metric.direction === "down") return [];
-  const total = aggregate(memberLogs(c.id, userId), metric);
+  const logs = memberLogs(c.id, userId);
+  const down = metric.direction === "down";
+  const times = logs.flatMap((l) => (l.value == null ? [] : [l.value]));
+  const total = down ? (times.length ? Math.min(...times) : null) : aggregate(logs, metric);
   // Camps are reached in order: one the number can't reach yet holds back the ones after it.
   const reached: Milestone[] = [];
   for (const m of milestones) {
     if (m.done_at) continue;
-    if (m.target == null || total < m.target) break;
+    if (m.target == null || total == null || (down ? total > m.target : total < m.target)) break;
     m.done_at = nowIso();
     reached.push(m);
   }
