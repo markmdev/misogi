@@ -4024,13 +4024,13 @@ const FRIENDS: HistorySpec[] = [
     slug: "break-1000-elo-in-chess",
     title: "Break 1000 Elo in chess",
     practice: ["Twenty tactics puzzles.", "Reviewed yesterday's losses with the engine.", "Two 15-minute games, then a review.", "Endgame drill: ten king and pawn positions.", "Opening review: five lines of the Italian.", "Puzzles only today, no rated games."],
-    metric: { name: "online chess rating", unit: "elo", target: 1100, aggregation: "latest" },
+    metric: { name: "online chess rating", unit: "elo", target: 1000, aggregation: "latest" },
     camps: [
       { title: "Reach 600 Elo", detail: "Opening basics solid and rating stable online.", target: 600, week: 4, emoji: "camp" },
       { title: "Reach 750 Elo", detail: "Tactics and hanging pieces cleaned up.", target: 750, week: 13, emoji: "target" },
       { title: "Reach 850 Elo", detail: "Consistent plans and cleaner endgames.", target: 850, week: 26, emoji: "chart" },
       { title: "Reach 950 Elo", detail: "Near goal, beating 900s regularly.", target: 950, week: 39, emoji: "trophy" },
-      { title: "Break 1100 Elo", detail: "Peak over 1000 and hold it.", target: 1100, week: 52, emoji: "crown" },
+      { title: "Break 1000 Elo", detail: "Peak over 1000 and hold it.", target: 1000, week: 52, emoji: "crown" },
     ],
     members: [
       {
