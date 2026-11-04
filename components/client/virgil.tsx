@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { cx, Mascot } from "../ui";
 import { Sheet } from "./sheet";
 import { Spinner } from "./space-frame";
+import { MisogiWord } from "./misogi-word";
 
 type Step = { name: string; label: string; status: "running" | "ok" | "error"; error?: string };
 type Msg = { role: "user" | "assistant"; text: string; steps?: Step[] };
@@ -186,7 +187,7 @@ export function Virgil({
           <div className="flex flex-col items-center py-4 text-center">
             <Mascot pose="wave" size={110} />
             <p className="mt-3 max-w-sm text-[15px] leading-6 text-ink-2">
-              I&apos;m Virgil, Misogi&apos;s built-in guide. Start a challenge and I&apos;ll plan it with you, log your progress and build your page.
+              I&apos;m Virgil, <MisogiWord>Misogi</MisogiWord>&apos;s built-in guide. Start a challenge and I&apos;ll plan it with you, log your progress and build your page.
             </p>
             <Link href="/start" className="btn mt-5">
               Start yours

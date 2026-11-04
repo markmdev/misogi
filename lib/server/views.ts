@@ -89,7 +89,7 @@ export function pulse(c: Pick<ChallengeRow, "id" | "updated_at">): string {
   return [c.updated_at, a?.t, a?.n, s?.t, sp?.t, l?.n, q?.t, ch?.n].join("|");
 }
 
-/** The climber's page the home page shows as proof of what Muse builds: Helen's wedding scrapbook. */
+/** The climber's page the home page shows as proof of what Muse builds: Amara's bookshelf, from one plain request. */
 const SHOWCASE = { slug: "read-25-books", handle: "amara" };
 
 export function showcaseView() {

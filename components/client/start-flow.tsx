@@ -12,6 +12,7 @@ import { cx, Icon, IconTile, Mascot } from "../ui";
 import { ConnectPanel } from "./connect";
 import { LINE } from "./start-box";
 import { Spinner } from "./space-frame";
+import { MisogiWord } from "./misogi-word";
 
 type Draft = {
   title: string;
@@ -124,7 +125,9 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
         <section className="animate-rise">
           <div className="flex flex-col items-center text-center">
             <Mascot pose="wave" size={110} />
-            <h1 className="mt-2 text-[30px] leading-9 text-ink">What&apos;s your misogi?</h1>
+            <h1 className="mt-2 text-[30px] leading-9 text-ink">
+              What&apos;s your <MisogiWord side="above">misogi</MisogiWord>?
+            </h1>
             <p className="mt-2 text-[16px] leading-6 text-ink-2">One hard thing you want to do this year. Say it in your own words.</p>
           </div>
           <form
@@ -293,7 +296,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             See my page
           </button>
           <p className="mt-3 text-center text-[13px] text-ink-3">
-            No AI handy? Tap <b>Ask Virgil</b> on your page and Misogi&apos;s own guide takes it from there.
+            No AI handy? Tap <b>Ask Virgil</b> on your page and <MisogiWord>Misogi</MisogiWord>&apos;s own guide takes it from there.
           </p>
           <div className="mt-6">
             <ConnectPanel origin={origin} title={draft?.title} connectCode={created.connectCode} initialStatus={null} />
@@ -353,7 +356,7 @@ function DraftYear({
           <IconTile name={draft.icon} size={64} bg="#fff" className="animate-pop" />
           <div className="min-w-0 flex-1">
             <div className="label" style={{ color: pal.deep }}>
-              Your misogi
+              Your <MisogiWord>misogi</MisogiWord>
             </div>
             <textarea
               value={draft.title}

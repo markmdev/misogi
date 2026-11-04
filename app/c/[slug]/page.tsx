@@ -16,6 +16,7 @@ import { challengeView, pulse } from "@/lib/server/views";
 import { firstName, foldRepeats, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { coverLoop } from "@/lib/shared/art";
 import { palette } from "@/lib/shared/theme";
+import { MisogiWord } from "@/components/client/misogi-word";
 
 export const dynamic = "force-dynamic";
 
@@ -189,7 +190,9 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
             <section>
               <SectionTitle title="How it could go" icon="map" />
               <div className="card prose-misogi p-5 text-[15px] leading-7 text-ink-2">
-                {c.description_md ? <TemplateText text={c.description_md} /> : <p>Make it yours: Misogi drafts the camps from your own one-line version.</p>}
+                {c.description_md ? <TemplateText text={c.description_md} /> : <p>
+                    Make it yours: <MisogiWord>Misogi</MisogiWord> drafts the camps from your own one-line version.
+                  </p>}
               </div>
             </section>
           )}

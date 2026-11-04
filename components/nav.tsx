@@ -2,6 +2,7 @@ import Link from "next/link";
 import { type ReactNode, ViewTransition } from "react";
 import type { UserRow } from "@/lib/server/auth";
 import { Avatar, cx, Icon } from "./ui";
+import { MisogiWord } from "./client/misogi-word";
 
 export function Logo({ className }: { className?: string }) {
   return (
@@ -52,7 +53,9 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-[14px] text-ink-2 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex items-center gap-2">
           <Icon name="summit" size={24} />
-          <span className="font-display font-semibold text-ink">misogi</span>
+          <span className="font-display font-semibold text-ink">
+            <MisogiWord />
+          </span>
           <span>· one hard thing this year</span>
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2">

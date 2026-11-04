@@ -11,6 +11,7 @@ import { siteFeed } from "@/lib/server/domain/feed";
 import { showcaseView } from "@/lib/server/views";
 import { firstName, foldRepeats } from "@/lib/shared/format";
 import { SCENES } from "@/lib/shared/art";
+import { MisogiWord } from "@/components/client/misogi-word";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export default async function Home() {
               <div className="relative rounded-[32px] bg-cream px-5 pt-14 pb-7 max-[239px]:px-3 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pb-9">
                 <h1 className="text-center text-[34px] leading-[40px] text-ink sm:text-[46px] sm:leading-[52px]">One hard thing this year.</h1>
                 <p className="mx-auto mt-3 max-w-lg text-center font-display text-[19px] leading-[26px] font-semibold text-ink sm:text-[21px] sm:leading-7">
-                  Misogi turns your{" "}
+                  <MisogiWord side="above">Misogi</MisogiWord> turns your{" "}
                   <span className="whitespace-nowrap">
                     <Icon name="orb" size={36} eager className="-my-2 -mr-1 -ml-1.5 inline-block align-middle" />
                     Muse
@@ -151,7 +152,7 @@ export default async function Home() {
                 <h2 className="text-[26px] leading-8 text-ink">Your Muse already knows you. Now it&apos;s your guide.</h2>
                 <p className="mt-3 text-[16px] leading-7 text-ink-2">
                   Connect Meta&apos;s Muse with one message. It reads your plan, checks in when you go quiet, logs what you tell it, and
-                  redesigns your page when you ask. No Muse? Virgil, Misogi&apos;s own guide, does the same right here.
+                  redesigns your page when you ask. No Muse? Virgil, <MisogiWord>Misogi</MisogiWord>&apos;s own guide, does the same right here.
                 </p>
                 <ul className="mt-5 flex flex-col gap-2.5">
                   {MODELS.map((m) => (
@@ -221,7 +222,9 @@ export default async function Home() {
           <section className="mx-auto mt-14 max-w-6xl px-4 sm:px-6">
             <div className="flex flex-col items-center rounded-[32px] bg-coral-soft px-6 py-10 text-center">
               <Mascot pose="cheer" size={110} alt="" />
-              <h2 className="mt-2 text-[28px] leading-9 text-ink">What&apos;s your misogi?</h2>
+              <h2 className="mt-2 text-[28px] leading-9 text-ink">
+                What&apos;s your <MisogiWord>misogi</MisogiWord>?
+              </h2>
               <p className="mt-2 max-w-md text-[16px] text-ink-2">The year goes by either way. Pick the one thing you&apos;ll be glad you did.</p>
               <Link href="/start" className="btn mt-6">
                 Plan my year
