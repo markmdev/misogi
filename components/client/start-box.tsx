@@ -185,8 +185,8 @@ export function StartBox({ examples, chips }: { examples: string[]; chips: MuseC
           {[0, 1].map((r) => {
             const row = chips.filter((_, i) => i % 2 === r);
             return (
-              <div key={r} className="overflow-x-clip py-1">
-                {/* Two copies of the row, so it loops without a seam; the second is for the eye only. */}
+              <div key={r} className="scrollbar-none overflow-x-auto py-1" onFocus={(e) => e.target.matches(":focus-visible") && e.target.scrollIntoView({ block: "nearest", inline: "center" })}>
+                {/* Two copies of the row, so it loops without a seam; the second is for the eye only, and goes when nothing moves. A swipe or a key reaches a chip past the edge. */}
                 <div className={cx("muse-chips-row flex w-max gap-2 pr-2", r === 1 && "muse-chips-back")} style={{ ["--n" as string]: row.length }}>
                   {[0, 1].map((copy) =>
                     row.map((c) => {
@@ -200,7 +200,7 @@ export function StartBox({ examples, chips }: { examples: string[]; chips: MuseC
                           style={travels(key)}
                           aria-hidden={copy === 1 || undefined}
                           tabIndex={copy === 1 ? -1 : undefined}
-                          className="chip muse-chip"
+                          className={cx("chip muse-chip", copy === 1 && "motion-reduce:hidden")}
                         >
                           <LiveMascot loop={`/art/motion/virgils/chip/${virgilLoop(c.muse)}`} still={c.muse} size={36} alt="" release />
                           {c.title}

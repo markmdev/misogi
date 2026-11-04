@@ -233,6 +233,8 @@
   .muse-chips:hover .muse-chips-row,
   .muse-chips:active .muse-chips-row,
   .muse-chips:focus-within .muse-chips-row { animation-play-state: paused; }
+  /* A chip reached by keyboard brings its row back to the start, where every chip it can focus is. */
+  .muse-chips-row:has(:focus-visible) { animation: none; }
   @media (prefers-reduced-motion: reduce) { .muse-chips-row { animation: none; } }
 
   /* Placeholder for text that is still being written; .skel-live while it's being worked on. */
