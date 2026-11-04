@@ -386,7 +386,7 @@ function readInPhoto(l: { media: { caption: string | null }[] }) {
 function sourceLabel(source: string, agentName: string | null) {
   switch (source) {
     case "muse":
-      return agentName ? `${agentName} (Muse)` : "Muse";
+      return agentName && agentName.toLowerCase() !== "muse" ? `${agentName} (Muse)` : "Muse";
     case "mcp":
       return agentName ?? "MCP agent";
     case "agent":
