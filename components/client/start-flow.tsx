@@ -460,7 +460,7 @@ function DraftYear({
       </div>
 
       <ClimbCard theme={draft.theme} className={CLIMB_CELL}>
-        <CampPath milestones={camps} accent={pal.accent} deep={pal.deep} tint={pal.tint} total={0} unit={draft.metric.unit} revealAt={at.camps} />
+        <CampPath milestones={camps} accent={pal.accent} deep={pal.deep} tint={pal.tint} total={0} unit={draft.metric.unit} direction={draft.metric.direction} revealAt={at.camps} />
       </ClimbCard>
 
       <div>

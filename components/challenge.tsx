@@ -3,7 +3,7 @@ import { ViewTransition } from "react";
 import { coverLoop, SCENES, smallCopy } from "@/lib/shared/art";
 import { activityText, firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
-import type { ActivityItem, ChallengeSummary, Metric, Milestone, Standing } from "@/lib/shared/types";
+import type { ActivityItem, ChallengeSummary, Direction, Metric, Milestone, Standing } from "@/lib/shared/types";
 import { LiveCover } from "./client/alive";
 import { IntentLink } from "./client/intent-link";
 import { Fresh } from "./client/live";
@@ -207,6 +207,7 @@ export function CampPath({
   tint,
   total,
   unit,
+  direction,
   revealAt,
 }: {
   milestones: Milestone[];
@@ -215,6 +216,7 @@ export function CampPath({
   tint: string;
   total: number;
   unit: string;
+  direction: Direction;
   revealAt?: number;
 }) {
   if (milestones.length === 0) return null;
@@ -303,7 +305,7 @@ export function CampPath({
                 {m.target != null && m.due_on ? " · " : ""}
                 {m.due_on ? `by ${shortDate(m.due_on, isSummit)}` : ""}
               </div>
-              {state === "next" && m.target != null && (
+              {state === "next" && m.target != null && direction === "up" && (
                 <div className="mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-[12px] font-extrabold" style={{ background: tint, color: deep }}>
                   {withUnit(Math.max(0, Math.round((m.target - total) * 10) / 10), unit)} to go
                 </div>
