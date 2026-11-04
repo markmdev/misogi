@@ -89,7 +89,7 @@ Design (unless the request asks for a different feel):
 - Use the clay icons as friendly accents (40–64 px), not as decoration everywhere.
 - Copy: short, plain and specific. Use the person's first name. No filler, no lorem ipsum, no motivational clichés. Counts read
   right: "1 day", "2 days", never "1 days". challenge.metric.unit is a plural word ("meals", "books"): next to 1 write its singular
-  ("1 meal", "1 book"), while units like km or min stay as they are. A zero streak reads "no streak yet", never "0 day streak". A count its label already names is a bare number ("9" over "Reading days"),
+  ("1 meal", "1 book"), while units like km or min stay as they are. A zero streak reads "no streak yet" only for someone with no logs at all, and "no streak right now" once they've logged; never "0 day streak". A count its label already names is a bare number ("9" over "Reading days"),
   never with a unit letter or a stray "s".
 - Accessible: semantic HTML, alt text, contrast at least 4.5:1 for text.
 - Small delightful details beat many features: one great visualization of their progress, then the details that make it theirs.`;
