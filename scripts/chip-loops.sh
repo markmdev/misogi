@@ -8,6 +8,7 @@ for src in *.webm; do
   out=chip/${src%.webm}
   [[ -f $out.webm && -f $out.mov ]] && continue
   ffmpeg -v error -y -c:v libvpx-vp9 -i $src -vf "scale=112:112:flags=lanczos,format=yuva420p" -c:v libvpx-vp9 -b:v 0 -crf 44 -row-mt 1 -an $out.webm
-  # Safari composites HEVC alpha as premultiplied.
-  ffmpeg -v error -y -c:v libvpx-vp9 -i $src -vf "scale=112:112:flags=lanczos,format=rgba,premultiply=inplace=1,format=bgra" -c:v hevc_videotoolbox -q:v 40 -alpha_quality 0.5 -tag:v hvc1 -an $out.mov
+  # Safari composites HEVC alpha as premultiplied. At this size a lossy alpha leaves faint grey blocks beside the Muse
+  # on the chip's white, so the alpha is kept at full quality.
+  ffmpeg -v error -y -c:v libvpx-vp9 -i $src -vf "scale=112:112:flags=lanczos,format=rgba,premultiply=inplace=1,format=bgra" -c:v hevc_videotoolbox -q:v 40 -alpha_quality 1 -tag:v hvc1 -an $out.mov
 done
