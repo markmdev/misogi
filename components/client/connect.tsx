@@ -115,7 +115,7 @@ Then ask me your first question.`;
           <Icon name="check" size={40} className="animate-pop [animation-delay:150ms]" />
           <div className="min-w-0">
             <div className="font-display text-[18px] leading-6 font-semibold text-moss-deep">
-              {status.agent_name ? `${status.agent_name} is your guide` : "Your AI is connected"}
+              {status.agent_kind === "muse" ? (status.agent_name && status.agent_name.toLowerCase() !== "muse" ? `${status.agent_name} is your Muse` : "Your Muse is connected") : status.agent_name ? `${status.agent_name} is your coach` : "Your AI is connected"}
             </div>
             <div className="text-[13px] leading-5 font-bold text-moss-deep/75">
               Last seen {timeAgo(status.agent_seen_at)}

@@ -1,5 +1,5 @@
 // Every action an agent can take, defined once. The REST API, the MCP server and
-// Virgil (the built-in guide) are thin adapters over this list.
+// the preview of Muse for people without it (lib/server/ai/virgil.ts) are thin adapters over this list.
 
 import { z } from "zod";
 import { activityText } from "@/lib/shared/format";
@@ -383,7 +383,7 @@ export const TOOLS = [
     label: "Saving preferences",
     writes: true,
     description:
-      "Update the person's profile: display name, motivation style (how they like to be pushed, in a sentence), IANA time zone, and agent_name (YOUR name, shown on their page as their guide).",
+      "Update the person's profile: display name, motivation style (how they like to be pushed, in a sentence), IANA time zone, and agent_name (YOUR name, shown on their page as their coach).",
     input: z.object({
       display_name: z.string().optional(),
       motivation_style: z.string().optional(),

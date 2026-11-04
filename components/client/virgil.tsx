@@ -74,6 +74,7 @@ export function Virgil({
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [tucked, setTucked] = useState(false);
+  const [folded, setFolded] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   const t = challenge ? `c:${challenge}` : thread;
@@ -86,13 +87,17 @@ export function Virgil({
     el.style.height = `${Math.min(el.scrollHeight + 2, 128)}px`;
   }, [input, open]);
 
-  // On phones it covers the right edge of the page, so it steps aside while they read down.
+  // While they read down the page it gets out of the way: on a phone it folds to the mascot until they scroll back up
+  // or reach the top; on wider screens, with room beside the column, it steps aside.
   useEffect(() => {
     let last = window.scrollY;
+    const phone = window.matchMedia("(max-width: 639px)");
     const onScroll = () => {
       const y = window.scrollY;
       if (Math.abs(y - last) < 8) return;
-      setTucked(y > last && y > 120);
+      const down = y > last && y > 120;
+      if (phone.matches) setFolded(down);
+      else setTucked(down);
       last = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -131,7 +136,7 @@ export function Virgil({
       });
       if (!res.ok || !res.body) {
         const err = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
-        update((l) => ({ ...l, text: err?.error?.message ?? "Virgil couldn't answer right now." }));
+        update((l) => ({ ...l, text: err?.error?.message ?? "That didn't go through. Try again." }));
         return;
       }
       const reader = res.body.getReader();
@@ -172,22 +177,29 @@ export function Virgil({
       <button
         onClick={() => setOpen(true)}
         className={cx(
-          "fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white p-1.5 pr-4 shadow-[var(--shadow-float)] ring-1 ring-line transition duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
+          "fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center rounded-full bg-white p-1.5 shadow-[var(--shadow-float)] ring-1 ring-line transition duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
           tucked ? "pointer-events-none translate-y-24 opacity-0" : "hover:-translate-y-0.5",
         )}
-        aria-label="Ask Virgil"
+        aria-label="Try it without Muse"
       >
         <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-cream-2">
           <Mascot pose="idle" src={look} size={40} alt="" />
         </span>
-        <span className="font-display text-[16px] font-semibold text-ink">Ask Virgil</span>
+        <span
+          className={cx(
+            "overflow-hidden transition-[max-width,opacity] duration-200 ease-out motion-reduce:transition-none",
+            folded ? "max-w-0 opacity-0" : "max-w-56 opacity-100",
+          )}
+        >
+          <span className="block pr-2.5 pl-2 font-display text-[16px] font-semibold whitespace-nowrap text-ink">Try it without Muse</span>
+        </span>
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title="Virgil" wide>
+      <Sheet open={open} onClose={() => setOpen(false)} title="Try it without Muse" wide>
         {!signedIn ? (
           <div className="flex flex-col items-center py-4 text-center">
             <Mascot pose="wave" size={110} />
             <p className="mt-3 max-w-sm text-[15px] leading-6 text-ink-2">
-              I&apos;m Virgil, <MisogiWord>Misogi</MisogiWord>&apos;s built-in guide. Start a challenge and I&apos;ll plan it with you, log your progress and build your page.
+              A preview of what your Muse does on <MisogiWord>Misogi</MisogiWord>, no app needed. Start a challenge and I&apos;ll plan it with you, log your progress and build your page.
             </p>
             <Link href="/start" className="btn mt-5">
               Start yours
@@ -281,7 +293,7 @@ export function Virgil({
                 }}
                 rows={1}
                 maxLength={4000}
-                placeholder="Tell Virgil what happened…"
+                placeholder="Tell me what happened…"
                 className="input h-auto max-h-32 min-h-[52px] flex-1 resize-none py-3.5 leading-6"
               />
               <button className="btn h-[52px] w-[52px] shrink-0 !px-0" disabled={busy || !input.trim()} aria-label="Send">
