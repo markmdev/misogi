@@ -29,6 +29,12 @@ export function MuseLogo({ size = 20, className }: { size?: number; className?: 
   return <img src="/art/brand/muse.svg" alt="" width={size} height={size} className={cx("inline-block shrink-0 select-none", className)} draggable={false} />;
 }
 
+/** Who guides a climber: Muse's own logo for Muse, the camp for a try without Muse, the orb for any other AI. */
+export function GuideIcon({ kind, size }: { kind: string | null | undefined; size: number }) {
+  if (kind === "muse") return <MuseLogo size={size - 2} />;
+  return <Icon name={kind === "virgil" ? "camp" : "orb"} size={size} />;
+}
+
 export function Mascot({
   pose = "idle",
   size = 120,
