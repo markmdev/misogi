@@ -90,6 +90,9 @@ export function Sounds() {
     let mouseDownAt = 0;
 
     const target = (e: Event) => (e.target instanceof Element ? e.target.closest(TARGET) : null);
+    // Browsers let a page make sound only once the visitor has clicked or pressed a key on it, a click inside a person's
+    // page in a frame included, which never reaches these listeners.
+    const allowed = () => woke || navigator.userActivation?.hasBeenActive;
     const wake = () => {
       woke = true;
       void audio()?.resume().catch(() => {});
@@ -111,10 +114,11 @@ export function Sounds() {
       const el = target(e);
       if (el === over) return;
       over = el;
-      if (!el || e.pointerType !== "mouse" || !woke || calm.matches) return;
+      if (!el || e.pointerType !== "mouse" || !allowed() || calm.matches) return;
       const now = performance.now();
       if (now - scrolled < 250 || now - lastTick < 45) return;
       lastTick = now;
+      if (!woke) wake();
       play(tick, false);
     };
     const onScroll = () => {
