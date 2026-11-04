@@ -29,7 +29,7 @@ What happens:
 
 1. `git archive` of the commit is uploaded to a new release folder. Uncommitted changes never ship; the script warns if you have any.
 2. The server runs `bun install --frozen-lockfile` and `bun run build`. If either fails, the live site isn't touched.
-3. The `/srv/misogi/app` symlink switches to the new release and the service restarts.
+3. The `/srv/misogi/app` symlink switches to the new release and the service restarts. The old server keeps serving until the page builds, pictures, uploads and answers it has in progress are finished, up to 10 minutes, so a deploy never cuts one off.
 4. The script checks the app on the server, then `https://<host>/` and `/api/health` from your machine. If a check fails, it switches back to the previous release.
 
 It takes about 20 seconds when `bun.lock` hasn't changed and a minute or two when it has. The last 5 releases are kept.

@@ -2,6 +2,7 @@ import { currentUser } from "@/lib/server/auth";
 import { runVirgil, threadHistory, type VirgilEvent } from "@/lib/server/ai/virgil";
 import { errorJson, json, originOf, rateLimit } from "@/lib/server/http";
 import { AppError } from "@/lib/server/util";
+import { finishBeforeExit } from "@/lib/server/unfinished";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +21,9 @@ export async function POST(req: Request) {
       async start(controller) {
         const emit = (e: VirgilEvent) => controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
         try {
-          await runVirgil(user, { thread, message: String(body.message ?? ""), challenge, origin }, emit);
+          await finishBeforeExit(runVirgil(user, { thread, message: String(body.message ?? ""), challenge, origin }, emit));
         } catch (e) {
-          emit({ type: "error", message: e instanceof AppError ? e.message : "Virgil hit a snag. Try again." });
+          emit({ type: "error", message: e instanceof AppError ? e.message : "Something went wrong. Try again." });
           if (!(e instanceof AppError)) console.error("[virgil]", e);
         } finally {
           controller.close();

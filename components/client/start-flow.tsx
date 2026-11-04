@@ -149,7 +149,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             />
             {error && <p className="text-[14px] font-bold text-coral-deep">{error}</p>}
             <button className="btn" disabled={idea.trim().length < 3}>
-              Plan my year
+              Start my climb
             </button>
           </form>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -216,7 +216,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
       {step === "style" && (
         <section className="animate-rise">
           <div className="text-center">
-            <h2 className="text-[26px] leading-8 text-ink">How should your guide talk to you?</h2>
+            <h2 className="text-[26px] leading-8 text-ink">How should your Muse talk to you?</h2>
             <p className="mt-2 text-[15px] text-ink-2">Pick one in each, the message you&apos;d rather get.</p>
           </div>
           {!pairs ? (
@@ -241,8 +241,8 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                         style={choices[i] === k ? { ["--tw-ring-color" as string]: pal.accent } : undefined}
                       >
                         <span className="flex h-6 items-center gap-2 text-[12px] font-extrabold tracking-wide text-ink-3 uppercase">
-                          <Icon name="summit" size={20} />
-                          Your guide
+                          <Icon name="orb" size={20} />
+                          Muse
                           {choices[i] === k ? <Icon name="check" size={22} className="ml-auto animate-pop" /> : <span className="ml-auto font-bold tracking-normal normal-case">now</span>}
                         </span>
                         <span className="mt-1.5 block text-[15px] leading-6 text-ink">{p[k]}</span>
@@ -303,7 +303,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             See my page
           </button>
           <p className="mt-3 text-center text-[13px] text-ink-3">
-            No AI handy? Tap <b>Ask Virgil</b> on your page and <MisogiWord>Misogi</MisogiWord>&apos;s own guide takes it from there.
+            No Muse handy? Tap <b>Try it without Muse</b> on your page for a preview of what it does.
           </p>
           <div className="mt-6">
             <ConnectPanel origin={origin} title={draft?.title} connectCode={created.connectCode} initialStatus={null} />
@@ -423,7 +423,7 @@ function DraftYear({
 
       <div className="animate-rise" style={after(at.quests + 80 + draft.first_quests.length * 110 + 60)}>
         <p className="text-[14px] leading-6 text-ink-2">
-          This is a first draft. Your guide tunes it to your life after a short chat.
+          This is a first draft. Your Muse tunes it to your life after a short chat.
         </p>
         <div className="mt-4 flex gap-3">
           <button className="btn btn-ghost flex-1" onClick={onRetry}>

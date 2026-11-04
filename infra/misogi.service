@@ -16,10 +16,13 @@ Group=misogi
 WorkingDirectory=/srv/misogi/app
 EnvironmentFile=/etc/misogi/env
 Environment=NEXT_TELEMETRY_DISABLED=1
+# A stop first lets page builds, pictures, uploads and answers in progress finish (instrumentation.ts). Live page
+# builds took 1.5 minutes on average and 5 at most, so the stop waits up to ten.
+Environment=NEXT_MANUAL_SIG_HANDLE=true
 ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1
 Restart=always
 RestartSec=3
-TimeoutStopSec=20
+TimeoutStopSec=600
 # Node exits with 143 on SIGTERM; that's a clean stop, not a failure.
 SuccessExitStatus=143
 UMask=0027

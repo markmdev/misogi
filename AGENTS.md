@@ -14,6 +14,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Secrets** live only in `.env.local` (git-ignored) and `/etc/misogi/env` on the server. Never write a key, password or token into code, docs, commits, logs or chat.
 - **Before you call a change done:** `bun run typecheck && bun run lint && bun test`, with `bun dev` running on :3000.
 - **Database work runs inside the Next server.** better-sqlite3 doesn't load under Bun, so scripts are HTTP calls to admin routes in `app/api/admin/`, and `bun test` only talks HTTP.
-- **One tool registry** (`lib/server/tools.ts`) drives the HTTP API, MCP and Virgil. Change agent abilities there so all three stay the same.
+- **One tool registry** (`lib/server/tools.ts`) drives the HTTP API, MCP and the preview without Muse (`lib/server/ai/virgil.ts`). Change agent abilities there so all three stay the same.
 - **Ship only merged `main`** with `scripts/deploy.sh`.
 - **Everything reaches `main` by pull request.** Nobody force-pushes `main`.
