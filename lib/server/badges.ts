@@ -7,6 +7,7 @@ import { generateImage } from "./ai/client";
 import { dataDir, one, run } from "./db";
 import { toWebp } from "./images";
 import { id, nowIso, parseJson } from "./util";
+import { finishBeforeExit } from "./unfinished";
 
 type Job = { challengeId: string; userId: string; milestoneId: string };
 
@@ -28,12 +29,14 @@ function pump() {
   while (queue.running < 2 && queue.waiting.length) {
     const job = queue.waiting.shift()!;
     queue.running++;
-    void make(job)
-      .catch((e) => console.error("[badge] failed", e instanceof Error ? e.message : e))
-      .finally(() => {
-        queue.running--;
-        pump();
-      });
+    void finishBeforeExit(
+      make(job)
+        .catch((e) => console.error("[badge] failed", e instanceof Error ? e.message : e))
+        .finally(() => {
+          queue.running--;
+          pump();
+        }),
+    );
   }
 }
 

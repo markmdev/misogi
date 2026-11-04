@@ -5,6 +5,7 @@ import type { UserRow } from "./auth";
 import { getChallenge, metricOf } from "./domain/challenges";
 import { addQuests, currentPlan, setPlan } from "./domain/progress";
 import { dateIn } from "./util";
+import { finishBeforeExit } from "./unfinished";
 
 const state = globalThis as unknown as { __starting?: Set<string> };
 const inFlight = () => (state.__starting ??= new Set());
@@ -14,7 +15,7 @@ export function queueStarterPlan(user: UserRow, slug: string) {
   const key = `${user.id}:${slug}`;
   if (inFlight().has(key)) return;
   inFlight().add(key);
-  void (async () => {
+  void finishBeforeExit((async () => {
     try {
       const c = getChallenge(slug);
       if (currentPlan(c.id, user.id)) return;
@@ -38,5 +39,5 @@ export function queueStarterPlan(user: UserRow, slug: string) {
     } finally {
       inFlight().delete(key);
     }
-  })();
+  })());
 }

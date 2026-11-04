@@ -13,6 +13,7 @@ import { modelFor, outputText, respond } from "./ai/client";
 import { rateLimit } from "./http";
 import { deleteObject, getObject, putObject } from "./storage";
 import { AppError, id, nowIso } from "./util";
+import { finishBeforeExit } from "./unfinished";
 
 const MB = 1024 * 1024;
 const PHOTO_MAX = 25 * MB;
@@ -292,7 +293,7 @@ export function attachMedia(userId: string, challengeId: string, logId: string, 
 
 /** A log with photos and no words gets its words from the first photo, read by Muse Spark. */
 export function queueCaption(logId: string) {
-  void caption(logId).catch((e) => console.error(`[caption:${logId}]`, e instanceof AppError ? e.message : e));
+  void finishBeforeExit(caption(logId)).catch((e) => console.error(`[caption:${logId}]`, e instanceof AppError ? e.message : e));
 }
 
 async function caption(logId: string) {

@@ -2,6 +2,7 @@
 // Never blocks a request.
 
 import { AppError } from "./util";
+import { finishBeforeExit } from "./unfinished";
 
 const CONCURRENCY = 2;
 
@@ -30,13 +31,15 @@ function pump() {
     const job = q.waiting.shift()!;
     q.running++;
     q.active.add(job.key);
-    void Promise.resolve()
-      .then(job.run)
-      .catch((e) => console.error(`[${job.key}] failed`, e instanceof AppError ? e.message : e))
-      .finally(() => {
-        q.running--;
-        q.active.delete(job.key);
-        pump();
-      });
+    void finishBeforeExit(
+      Promise.resolve()
+        .then(job.run)
+        .catch((e) => console.error(`[${job.key}] failed`, e instanceof AppError ? e.message : e))
+        .finally(() => {
+          q.running--;
+          q.active.delete(job.key);
+          pump();
+        }),
+    );
   }
 }
