@@ -3,9 +3,9 @@
 import { ImageResponse } from "next/og";
 import { palette } from "@/lib/shared/theme";
 import type { Facts, Metric, PublicUser } from "@/lib/shared/types";
-import { firstName, num, withUnit } from "@/lib/shared/format";
+import { firstName, withUnit } from "@/lib/shared/format";
 import type { ChallengeRow } from "./domain/challenges";
-import { initials, ogFonts, ogIcon, ogMascot, ogScene } from "./og";
+import { initials, ogFonts, ogIcon, ogMuse, ogScene } from "./og";
 
 const AVATAR: Record<string, [string, string]> = {
   sky: ["#D3E6F9", "#2C6FB3"],
@@ -19,7 +19,7 @@ const AVATAR: Record<string, [string, string]> = {
 function weekHeadline(f: Facts, m: Metric): { big: string; small: string } {
   if (m.aggregation === "days") return { big: `${f.this_week}/7`, small: "days this week" };
   if (m.aggregation === "latest") return { big: withUnit(f.total, m.unit), small: `${f.this_week} sessions this week` };
-  if (m.aggregation === "distinct") return { big: num(f.this_week), small: `new ${m.name} this week` };
+  if (m.aggregation === "distinct") return { big: withUnit(f.this_week, m.unit), small: "new this week" };
   return { big: withUnit(f.this_week, m.unit), small: "this week" };
 }
 
@@ -34,11 +34,12 @@ function Tile({ icon, value, label }: { icon: string; value: string; label: stri
   );
 }
 
-export function weeklyCard(c: ChallengeRow, user: PublicUser, f: Facts, m: Metric) {
+export async function weeklyCard(c: ChallengeRow, user: PublicUser, f: Facts, m: Metric) {
   const pal = palette(c.theme);
   const [abg, afg] = AVATAR[user.avatar] ?? AVATAR.sky;
   const head = weekHeadline(f, m);
   const pct = f.progress != null ? Math.round(f.progress * 100) : null;
+  const muse = await ogMuse(c.virgil_path, "cheer");
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: pal.tint, fontFamily: "Nunito", position: "relative" }}>
@@ -100,7 +101,7 @@ export function weeklyCard(c: ChallengeRow, user: PublicUser, f: Facts, m: Metri
             </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={ogMascot("cheer")} alt="" width={210} height={210} />
+          <img src={muse} alt="" width={210} height={210} />
         </div>
       </div>
     ),
