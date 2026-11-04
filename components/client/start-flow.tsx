@@ -10,6 +10,7 @@ import type { Milestone, Theme } from "@/lib/shared/types";
 import { CAMP_STEP_MS, CampPath, sceneFor, trailX } from "../challenge";
 import { cx, Icon, IconTile, Mascot } from "../ui";
 import { ConnectPanel } from "./connect";
+import { LINE } from "./start-box";
 import { Spinner } from "./space-frame";
 
 type Draft = {
@@ -168,7 +169,9 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
                   <Spinner className="h-3 w-3 border-2" />
                   Drafting your year
                 </div>
-                <p className="mt-0.5 font-display text-[22px] leading-7 font-semibold text-ink">{idea}</p>
+                <p className="mt-0.5 font-display text-[22px] leading-7 font-semibold text-ink" style={LINE}>
+                  {idea}
+                </p>
                 <p key={line} className="mt-1 animate-rise text-[14px] leading-5 font-bold text-ink-2" aria-live="polite">
                   {DRAFTING_LINES[line]}
                 </p>
@@ -479,7 +482,7 @@ function GhostClimb({ active, className }: { active: boolean; className?: string
                     pose="think"
                     size={72}
                     alt=""
-                    className="absolute top-1/2 -translate-y-1/2"
+                    className="absolute top-1/2 -translate-y-1/2 lg:[view-transition-name:guide]"
                     style={x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }}
                   />
                 )}

@@ -48,7 +48,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
       <TopBar user={viewer} />
-      <LivePulse slug={c.slug} />
+      <LivePulse slug={c.slug} stamp={stamp} />
 
       <section className="relative">
         <div className="relative h-[180px] overflow-hidden sm:h-[230px]" style={{ background: pal.sky }}>

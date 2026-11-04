@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { coverLoop, SCENES } from "@/lib/shared/art";
 import { activityText, firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { ActivityItem, ChallengeSummary, Metric, Milestone, Standing } from "@/lib/shared/types";
 import { LiveCover } from "./client/alive";
+import { IntentLink } from "./client/intent-link";
 import { Fresh } from "./client/live";
 import { Avatar, cx, Icon, IconTile, Mascot, ProgressBar } from "./ui";
 
@@ -22,33 +24,36 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
   const isTemplate = c.status === "template";
   const loop = coverLoop(c.cover_url);
   return (
-    <Link
+    <IntentLink
       href={`/c/${c.slug}`}
+      transitionTypes={["open"]}
       className={cx("card group flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-float)]", className)}
     >
-      <div className="relative h-[132px] overflow-hidden" style={{ background: pal.sky }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={c.cover_url ?? sceneFor(c.theme)}
-          alt=""
-          className={cx("absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]", !c.cover_url && "object-[70%_center]")}
-        />
-        {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover group-hover:scale-[1.04]" />}
-        <div className="absolute bottom-3 left-3">
-          <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
-        </div>
-        {c.virgil_url && (
-          <Mascot
-            src={c.virgil_url}
-            size={96}
+      <ViewTransition name={`cover-${c.slug}`} share={{ open: "morph", default: "none" }} default="none">
+        <div className="relative h-[132px] overflow-hidden" style={{ background: pal.sky }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={c.cover_url ?? sceneFor(c.theme)}
             alt=""
-            className="absolute right-2 -bottom-1 drop-shadow-[0_4px_4px_rgb(46_42_38/0.2)] transition duration-500 group-hover:-translate-y-1"
+            className={cx("absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]", !c.cover_url && "object-[70%_center]")}
           />
-        )}
-        {isTemplate && c.template_year && (
-          <span className="absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[12px] font-extrabold text-ink shadow-sm">{c.template_year}</span>
-        )}
-      </div>
+          {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover group-hover:scale-[1.04]" />}
+          <div className="absolute bottom-3 left-3">
+            <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
+          </div>
+          {c.virgil_url && (
+            <Mascot
+              src={c.virgil_url}
+              size={96}
+              alt=""
+              className="absolute right-2 -bottom-1 drop-shadow-[0_4px_4px_rgb(46_42_38/0.2)] transition duration-500 group-hover:-translate-y-1"
+            />
+          )}
+          {isTemplate && c.template_year && (
+            <span className="absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-[12px] font-extrabold text-ink shadow-sm">{c.template_year}</span>
+          )}
+        </div>
+      </ViewTransition>
       <div className="flex flex-1 flex-col p-4">
         <h3 className="text-[18px] leading-6 text-ink">{c.title}</h3>
         {c.tagline && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">{c.tagline}</p>}
@@ -66,7 +71,7 @@ export function ChallengeCard({ c, className }: { c: ChallengeSummary; className
           </span>
         </div>
       </div>
-    </Link>
+    </IntentLink>
   );
 }
 

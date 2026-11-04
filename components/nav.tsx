@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { type ReactNode, ViewTransition } from "react";
 import type { UserRow } from "@/lib/server/auth";
 import { Avatar, cx, Icon } from "./ui";
 
@@ -13,7 +14,7 @@ export function Logo({ className }: { className?: string }) {
 
 export function TopBar({ user, transparent = false }: { user: Pick<UserRow, "display_name" | "avatar" | "handle"> | null; transparent?: boolean }) {
   return (
-    <header className={cx("sticky top-0 z-40", transparent ? "bg-transparent" : "border-b border-line/70 bg-cream/85 backdrop-blur-md")}>
+    <header className={cx("sticky top-0 z-40 [view-transition-name:site-header]", transparent ? "bg-transparent" : "border-b border-line/70 bg-cream/85 backdrop-blur-md")}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 max-[299px]:px-3 sm:px-6">
         <Logo />
         <nav className="flex items-center gap-1 sm:gap-2">
@@ -33,6 +34,15 @@ export function TopBar({ user, transparent = false }: { user: Pick<UserRow, "dis
         </nav>
       </div>
     </header>
+  );
+}
+
+/** A page's content, which frosts over and fades when you open something from it (docs/design.md, Motion). */
+export function Recede({ children }: { children: ReactNode }) {
+  return (
+    <ViewTransition exit={{ open: "recede", default: "none" }} enter="none" default="none">
+      {children}
+    </ViewTransition>
   );
 }
 

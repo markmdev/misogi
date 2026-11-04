@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { palette } from "@/lib/shared/theme";
 import { cx, Icon, Mascot } from "../ui";
 import { warmMascot } from "./alive";
+import { IntentLink } from "./intent-link";
 
 /** In the wheel's order, clockwise from the top; `chip` ones also show as examples under the box. */
 const IDEAS = [
@@ -23,14 +23,25 @@ const SLICE = 360 / N;
 
 type Phase = "idle" | "spinning" | "landed" | "typing" | "going";
 
+/** Marks the line that travels from the home box into the drafting card's title on /start. */
+export const LINE = { viewTransitionName: "your-line", viewTransitionClass: "line" } as const;
+
 /** The home page's box: say your misogi, pick an example, or let the wheel pick one and draft it. */
 export function StartBox() {
   const router = useRouter();
   const [idea, setIdea] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
+  // What the chosen line comes from (the box or a chip), so only that one travels into the draft.
+  const [from, setFrom] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const timer = useRef(0);
   useEffect(() => () => clearTimeout(timer.current), []);
+
+  function go(text: string) {
+    setFrom("box");
+    router.push(`/start?idea=${encodeURIComponent(text)}`, { transitionTypes: ["open"] });
+  }
+  const travels = (source: string) => (from === source ? LINE : undefined);
 
   function landed(text: string) {
     setPhase("landed");
@@ -43,7 +54,7 @@ export function StartBox() {
       if (i < text.length) return void later(type, 28 + Math.random() * 34);
       later(() => {
         setPhase("going");
-        later(() => router.push(`/start?idea=${encodeURIComponent(text)}`), 160);
+        later(() => go(text), 160);
       }, 420);
     };
     later(() => {
@@ -60,9 +71,17 @@ export function StartBox() {
         key={pose}
         pose={pose}
         size={112}
-        className={cx("absolute -top-[70px] left-1/2 -translate-x-1/2", phase !== "idle" && "animate-pop")}
+        className={cx("absolute -top-[70px] left-1/2 -translate-x-1/2", from && "lg:[view-transition-name:guide]", phase !== "idle" && "animate-pop")}
       />
-      <form ref={formRef} action="/start" className="relative z-10 mt-6 flex flex-col gap-3 sm:flex-row">
+      <form
+        ref={formRef}
+        action="/start"
+        onSubmit={(e) => {
+          e.preventDefault();
+          go(idea.trim());
+        }}
+        className="relative z-10 mt-6 flex flex-col gap-3 sm:flex-row"
+      >
         <label htmlFor="idea" className="sr-only">
           What&apos;s your misogi?
         </label>
@@ -75,6 +94,7 @@ export function StartBox() {
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
           readOnly={phase !== "idle"}
+          style={travels("box")}
           className={cx("input sm:flex-1", (phase === "typing" || phase === "going") && "!border-coral !shadow-[0_0_0_4px_var(--color-coral-soft)]")}
           placeholder="What's your misogi this year?"
           autoComplete="off"
@@ -94,10 +114,17 @@ export function StartBox() {
             Spin the wheel
           </button>
           {IDEAS.filter((e) => e.chip).map((e) => (
-            <Link key={e.text} href={`/start?idea=${encodeURIComponent(e.text)}`} className="chip">
+            <IntentLink
+              key={e.text}
+              href={`/start?idea=${encodeURIComponent(e.text)}`}
+              transitionTypes={["open"]}
+              onNavigate={() => setFrom(e.text)}
+              style={travels(e.text)}
+              className="chip"
+            >
               <Icon name={e.icon} size={24} />
               {e.text}
-            </Link>
+            </IntentLink>
           ))}
         </div>
       ) : (

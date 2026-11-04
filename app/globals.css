@@ -131,7 +131,7 @@
     border-radius: 10px;
   }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *, *::before, *::after, ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
       animation-duration: 0.01ms !important;
       animation-delay: 0s !important;
       animation-iteration-count: 1 !important;
@@ -250,3 +250,55 @@
 
 .scrollbar-none { scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Moves between pages: docs/design.md, Motion. */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(*) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+::view-transition-group(site-header),
+::view-transition-old(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+::view-transition-group(.morph) {
+  overflow: clip;
+  border-radius: 20px;
+}
+::view-transition-old(.morph),
+::view-transition-new(.morph) {
+  height: 100%;
+  object-fit: cover;
+}
+/* The line you chose: the old words leave quickly, so they never sit doubled over the new ones mid-flight. */
+::view-transition-old(.line) {
+  animation: 120ms ease-out both vt-out;
+}
+::view-transition-new(.line) {
+  animation: 200ms ease-in 60ms both vt-in;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+  }
+}
+::view-transition-old(.recede) {
+  animation: 380ms cubic-bezier(0.16, 1, 0.3, 1) both recede;
+}
+@keyframes recede {
+  from {
+    filter: blur(14px) brightness(1.1) saturate(0.8);
+  }
+  to {
+    filter: blur(18px) brightness(1.15) saturate(0.7);
+    opacity: 0;
+  }
+}

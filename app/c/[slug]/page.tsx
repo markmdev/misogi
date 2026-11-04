@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import { ActivityRow, Leaderboard, sceneFor, sceneName } from "@/components/challenge";
 import { LiveCover, LiveScene } from "@/components/client/alive";
@@ -101,7 +102,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
       <TopBar user={viewer} />
-      {!isTemplate && <LivePulse slug={c.slug} />}
+      {!isTemplate && <LivePulse slug={c.slug} stamp={stamp} />}
 
       {/* Hero scene */}
       <section className="relative">
@@ -120,14 +121,16 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
           )}
           {cover ? (
             <div className="card flex flex-col gap-5 p-4 sm:p-5 md:flex-row md:gap-7">
-              <div className="relative aspect-[2/1] max-h-[260px] w-full shrink-0 overflow-hidden rounded-[20px] md:aspect-auto md:max-h-none md:min-h-[200px] md:w-[280px] lg:min-h-[228px] lg:w-[340px]" style={{ background: pal.sky }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover" />}
-                <div className="absolute bottom-3 left-3">
-                  <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
+              <ViewTransition name={`cover-${c.slug}`} share="morph" default="none">
+                <div className="relative aspect-[2/1] max-h-[260px] w-full shrink-0 overflow-hidden rounded-[20px] md:aspect-auto md:max-h-none md:min-h-[200px] md:w-[280px] lg:min-h-[228px] lg:w-[340px]" style={{ background: pal.sky }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover" />}
+                  <div className="absolute bottom-3 left-3">
+                    <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
+                  </div>
                 </div>
-              </div>
+              </ViewTransition>
               <div className="flex min-w-0 flex-1 flex-col gap-5 px-1 pb-1 md:px-0 md:py-2 md:pr-2">
                 <div>{details}</div>
                 <div className="md:mt-auto">{actions}</div>

@@ -13,10 +13,11 @@ type Latest = { id: string; text: string; via: string | null; at: string } | nul
  * Keeps a challenge page live: refreshes when anything changes (an agent logged, a space finished)
  * and shows a small toast for new activity.
  */
-export function LivePulse({ slug, interval = 6000 }: { slug: string; interval?: number }) {
+export function LivePulse({ slug, stamp, interval = 6000 }: { slug: string; stamp: string; interval?: number }) {
   const router = useRouter();
   const pathname = usePathname();
-  const last = useRef<string | null>(null);
+  // The page's own stamp, so a page loaded ahead of a tap (and changed since) refreshes on the first check.
+  const last = useRef<string | null>(stamp);
   const lastActivity = useRef<string | null>(null);
   const [toast, setToast] = useState<Latest>(null);
 
