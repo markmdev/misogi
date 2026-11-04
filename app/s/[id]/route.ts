@@ -10,12 +10,16 @@ export const dynamic = "force-dynamic";
 
 function bootstrap(versionId: string, canSave: boolean) {
   // Reports runtime errors and content height to the Misogi page that embeds this space, and hands it what the
-  // person saves (misogiSave), since the page itself can't reach the network.
+  // person saves (misogiSave), since the page itself can't reach the network. The sandbox has no storage, and some
+  // browsers' in-app scripts read localStorage in every frame: an in-memory one keeps that from counting as the page's
+  // error, and errors from any script file but this page's own aren't the page's either.
   return `<script>(function(){var id=${JSON.stringify(versionId)};var sent=0;
+function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}
+try{localStorage}catch(e){try{Object.defineProperty(window,"localStorage",{value:mem(),configurable:true});Object.defineProperty(window,"sessionStorage",{value:mem(),configurable:true})}catch(e2){}}
 function post(m){try{m.source="misogi-space";m.id=id;parent.postMessage(m,"*")}catch(e){}}
 window.misogiSave=function(v){if(${canSave})post({type:"save",data:v})};
 function err(msg,shows){if(sent++<3)post({type:"error",message:String(msg||"error").slice(0,300),shows:!!shows})}
-addEventListener("error",function(e){err(e.message)});
+addEventListener("error",function(e){if(!e.filename||e.filename===location.href)err(e.message)});
 addEventListener("unhandledrejection",function(e){err(e.reason&&e.reason.message||e.reason)});
 var last=0;function size(){var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body?document.body.scrollHeight:0));if(Math.abs(h-last)>2){last=h;post({type:"height",height:h})}}
 addEventListener("load",function(){size();if(window.ResizeObserver)new ResizeObserver(size).observe(document.body||document.documentElement);setTimeout(size,400);setTimeout(size,1500);
