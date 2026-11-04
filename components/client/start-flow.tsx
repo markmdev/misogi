@@ -350,7 +350,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             <button className="btn" disabled={!name.trim()}>
               {joining ? "Join them" : "Start my climb"}
             </button>
-            <p className="text-center text-[13px] leading-5 text-ink-3">No email or password. Your AI can send you a sign-in link anytime.</p>
+            <p className="text-center text-[13px] leading-5 text-ink-3">No email or password. Your Muse can send you a sign-in link anytime.</p>
           </form>
         </section>
       )}

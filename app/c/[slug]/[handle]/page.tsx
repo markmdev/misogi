@@ -17,7 +17,7 @@ import { getUserByHandle } from "@/lib/server/domain/users";
 import { modelFor } from "@/lib/server/ai/client";
 import { connectCode } from "@/lib/server/oauth";
 import { memberView, pulse } from "@/lib/server/views";
-import { agentLabel, firstName, isCheckin, museName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { agentLabel, askWhoFor, firstName, isCheckin, museName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +55,8 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const imagining = isOwner && v.justJoined && c.creator_id === v.userId;
   const imaginer = museName(modelFor("draft"));
   const builder = museName(modelFor("codegen"));
-  const askWho = user.agent_kind === "virgil" ? "Muse" : guide?.endsWith("AI") ? "your AI" : "your Muse";
+  const askWho = askWhoFor(user.agent_kind);
+  const AskWho = askWho.charAt(0).toUpperCase() + askWho.slice(1);
 
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
@@ -215,7 +216,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               <EmptyState
                 pose="think"
                 title={drafting ? "Drafting your camps…" : "No plan yet"}
-                body={drafting ? "A starter plan lands here in a few seconds. Your AI makes it yours after a short chat." : isOwner ? "Your AI writes the plan after a short chat." : `${name} hasn't made a plan yet.`}
+                body={drafting ? `A starter plan lands here in a few seconds. ${AskWho} makes it yours after a short chat.` : isOwner ? `${AskWho} writes the plan after a short chat.` : `${name} hasn't made a plan yet.`}
               />
             )}
           </section>
@@ -245,7 +246,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                   title={isOwner ? "Your page is empty" : "Nothing here yet"}
                   body={
                     isOwner
-                      ? "Tell your AI what this page should be. Try: “A cozy study notebook with this week's words and my streak.”"
+                      ? `Tell ${askWho} what this page should be. Try: “A cozy study notebook with this week's words and my streak.”`
                       : `${guideDoes} hasn't built a page yet.`
                   }
                 />
@@ -317,7 +318,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                 ))}
               </ul>
             ) : (
-              <EmptyState pose="sleep" title="No logs yet" body={isOwner ? "Log your first session, or tell your AI about it." : `${name} hasn't logged anything yet.`} />
+              <EmptyState pose="sleep" title="No logs yet" body={isOwner ? `Log your first session, or tell ${askWho} about it.` : `${name} hasn't logged anything yet.`} />
             )}
           </section>
 

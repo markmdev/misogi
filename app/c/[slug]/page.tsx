@@ -13,7 +13,7 @@ import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, Ring, Se
 import { currentUser } from "@/lib/server/auth";
 import { coverUrl, findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { challengeView, pulse } from "@/lib/server/views";
-import { firstName, foldRepeats, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { askWhoFor, firstName, foldRepeats, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { coverLoop } from "@/lib/shared/art";
 import { palette } from "@/lib/shared/theme";
 import { MisogiWord } from "@/components/client/misogi-word";
@@ -215,7 +215,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
                     title="No page yet"
                     body={
                       v.isCreator
-                        ? "Describe the page you want and your AI builds it. Try: “A trail map of everyone's progress, with this week's top climbers.”"
+                        ? `Tell ${askWhoFor(viewer?.agent_kind)} the page you want and Muse Wonder builds it. Try: “A trail map of everyone's progress, with this week's top climbers.”`
                         : "The person who started this challenge hasn't asked their AI to build it yet."
                     }
                   />
