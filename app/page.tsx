@@ -115,9 +115,15 @@ export default async function Home() {
                   <h2 className="text-[26px] leading-8 text-ink">On the mountain now</h2>
                   <p className="mt-1 text-[15px] text-ink-2">Open to join. The early climbers are demo profiles.</p>
                 </div>
-                <Link href="/explore" className="btn btn-ghost btn-sm">
-                  See all
-                </Link>
+                <div className="flex gap-2">
+                  <Link href="/explore#map" className="btn btn-ghost btn-sm">
+                    <Icon name="map" size={22} />
+                    Who&apos;s where
+                  </Link>
+                  <Link href="/explore" className="btn btn-ghost btn-sm">
+                    See all
+                  </Link>
+                </div>
               </div>
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_300px]">
                 <div className="scrollbar-none -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-3">

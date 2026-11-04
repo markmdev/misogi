@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChallengeCard } from "@/components/challenge";
+import { WorldMap } from "@/components/client/world-map";
 import { Footer, Recede, TopBar } from "@/components/nav";
 import { cx, EmptyState, Icon, ZuckAvatar } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
+import { worldMap } from "@/lib/server/geo";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Explore challenges" };
@@ -32,6 +34,8 @@ export default async function Explore(props: PageProps<"/explore">) {
   const query = q || cat || undefined;
   const live = listChallenges({ status: ["active"], query, limit: 60 });
   const templates = listChallenges({ status: ["template"], query, limit: 20 });
+  const { climbers } = worldMap();
+  const cities = new Set(climbers.map((p) => p.city.key)).size;
 
   return (
     <>
@@ -50,6 +54,17 @@ export default async function Explore(props: PageProps<"/explore">) {
               </button>
             </form>
           </div>
+          {climbers.length > 0 && !query && (
+            <section id="map" className="mt-6 scroll-mt-24">
+              <div className="mb-3">
+                <h2 className="text-[22px] text-ink">Who&apos;s climbing where</h2>
+                <p className="mt-1 text-[15px] text-ink-2">
+                  {climbers.length} {climbers.length === 1 ? "climber" : "climbers"} in {cities} {cities === 1 ? "city" : "cities"}. Tap a Muse to see what they&apos;re climbing. The early climbers are demo profiles.
+                </p>
+              </div>
+              <WorldMap climbers={climbers} />
+            </section>
+          )}
           <div className="scrollbar-none -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
             {FILTERS.map((f) => (
               <Link
