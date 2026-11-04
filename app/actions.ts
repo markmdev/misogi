@@ -10,7 +10,7 @@ import { createChallenge, getChallenge, joinChallenge } from "@/lib/server/domai
 import { addQuests, cheer, logProgress, setPlan, skipQuest } from "@/lib/server/domain/progress";
 import { createUser } from "@/lib/server/domain/users";
 import { connectCode } from "@/lib/server/oauth";
-import { requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
+import { queueChallengeApp, requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
 import { queueCover } from "@/lib/server/covers";
 import { queueStarterPlan } from "@/lib/server/starter";
 import { tx } from "@/lib/server/db";
@@ -87,6 +87,7 @@ export async function startChallenge(input: unknown): Promise<ActionResult<{ slu
     if (!existing) await startSession(result.user.id);
     queueCover(result.challengeId);
     queueVirgil(result.challengeId);
+    queueChallengeApp(result.challengeId);
     return { ok: true, data: { slug: result.slug, connectCode: result.connectCode, handle: result.user.handle } };
   } catch (e) {
     return failure(e);

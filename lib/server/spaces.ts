@@ -7,9 +7,12 @@ import { museName } from "@/lib/shared/format";
 import type { SpaceStatus } from "@/lib/shared/types";
 import type { UserRow } from "./auth";
 import { all, one, run, tx } from "./db";
+import { writeAppBrief } from "./ai/app-brief";
 import { buildSpaceHtml } from "./ai/codegen";
 import { getChallenge, requireCreator, requireMember, type ChallengeRow } from "./domain/challenges";
 import { recordActivity } from "./domain/feed";
+import { currentPlan } from "./domain/progress";
+import { getUser } from "./domain/users";
 import { AppError, id, nowIso } from "./util";
 
 export type SpaceTarget = "challenge" | "me";
@@ -47,7 +50,8 @@ export function spaceStatus(challengeId: string, ownerKey: string): SpaceStatus 
     ownerKey,
   );
   const lastFail = one<VersionRow>(
-    "SELECT * FROM space_versions WHERE challenge_id = ? AND owner_key = ? AND status = 'failed' ORDER BY version DESC LIMIT 1",
+    // A page nobody asked for that didn't build isn't a failure to show anyone: the challenge just has no page yet.
+    "SELECT * FROM space_versions WHERE challenge_id = ? AND owner_key = ? AND status = 'failed' AND author != 'system' ORDER BY version DESC LIMIT 1",
     challengeId,
     ownerKey,
   );
@@ -125,6 +129,21 @@ export function requestSpace(user: UserRow, slug: string, target: SpaceTarget, r
   });
   enqueue(versionId, user.id);
   return { version_id: versionId, status: "queued" as const };
+}
+
+/**
+ * Gives a new challenge its own app without anyone asking: Muse Spark writes the brief from what the challenge
+ * measures and the world it lives in, then Muse Wonder builds it like any request. Returns at once; never throws.
+ */
+export function queueChallengeApp(challengeId: string): void {
+  void (async () => {
+    const c = one<ChallengeRow>("SELECT * FROM challenges WHERE id = ?", challengeId);
+    const creator = c?.creator_id ? getUser(c.creator_id) : null;
+    if (!c || !creator) return;
+    const camps = (currentPlan(c.id, creator.id)?.milestones ?? []).map((m) => m.title);
+    const brief = await writeAppBrief(c, camps, { visitor: creator.id });
+    requestSpace(creator, c.slug, "challenge", brief, "system");
+  })().catch((e) => console.error("[app] failed", challengeId, e instanceof AppError ? e.message : e));
 }
 
 export function undoSpace(user: UserRow, slug: string, target: SpaceTarget) {
@@ -249,8 +268,8 @@ async function build(versionId: string, userId: string) {
         v.owner_key,
         versionId,
       );
-      // Builds made for demo data aren't something a person did, so they stay out of the feed.
-      if (v.author !== "system") recordActivity(v.challenge_id, userId, "space", { version: v.version, target: v.owner_key ? "me" : "challenge" });
+      // Builds nobody asked for (a new challenge's first page, demo data, a repair) aren't something a person did, so they stay out of the feed.
+      if (v.author !== "system" && v.author !== "repair") recordActivity(v.challenge_id, userId, "space", { version: v.version, target: v.owner_key ? "me" : "challenge" });
     });
   } catch (e) {
     const message = e instanceof AppError ? e.message : "The build failed unexpectedly.";

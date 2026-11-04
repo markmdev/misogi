@@ -60,7 +60,8 @@ Design (unless the request asks for a different feel):
   soft layered shadows plus a subtle 2–4px darker bottom edge on primary tiles, pastel tints from the theme.
 - Type: "Fredoka" (600) for headings and big numbers, "Nunito" (400/700/800) for text. Clear hierarchy: one hero number, small uppercase labels (11px, letter-spacing .08em) above values.
 - Use the clay icons as friendly accents (40–64 px), not as decoration everywhere.
-- Copy: short, plain and specific. Use the person's first name. No filler, no lorem ipsum, no motivational clichés.
+- Copy: short, plain and specific. Use the person's first name. No filler, no lorem ipsum, no motivational clichés. Counts read
+  right: "1 day", "2 days", never "1 days"; a zero streak reads "no streak yet", never "0 day streak".
 - Accessible: semantic HTML, alt text, contrast at least 4.5:1 for text.
 - Small delightful details beat many features: one great visualization of their progress, then the details that make it theirs.`;
 }

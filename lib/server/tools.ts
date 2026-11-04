@@ -20,7 +20,9 @@ import {
 import { listActivity } from "./domain/feed";
 import { addQuests, completeMilestone, logProgress, memberFacts, removeLog, setPlan, skipQuest } from "./domain/progress";
 import { getUser, publicUser, touchAgent, updatePreferences } from "./domain/users";
-import { requestSpace, spaceStatus, undoSpace, ownerKeyFor } from "./spaces";
+import { queueCover } from "./covers";
+import { ownerKeyFor, queueChallengeApp, requestSpace, spaceStatus, undoSpace } from "./spaces";
+import { queueVirgil } from "./virgils";
 import { AppError } from "./util";
 
 export type ToolSource = "muse" | "agent" | "mcp" | "virgil" | "web";
@@ -142,6 +144,9 @@ export const TOOLS = [
     }),
     handler: (ctx, a) => {
       const c = createChallenge(ctx.user, { ...a, status: "active" });
+      queueCover(c.id);
+      queueVirgil(c.id);
+      queueChallengeApp(c.id);
       return { slug: c.slug, url: url(ctx, `/c/${c.slug}`), next: "Run set_plan with the curriculum, then add_quests for this week." };
     },
   }),
