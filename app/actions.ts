@@ -106,8 +106,11 @@ export async function joinAction(slug: string, name?: string, timezone?: string,
       await limitByIp("join", 2, 6);
       if (!name?.trim()) throw new AppError("invalid", "Tell us your name to join.");
       const tz = timezone && isValidTimeZone(timezone) ? timezone : "UTC";
-      user = createUser({ display_name: name, timezone: tz });
-      if (city) setCity(user.id, city);
+      user = tx(() => {
+        const u = createUser({ display_name: name, timezone: tz });
+        if (city) setCity(u.id, city);
+        return u;
+      });
       // No API key yet: the Your AI panel makes one when they connect an agent.
       await startSession(user.id);
     }

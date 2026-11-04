@@ -411,7 +411,7 @@ export const TOOLS = [
       }
       const r = resolveCity(a.city);
       if ("choices" in r) {
-        if (!r.choices.length) throw new AppError("not_found", `No city called "${a.city}" on the list.`, "Ask for the nearest bigger city.");
+        if (!r.choices.length) throw new AppError("not_found", `No city called "${a.city}" on the list.`, "The list has places of 15,000 people or more, by their English or local name. Check the spelling, or ask which city near them to show.");
         return { city: null, choices: r.choices, note: "Several places fit. Ask which one, then call set_city with it." };
       }
       setCity(ctx.user.id, r.city.key);

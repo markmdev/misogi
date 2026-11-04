@@ -5,12 +5,15 @@ import { setCityAction } from "@/app/actions";
 import { Spinner } from "./space-frame";
 
 export type PickedCity = { key: string; label: string };
+type Option = PickedCity & { name: string };
+
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
 /** A city from Misogi's list, suggested as you type. Only a suggestion can be picked. */
 export function CityPicker({ id, value, onChange }: { id?: string; value: PickedCity | null; onChange: (c: PickedCity | null) => void }) {
   const list = useId();
   const [text, setText] = useState(value?.label ?? "");
-  const [options, setOptions] = useState<PickedCity[]>([]);
+  const [options, setOptions] = useState<Option[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [up, setUp] = useState(false);
@@ -24,16 +27,16 @@ export function CityPicker({ id, value, onChange }: { id?: string; value: Picked
     if (q.length < 2) return setOptions([]);
     timer.current = setTimeout(async () => {
       const r = await fetch(`/api/cities?q=${encodeURIComponent(q)}`).catch(() => null);
-      const body = r?.ok ? ((await r.json()) as { cities: PickedCity[] }) : { cities: [] };
+      const body = r?.ok ? ((await r.json()) as { cities: Option[] }) : { cities: [] };
       if (n === asked.current) {
-        setOptions(body.cities.map((c) => ({ key: c.key, label: c.label })));
+        setOptions(body.cities.map((c) => ({ key: c.key, label: c.label, name: c.name })));
         setActive(0);
       }
     }, 150);
   }
 
-  function pick(c: PickedCity) {
-    onChange(c);
+  function pick(c: Option) {
+    onChange({ key: c.key, label: c.label });
     setText(c.label);
     setOpen(false);
   }
@@ -66,9 +69,9 @@ export function CityPicker({ id, value, onChange }: { id?: string; value: Picked
         onFocus={() => setOpen(true)}
         onBlur={() => {
           setOpen(false);
-          // Typed in full but not picked ("Lisbon"): take the first suggestion, which is the biggest place by that name.
-          const typed = text.trim().toLowerCase();
-          if (!value && typed && options[0]?.label.toLowerCase().startsWith(typed)) pick(options[0]);
+          // Typed in full but not picked ("Lisbon"): that's the city, unless another place on the list has the name too.
+          const same = options.filter((o) => fold(o.name) === fold(text));
+          if (!value && same.length === 1) pick(same[0]);
         }}
         onKeyDown={(e) => {
           if (!showing) return;
@@ -100,6 +103,7 @@ export function CityPicker({ id, value, onChange }: { id?: string; value: Picked
           ))}
         </ul>
       )}
+      {!value && !open && text.trim() && <p className="mt-1.5 text-[13px] font-bold text-coral-deep">Not set yet: pick your city from the list.</p>}
     </div>
   );
 }
@@ -139,7 +143,7 @@ export function MyCity({ initial }: { initial: PickedCity | null }) {
         />
       </div>
       <div className="mt-2 flex items-center gap-3 text-[13px] text-ink-3">
-        <span className="flex-1">{CITY_HELP}</span>
+        <span className="flex-1">{saved ? `Your Muse is on the world map in ${saved.label}. Only the city shows.` : CITY_HELP}</span>
         {pending && <Spinner />}
         {saved && !pending && (
           <button

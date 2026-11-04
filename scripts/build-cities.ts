@@ -32,23 +32,39 @@ const fold = (s: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
-const places = rows("cities15000.txt");
-// Another place's own name ("Porto" listed for Bordeaux) would send people to the wrong city, so it's never kept as a
-// second name.
-const ownNames = new Set(places.map((r) => fold(r[1])));
+const places = rows("cities15000.txt").filter((r) => !SKIP.has(r[7]) && countries[r[8]]);
+
+// A district of a big city (Islington, Camden Town, Paris 15, Manhattan) isn't a city of its own: picking it would show
+// someone finer than their city. Anything within 10 km of a bigger city of a million or more in the same country is one.
+const big = places.filter((r) => Number(r[14]) >= 1_000_000);
+const km = (a: string[], b: string[]) => {
+  const [la1, lo1, la2, lo2] = [a[4], a[5], b[4], b[5]].map((x) => (Number(x) * Math.PI) / 180);
+  const h = Math.sin((la2 - la1) / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin((lo2 - lo1) / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(h));
+};
+const districts = new Set(
+  places.filter((r) => big.some((b) => b !== r && b[8] === r[8] && Number(b[14]) > Number(r[14]) && km(b, r) < 10)).map((r) => r[0]),
+);
+
+// Another place's own name ("Porto" listed for Bordeaux) would send people to the wrong city, so it's kept as a second
+// name only for a place fifteen times bigger than the one it names: "Calcutta" for Kolkata and "St. Petersburg" for
+// Russia's, but not "Tortosa" for Tartus, only 13 times bigger than Tortosa in Spain.
+const ownNames = new Map<string, number>();
+for (const r of places) if (!districts.has(r[0])) ownNames.set(fold(r[1]), Math.max(ownNames.get(fold(r[1])) ?? 0, Number(r[14])));
 
 type City = [id: string, name: string, cc: string, region: string, lat: number, lon: number, pop: number, also: string];
 const cities: City[] = [];
 for (const r of places) {
-  const [id, name, ascii, alternates, lat, lon, , code, cc, , admin1, , , , pop] = r;
-  if (SKIP.has(code) || !countries[cc]) continue;
+  const [id, name, ascii, alternates, lat, lon, , , cc, , admin1, , , , pop] = r;
+  if (districts.has(id)) continue;
   const population = Number(pop);
+  const free = (a: string) => population >= 15 * (ownNames.get(fold(a)) ?? 0);
   // Other names a person might type for a big city ("Lisboa", "Kiev"), in Latin letters only, to keep the file small.
   const also = new Set<string>();
   if (ascii !== name) also.add(ascii);
   if (population >= 250_000)
     for (const a of alternates.split(","))
-      if (a && a !== name && a.length <= 30 && !/^[A-Z]{2,4}$/.test(a) && latin.test(a) && !ownNames.has(fold(a)) && also.size < 60) also.add(a);
+      if (a && a !== name && a.length <= 30 && !/^[A-Z]{2,4}$/.test(a) && latin.test(a) && free(a) && also.size < 60) also.add(a);
   cities.push([id, name, cc, admin1 && regions[`${cc}.${admin1}`] ? admin1 : "", Number(Number(lat).toFixed(3)), Number(Number(lon).toFixed(3)), population, [...also].join("|")]);
 }
 cities.sort((a, b) => b[6] - a[6]);

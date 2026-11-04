@@ -9,7 +9,7 @@ import { AppError } from "./util";
 /** Sets or clears a person's city. Only a city from the list can be set. */
 export function setCity(userId: string, key: string | null): void {
   if (key && !cityByKey(key)) throw new AppError("invalid", "That city isn't on the list.");
-  run("UPDATE users SET city = ? WHERE id = ?", key, userId);
+  run("UPDATE users SET city = ? WHERE id = ?", key || null, userId);
 }
 
 const PLAIN_MUSE = "/art/mascot/idle.webp";

@@ -46,31 +46,41 @@ export function cityByKey(key: string | null | undefined): City | null {
   return r ? city(r) : null;
 }
 
-/** 0: its own name is what was typed; 1: another of its names is; 2 and 3: its own or another name starts with it. */
-type Match = { row: Row; tier: 0 | 1 | 2 | 3 };
+/** 0: one of its names is what was typed; 1: its own name starts with it; 2: another of its names does. */
+type Match = { row: Row; tier: 0 | 1 | 2 };
+
+const COUNTRY_WORDS: Record<string, string> = { uk: "GB", britain: "GB", "great britain": "GB", usa: "US", us: "US", america: "US", uae: "AE" };
+
+/** "Oregon", "OR", "United States", "USA", "UK": each part after the first comma has to name its region or country. */
+function within(r: Row, part: string): boolean {
+  const { countries, regions } = list().data;
+  const region = r[3] ? fold(regions[`${r[2]}.${r[3]}`] ?? "") : "";
+  return (
+    fold(countries[r[2]] ?? "").startsWith(part) ||
+    r[2].toLowerCase() === part ||
+    COUNTRY_WORDS[part] === r[2] ||
+    (!!region && region.startsWith(part)) ||
+    r[3].toLowerCase() === part
+  );
+}
 
 function matches(text: string): Match[] {
   const [place, ...rest] = text.split(",");
   const q = fold(place);
-  const where = fold(rest.join(" "));
+  const parts = rest.map(fold).filter(Boolean);
   if (!q) return [];
   const { data, names } = list();
   const out: Match[] = [];
   data.cities.forEach((r, i) => {
     const [own, ...others] = names[i];
-    const tier = own === q ? 0 : others.includes(q) ? 1 : own.startsWith(q) ? 2 : others.some((x) => x.startsWith(q)) ? 3 : -1;
-    if (tier < 0) return;
-    if (where) {
-      const country = fold(data.countries[r[2]] ?? "");
-      const region = r[3] ? fold(data.regions[`${r[2]}.${r[3]}`] ?? "") : "";
-      if (!(country.startsWith(where) || region.startsWith(where) || r[2].toLowerCase() === where)) return;
-    }
+    const tier = own === q || others.includes(q) ? 0 : own.startsWith(q) ? 1 : others.some((x) => x.startsWith(q)) ? 2 : -1;
+    if (tier < 0 || !parts.every((p) => within(r, p))) return;
     out.push({ row: r, tier: tier as Match["tier"] });
   });
   // The list is sorted by population and this sort keeps that order, so within each tier the biggest place comes first.
   // Other names that only start with what was typed are noisy, so they count only when nothing else matches ("Munch").
   out.sort((a, b) => a.tier - b.tier);
-  return out[0]?.tier === 3 ? out : out.filter((m) => m.tier < 3);
+  return out[0]?.tier === 2 ? out : out.filter((m) => m.tier < 2);
 }
 
 /** Cities for a picker as someone types: exact names first, then names that start with what they typed. */
@@ -88,7 +98,7 @@ export function searchCities(text: string, limit = 8): (City & { label: string }
  */
 export function resolveCity(text: string): { city: City } | { choices: string[] } {
   const all = matches(text.slice(0, 80));
-  const exact = all.filter((m) => m.tier === all[0]?.tier && m.tier < 2);
+  const exact = all.filter((m) => m.tier === 0);
   if (exact.length === 1 || (exact.length > 1 && exact[0].row[6] >= 10 * exact[1].row[6])) return { city: city(exact[0].row) };
   const options = (exact.length ? exact : all).slice(0, 5).map((m) => city(m.row));
   return { choices: options.map((c) => cityLabel(c, options.some((o) => o !== c && o.name === c.name && o.country === c.country))) };

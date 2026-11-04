@@ -27,6 +27,26 @@ describe("finding a city", () => {
     expect(where("Valencia, Venezuela")).toContain("Venezuela");
   });
 
+  test("the way people write a place resolves, and so does each choice it offers", () => {
+    expect(where("London, UK")).toBe("London, England, United Kingdom");
+    expect(where("Austin, TX")).toBe("Austin, Texas, United States");
+    expect(where("New York, NY")).toBe("New York City, New York, United States");
+    expect(where("Washington, DC")).toBe("Washington, District of Columbia, United States");
+    const choices = where("Springfield");
+    for (const c of choices as string[]) expect(where(c)).toBe(c);
+  });
+
+  test("old names land on the big city, not a small namesake", () => {
+    expect(where("Calcutta")).toBe("Kolkata, West Bengal, India");
+    expect(where("St. Petersburg")).toContain("Russia");
+  });
+
+  test("a district of a big city isn't a place of its own", () => {
+    expect(searchCities("Islington").map((c) => c.label)).not.toContain("Islington, United Kingdom");
+    expect(where("Manhattan, NY")).toBe("New York City, New York, United States");
+    expect(where("Hoboken")).not.toContain("United States");
+  });
+
   test("when several places fit, it asks", () => {
     const springfield = where("Springfield");
     expect(Array.isArray(springfield) && springfield.length).toBeGreaterThan(1);
