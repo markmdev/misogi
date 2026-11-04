@@ -81,8 +81,8 @@ async function subjectOf(photo: Buffer, c: Pick<ChallengeRow, "title" | "metric_
  * almost the whole photo, which is when SAM found the wrong thing or the whole scene.
  */
 async function stickerFrom(photo: Buffer, sams: string[], stitch: string): Promise<{ image: Buffer; box: Omit<StickerMeta, "what"> } | null> {
-  const { data: rgb, info } = await sharp(photo).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  const { width: W, height: H } = info;
+  const meta = await sharp(photo).metadata();
+  const [W, H] = [meta.width!, meta.height!];
   const [first, ...rest] = await Promise.all(sams.map((sam) => samMasks(sam, W, H)));
   const area = (m: Uint8Array) => m.reduce((n, v) => n + v, 0);
   const main = first.sort((a, b) => area(b) - area(a))[0];
