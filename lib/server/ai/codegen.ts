@@ -6,6 +6,7 @@ import type { ChallengeRow } from "../domain/challenges";
 import { spaceData, type SpaceData } from "../space-data";
 import { AppError } from "../util";
 import { modelFor, streamText } from "./client";
+import { scriptError } from "./page-check";
 
 const DATA_CONTRACT = `type SpaceData = {
   kind: "challenge" | "member";            // the shared challenge page, or one member's own space
@@ -91,6 +92,8 @@ export function validateSpaceHtml(raw: string): string {
     if (url.startsWith("https://fonts.googleapis.com/") || url.startsWith("https://fonts.gstatic.com/")) continue;
     throw new AppError("internal", `The page referenced an outside resource (${url.slice(0, 60)}).`);
   }
+  const broken = scriptError(html);
+  if (broken) throw new AppError("internal", `A script on the page doesn't parse: ${broken}`);
   return html;
 }
 
