@@ -4113,7 +4113,11 @@ function resetDemoHistory() {
   exec(`DELETE FROM plans WHERE user_id IN (${who}) AND ${inDemo}`);
   exec(`DELETE FROM memberships WHERE user_id IN (${who}) AND ${inDemo}`);
   const ids = [...TEMPLATES.map((t) => demoId("chl", `tpl-${t.slug}`)), ...CHALLENGES.map((c) => demoId("chl", c.key))];
-  exec(`DELETE FROM challenges WHERE substr(id, 1, 8) = 'chl_demo' AND id NOT IN (${ids.map(() => "?").join(",")})`, ...ids);
+  exec(
+    `DELETE FROM challenges WHERE substr(id, 1, 8) = 'chl_demo' AND id NOT IN (${ids.map(() => "?").join(",")})
+       AND id NOT IN (SELECT m.challenge_id FROM memberships m JOIN users u ON u.id = m.user_id WHERE u.is_demo = 0)`,
+    ...ids,
+  );
   const userIds = USERS.map((u) => demoId("usr", u.handle));
   exec(
     `DELETE FROM users WHERE substr(id, 1, 8) = 'usr_demo' AND id NOT IN (${userIds.map(() => "?").join(",")})
@@ -4379,21 +4383,27 @@ function realCheers(): RealCheer[] {
     `SELECT ch.log_id, ch.user_id, ch.created_at, l.challenge_id, l.user_id AS member_id, l.note, l.label,
        (SELECT COUNT(*) FROM logs n WHERE n.challenge_id = l.challenge_id AND n.user_id = l.user_id AND n.deleted_at IS NULL AND n.created_at > l.created_at) AS place
      FROM cheers ch JOIN logs l ON l.id = ch.log_id JOIN users a ON a.id = l.user_id JOIN users u ON u.id = ch.user_id
-     WHERE a.is_demo = 1 AND u.is_demo = 0`,
+     WHERE a.is_demo = 1 AND u.is_demo = 0 AND l.deleted_at IS NULL`,
   );
 }
 
-/** Puts each back on the same entry of the climber's new story: the same note or item, else the same place from the end. */
+/**
+ * Puts each back on the same entry of the climber's new story: of the logs with the same item or note, else of all
+ * their logs, the one nearest its old place from the end that this person hasn't cheered yet.
+ */
 function keepCheers(cheers: RealCheer[]) {
   for (const c of cheers) {
     if (one("SELECT 1 FROM logs WHERE id = ?", c.log_id)) continue;
-    const logs = all<{ id: string; note: string; label: string | null }>(
-      "SELECT id, note, label FROM logs WHERE challenge_id = ? AND user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC",
+    const free = all<{ id: string; note: string; label: string | null }>(
+      `SELECT id, note, label FROM logs WHERE challenge_id = ? AND user_id = ? AND deleted_at IS NULL
+         AND id NOT IN (SELECT log_id FROM cheers WHERE user_id = ?) ORDER BY created_at DESC`,
       c.challenge_id,
       c.member_id,
-    );
-    const to = (c.note && logs.find((l) => l.note === c.note)) || (c.label && logs.find((l) => l.label === c.label)) || logs[Math.min(c.place, logs.length - 1)];
-    if (to) exec("INSERT OR IGNORE INTO cheers (log_id, user_id, created_at) VALUES (?, ?, ?)", to.id, c.user_id, c.created_at);
+      c.user_id,
+    ).map((l, i) => ({ ...l, i }));
+    const same = free.filter((l) => (c.label != null ? l.label === c.label : !!c.note && l.note === c.note));
+    const near = (same.length ? same : free).sort((a, b) => Math.abs(a.i - c.place) - Math.abs(b.i - c.place))[0];
+    if (near) exec("INSERT INTO cheers (log_id, user_id, created_at) VALUES (?, ?, ?)", near.id, c.user_id, c.created_at);
   }
 }
 

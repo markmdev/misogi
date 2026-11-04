@@ -56,7 +56,7 @@ describe("the demo refresh", () => {
     expect(slug).toBe("taste-20-different-cuisines-in-a-year");
     await seed(true);
 
-    // A judge joins two of them, logs, and cheers a story beat, a plain log and an item.
+    // A judge joins two of them, logs, and cheers a story beat, a plain log, an item and a repeated note.
     const judge = await account("Real Judge");
     await judge.tool("join_challenge", { challenge: "learn-french" });
     await judge.tool("join_challenge", { challenge: slug });
@@ -66,7 +66,17 @@ describe("the demo refresh", () => {
     const story = toby.find((l) => l.note)!;
     const plain = toby.find((l) => !l.note)!;
     const item = logsOf(slug, "tasos")[0];
-    for (const l of [story, plain, item]) db.run("INSERT INTO cheers (log_id, user_id, created_at) VALUES (?, ?, ?)", [l.id, judgeId, new Date().toISOString()]);
+    // A weekly ritual's note repeats in one climber's story: two cheers on two such logs stay two.
+    const twice = db
+      .query(
+        `SELECT l.challenge_id, l.user_id, l.note FROM logs l JOIN users u ON u.id = l.user_id JOIN challenges c ON c.id = l.challenge_id
+          WHERE u.is_demo = 1 AND l.note != '' AND c.slug NOT IN ('learn-french', ?) GROUP BY 1, 2, 3 HAVING COUNT(*) > 1 LIMIT 1`,
+      )
+      .get(slug) as { challenge_id: string; user_id: string; note: string };
+    const repeated = db
+      .query("SELECT id, user_id, note, label FROM logs WHERE challenge_id = ? AND user_id = ? AND note = ? LIMIT 2")
+      .all(twice.challenge_id, twice.user_id, twice.note) as Log[];
+    for (const l of [story, plain, item, ...repeated]) db.run("INSERT INTO cheers (log_id, user_id, created_at) VALUES (?, ?, ?)", [l.id, judgeId, new Date().toISOString()]);
 
     await seed(true);
 
@@ -76,7 +86,8 @@ describe("the demo refresh", () => {
     const cheered = db
       .query(`SELECT l.id, l.user_id, l.note, l.label FROM cheers ch JOIN logs l ON l.id = ch.log_id WHERE ch.user_id = ?`)
       .all(judgeId) as Log[];
-    expect(cheered).toHaveLength(3);
+    expect(cheered).toHaveLength(5);
+    expect(cheered.filter((l) => l.user_id === twice.user_id && l.note === twice.note)).toHaveLength(2);
     expect(cheered.some((l) => l.note === story.note && l.user_id === story.user_id)).toBe(true);
     expect(cheered.some((l) => l.label === item.label && l.user_id === item.user_id)).toBe(true);
     expect(cheered.filter((l) => l.user_id === story.user_id)).toHaveLength(2);

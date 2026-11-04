@@ -242,11 +242,11 @@ remote() {
 		# Brings the demo climbers' stories up to today; real people's data is kept.
 		# Managed by infra/provision.sh. Runs from /etc/cron.d/misogi-demo-refresh as misogi.
 		set -eu
-		set -a
-		. /etc/misogi/env
-		set +a
-		printf 'x-admin-key: %s\n' "$ADMIN_KEY" |
-			curl -fsS -o /dev/null -X POST "http://127.0.0.1:$PORT/api/admin/seed" -H @- -d '{"force":true}'
+		key=$(sed -n 's/^ADMIN_KEY=//p' /etc/misogi/env | tail -n 1)
+		port=$(sed -n 's/^PORT=//p' /etc/misogi/env | tail -n 1)
+		printf 'x-admin-key: %s\n' "$key" |
+			curl -fsS -o /dev/null -X POST "http://127.0.0.1:$port/api/admin/seed" -H @- -d '{"force":true}' 2>&1 |
+			logger -t misogi-demo-refresh
 	EOF
 	chmod 755 /usr/local/sbin/misogi-demo-refresh
 	cat >/etc/cron.d/misogi-demo-refresh <<-'EOF'
