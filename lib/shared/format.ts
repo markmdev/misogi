@@ -54,6 +54,7 @@ export function withUnit(n: number | null | undefined, unit: string): string {
   if (/^(s|sec|secs|seconds)$/i.test(unit) && n >= 60 && n < 3600) return withUnit(n / 60, "min");
   if (/^(min|mins|minutes)$/i.test(unit) && !Number.isInteger(n) && n < 1000) {
     const secs = Math.round(n * 60);
+    if (secs < 60) return `${secs} sec`;
     return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")} ${unit}`;
   }
   const singular = Math.abs(n) === 1 && unit.length > 3 && unit.endsWith("s") ? unit.slice(0, -1) : unit;
