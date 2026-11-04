@@ -1,7 +1,8 @@
 // Connecting Muse, as Muse does it (its requests in the proxy log of 4 November): it reads the Connect message's link,
 // registers with its own callback, opens the sign-in the link names, and trades the code for a key at the token address.
-// Muse moved that address on 4 November, from /oauth/token (the one the guide gives) to /oauth/auth/token, so both are
-// checked. Each connect spends the account's connect code, so each test reads a fresh one from the Connect page.
+// Muse writes that address itself and doesn't always copy the guide's: on 4 November it sent /oauth/token (the one the
+// guide gives), /oauth/auth/token from 14:16 and /oauth/oauth/token at 16:12, so each is checked. Each connect spends the
+// account's connect code, so each test reads a fresh one from the Connect page.
 //   BASE_URL=http://localhost:3000 bun test tests/muse-connect.test.ts
 // On the live site, with the connect-check account's key (it creates nothing there):
 //   CONNECT_CHECK_KEY=$(security find-generic-password -s misogi-connect-check -a key -w) ALLOW_REMOTE_TESTS=1 \
@@ -93,7 +94,9 @@ describe("Muse connects with one paste", () => {
     await museConnects(await accountKey(), (call) => call.token_url);
   }, 60_000);
 
-  test("at /oauth/auth/token, where Muse has sent it since 4 November", async () => {
-    await museConnects(await accountKey(), () => `${BASE.replace(/\/$/, "")}/oauth/auth/token`);
-  }, 60_000);
+  for (const address of ["/oauth/auth/token", "/oauth/oauth/token"]) {
+    test(`at ${address}, where Muse has also sent it`, async () => {
+      await museConnects(await accountKey(), () => `${BASE.replace(/\/$/, "")}${address}`);
+    }, 60_000);
+  }
 });
