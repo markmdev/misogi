@@ -14,7 +14,7 @@ import { findCity } from "./cities";
 
 type AgentKind = "muse" | "mcp" | "virgil" | "agent";
 type Avatar = "sky" | "mint" | "peach" | "lilac" | "sand" | "rose";
-type Aggregation = "sum" | "count" | "distinct" | "latest";
+type Aggregation = "sum" | "count" | "distinct" | "latest" | "days";
 
 type DemoUser = {
   handle: string;
@@ -28,7 +28,8 @@ type DemoUser = {
   hours: [number, number][];
 };
 
-type Camp = { title: string; detail: string; target: number; emoji: string } & ({ week: number } | { on: string });
+/** A camp without a number is a stage of practice, reached with the first log after its week. */
+type Camp = { title: string; detail: string; target: number | null; emoji: string } & ({ week: number } | { on: string });
 type QuestTpl = { title: string; detail: string; kind: "daily" | "weekly" | "boss" | "one_off"; xp: number };
 /** A photo free to show (CC0 or public domain), its full copy's size, and its file page. Its files sit in storage under its id. */
 type Photo = { w: number; h: number; source: string };
@@ -140,7 +141,7 @@ const DEMO_CITIES: Record<string, [name: string, country: string]> = {
   kwame: ["Manchester", "GB"],
   jiwoo: ["Seoul", "KR"],
   elenap: ["Philadelphia", "US"],
-  claireb: ["Bristol", "GB"],
+  claireb: ["Edinburgh", "GB"],
   marcob: ["Milan", "IT"],
   nadiah: ["Paris", "FR"],
   carmenontheroad: ["Phoenix", "US"],
@@ -3956,6 +3957,1310 @@ const FRIENDS: HistorySpec[] = [
 
 // ---------- Small helpers ----------
 
+// ---------- Climbs demo climbers started on the site, for the film's grid ----------
+
+const GRID: HistorySpec[] = [
+  {
+    key: "grid-swim-100-miles",
+    slug: "swim-100-miles",
+    title: "Swim 100 miles",
+    metric: { name: "miles swum", unit: "mi", target: 100, aggregation: "sum" },
+    step: 50 / 1760,
+    camps: [
+      { title: "First five", detail: "Groove is set and early yards are banked", target: 5, week: 3, emoji: "flag" },
+      { title: "Quarter mark steady", detail: "Base pace holds for a full hour swim", target: 25, week: 13, emoji: "camp" },
+      { title: "Halfway fifty", detail: "Halfway done with stronger form", target: 50, week: 26, emoji: "map" },
+      { title: "Three-quarter grind", detail: "Volume is normal and recovery is dialed", target: 75, week: 39, emoji: "summit" },
+      { title: "Hundred mile finish", detail: "100 miles logged with a long final swim", target: 100, week: 52, emoji: "trophy" },
+    ],
+    noteFor: ({ value, rng }) => {
+      const r = rng.next();
+      if (r < 0.35) return "";
+      const yd = Math.round((value * 1760) / 50) * 50;
+      const yards = `${yd.toLocaleString("en-US")} yd`;
+      if (r < 0.6) return yards;
+      const easy = ["easy", "drills, then easy", "6am lane to myself", "kick sets, legs burning", "catch-up drill, elbow higher", "pull buoy for the last 400", "shared a lane, kept it easy", "8 x 50 fast, 20 seconds rest"];
+      const main = ["10 x 100 on 2:00", "main set 5 x 200", "pull buoy for the last 500", "flip turns the whole way", "negative split, barely", "6am lane to myself", "kick sets, then 1,000 straight"];
+      return `${yards} · ${rng.pick(yd >= 1500 ? main : easy)}`;
+    },
+    members: [
+      {
+        handle: "benlarsen",
+        daysAgo: 110,
+        weekdays: [0, 0.7, 0.05, 0.7, 0.05, 0.2, 0.02],
+        amount: [0.35, 0.7],
+        after: { daysAgo: 80, weekdays: [0, 0.7, 0.05, 0.7, 0.05, 0.2, 0.02], amount: [0.45, 1] },
+        gaps: [
+          [68, 63],
+          [45, 45],
+          [3, 2],
+        ],
+        beats: [
+          { daysAgo: 110, value: 0.4, note: "Baseline. 20 minutes easy, 700 yards. Breathing every two strokes and still gasping." },
+          { daysAgo: 108, value: 0.57, note: "Lake Nokomis, beach to the buoys and back, twice. About 1,000 yards." },
+          { daysAgo: 105, value: 0.51, note: "Timed a 100: 1:58. Left elbow drops on the pull. Goggles leak." },
+          { daysAgo: 103, value: 0.57, note: "Booked the 6am lane Monday and Wednesday through August. Lakes on Sundays." },
+          { daysAgo: 101, value: 0.74, note: "" },
+          { daysAgo: 94, value: 1, note: "First mile without stopping. Cedar Lake, across and back." },
+          { daysAgo: 87, value: 0.68, note: "" },
+          { daysAgo: 86, value: 0.45, note: "Light week. 800 easy." },
+          { daysAgo: 80, value: 1.05, note: "Cedar Lake, 1,850 by the watch. Sighting every six strokes." },
+          { daysAgo: 73, value: 1.14, note: "2,000 yards for the first time. Bde Maka Ska, 41 minutes." },
+          { daysAgo: 62, value: 0.51, note: "Back after five days with a head cold. 900 easy and out." },
+          { daysAgo: 59, value: 0.91, note: "" },
+          { daysAgo: 52, value: 1.31, note: "Last lake swim of the year. Nokomis was 66F. Cold by the end." },
+          { daysAgo: 44, value: 0.57, note: "Legs dead from yesterday's half. Pull buoy the whole way." },
+          { daysAgo: 38, value: 1.36, note: "Pool only now. 2,400 straight." },
+          { daysAgo: 31, value: 0.8, note: "Light week. 1,400 and done." },
+          { daysAgo: 24, value: 1.73, note: "A full hour, no stops. 3,050 yards." },
+          { daysAgo: 17, value: 1.48, note: "2,600 yd, counted by the hundred." },
+          { daysAgo: 16, value: 1.02, note: "10 x 100 on 1:50. Made all ten." },
+          { daysAgo: 10, value: 1.42, note: "Easy long one. Half marathon next Sunday, so nothing hard." },
+          { daysAgo: 1, value: 0.57, note: "Recovery swim, 1,000 easy. Legs still heavy from Sunday's half." },
+        ],
+        plan: {
+          summary:
+            "You will build from short technique swims to steady 2,000-yard sessions. Most yards come from three repeatable workouts: easy endurance, intervals, and one longer weekend swim. Distance climbs about 10 percent per month with a light week every fourth week. The last month is a 5-mile push plus a final 2-mile continuous swim to close out 100.",
+          cadence: "3 swims a week, 30-45 min each, check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Three swims this week", "Monday and Wednesday in the pool, one long swim on the weekend.", "weekly", 20),
+      q("Long swim: 2,800 yards", "No stops. Count by the hundred.", "weekly", 25),
+      q("10 x 100 on 1:50", "Easy 300 first. Hold the same time on the last one.", "weekly", 20),
+      q("Drills before every swim", "Ten minutes of catch-up and fingertip drag. Elbow high.", "daily", 10),
+      q("Swim 2 miles without stopping", "3,520 yards, form still holding at the end.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Three swims this week", "Two in the pool, one long.", "weekly", 20),
+        q("10 x 100 on 2:00", "Easy 300 first. Note the last rep's time.", "weekly", 20),
+        q("Long swim, no stops", "Ten percent longer than last week's.", "weekly", 25),
+        q("Drill day", "Catch-up and fingertip drag before the main set.", "weekly", 15),
+        q("Bilateral breathing for a whole swim", "Every third stroke, start to finish.", "weekly", 15),
+        q("Light week", "Two short swims, nothing over 1,500 yards.", "weekly", 10),
+        q("Film one length", "Check the left elbow on the pull.", "weekly", 15),
+      ]),
+  },
+  {
+    key: "grid-hike-every-trail-in-one-park-system",
+    slug: "hike-every-trail-in-one-park-system",
+    title: "Hike every trail in one park system",
+    metric: { name: "trails completed", unit: "trails", target: 32, aggregation: "distinct" },
+    camps: [
+      { title: "First five trails", detail: "Park picked, map marked, first 5 trails logged", target: 5, week: 3, emoji: "map" },
+      { title: "Fall quarter", detail: "A quarter of the system done across seasons", target: 10, week: 13, emoji: "compass" },
+      { title: "Halfway traverse", detail: "Half the system complete with longer routes", target: 18, week: 27, emoji: "backpack" },
+      { title: "Backcountry push", detail: "Only the remote and hard trails remain", target: 26, week: 41, emoji: "hiking" },
+      { title: "Full system sweep", detail: "Every mapped trail in the system finished", target: 32, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "benlarsen",
+        daysAgo: 75,
+        items: [
+          { label: "French Regional Park trail", note: "First one. 2.6 miles, 55 minutes, hot and buggy. Made the list after: 32 trails in Three Rivers.", daysAgo: 74 },
+          { label: "Fish Lake loops", daysAgo: 60 },
+          { label: "Elm Creek trail", note: "Elm Creek after lunch, 7 miles. Quiet past the first mile.", daysAgo: 60 },
+          { label: "Lake Rebecca loop", daysAgo: 53 },
+          { label: "Baker Park Reserve trail", note: "Five. Baker after Lake Rebecca, both west of town, one drive.", daysAgo: 53 },
+          { label: "Richardson Nature Center trails", note: "Maples starting to turn. 3 miles with my son, he counted six deer.", daysAgo: 32 },
+          { label: "Crow-Hassan prairie trails", note: "Prairie gone gold. Wind the whole way, 6 miles, saw nobody.", daysAgo: 18 },
+          { label: "Silverwood Park loop", note: "One mile, paved. With my son before trick-or-treating. Easy day before the half.", daysAgo: 4 },
+        ],
+        plan: {
+          summary:
+            "Pick one county or state park system with 28 to 35 named trails and make that your list. Work by zone so nearby trails pair into single outings and driving stays low. Front-load easy fall miles, save long and remote trails for spring and summer. Keep one buffer month at the end for closures, repeats, and weather misses.",
+          cadence: "2 hikes a month, one short check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pair two trails in one zone", "Lake Minnetonka Regional Park and Carver Park Reserve: one drive, no backtracking.", "weekly", 25),
+      q("Hike before the dark", "Clocks went back. Start by 2pm, it's dark before five now.", "weekly", 10),
+      q("Mark the winter trails", "Which ones get groomed for skiing and which stay open to hiking.", "weekly", 15),
+      q("Sunday check-in", "Trails done, trails left, next zone.", "weekly", 10),
+      q("Trails nine and ten", "Murphy-Hanrehan and The Landing in one Saturday, south of the river.", "boss", 60),
+    ],
+    doneQuest: (log) => q(`Hike the ${log.label}`, "Log distance, time and conditions.", "weekly", 30),
+  },
+  {
+    key: "grid-cold-plunge-every-day-for-365-days",
+    slug: "cold-plunge-every-day-for-365-days",
+    title: "Cold plunge every day for 365 days",
+    metric: { name: "cold plunge days", unit: "days", target: 365, aggregation: "days" },
+    camps: [
+      { title: "First cold stretch", detail: "Prove you can show up daily even when busy.", target: 25, week: 3, emoji: "flag" },
+      { title: "Ninety days deep", detail: "Cold exposure feels routine, not shocking.", target: 90, week: 13, emoji: "calendar" },
+      { title: "Half year unbroken", detail: "Half a year straight without breaking.", target: 180, week: 26, emoji: "camp" },
+      { title: "Through the warm months", detail: "Push through summer when motivation dips.", target: 270, week: 39, emoji: "summit" },
+      { title: "365 days cold", detail: "A full year, one plunge every single day.", target: 365, week: 52, emoji: "trophy" },
+    ],
+    notes: [
+      "Didn't want to. Did it.",
+      "My son ran the timer. He counted slow on purpose.",
+      "Breath first, then in. No gasp.",
+      "Forgot the towel. Ran for the back door.",
+      "Neighbor waved over the fence. I waved back from the tank.",
+      "Rain. Got in anyway, already wet.",
+      "Shoulders under the whole time.",
+      "Late, after soccer practice. Two minutes, then bed.",
+      "Counted twenty slow breaths and got out.",
+      "Steam coming off me after.",
+      "Slept better. Third night in a row I've noticed.",
+      "Hands numb, then fine.",
+      "Two minutes on the timer, then one more for nothing.",
+      "Quick one before dinner.",
+    ],
+    shortNotes: ["2 min", "2:30", "2 min, before dinner", "After dinner", "Before bed", "Quick one", "3 min", "Breath first"],
+    members: [
+      {
+        handle: "benlarsen",
+        daysAgo: 52,
+        pace: 0.97,
+        gaps: [[28, 28]],
+        beats: [
+          { daysAgo: 52, note: "Stock tank behind the garage, two bags of ice. 55F. Out at 1:30." },
+          { daysAgo: 46, note: "Seven days straight, every one over a minute." },
+          { daysAgo: 45, note: "After the time-trial half. Two minutes. Legs came back." },
+          { daysAgo: 40, note: "Wrote the never-miss rules: away means a cold shower, sick means 30 seconds, no ice means the hose." },
+          { daysAgo: 34, note: "Stopped buying ice. Tank was 52F tonight on its own." },
+          { daysAgo: 27, note: "Missed yesterday. Fell asleep putting my son to bed. Repair rule: two today, morning and night." },
+          { daysAgo: 24, note: "Lake Nokomis instead of the tank. 52F. Ducked under three times." },
+          { daysAgo: 13, note: "Tank at 46F. 2:30." },
+          { daysAgo: 8, note: "45F and a cold wind. Two minutes felt like five." },
+          { daysAgo: 5, note: "First skin of ice on the tank. Broke it with the ladle." },
+          { daysAgo: 3, note: "Raced a half this morning. 41F tonight and my legs stopped buzzing." },
+          { daysAgo: 2, note: "Madison and back. Plunged at 9:30, porch light on." },
+          { daysAgo: 1, note: "40F. Hands are the hard part now." },
+        ],
+        plan: {
+          summary:
+            "You plunge every calendar day until Sep 12, 2027. Start with short 1-3 minute dunks and keep water cold but safe. Use travel gyms, showers at 50F or below, and breath control for bad-weather weeks. Log daily and keep a simple missed-day repair rule so one rough day never becomes two. The last month is a victory lap with longer 3-minute holds.",
+          cadence: "Plunge daily, 2-3 min cold. Check in Sun night.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Plunge every day this week", "Two minutes minimum. Log each one.", "daily", 15),
+      q("Write the water temp down", "Thermometer in before you get in.", "daily", 10),
+      q("Three minutes once this week", "Breath first. Out at three, not later.", "weekly", 20),
+      q("Ice-proof the tank", "A lid, and a plan for when it freezes solid.", "weekly", 20),
+      q("Plan the Thanksgiving plunge", "Home or away: where the cold water is that day.", "weekly", 15),
+      q("Forty days straight", "Every day to ninety. No repair days.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Log a 7-day cold streak", "Do 7 straight days at 60s or more, log each plunge.", "daily", 30),
+        q("Two minutes, breath first", "Five slow breaths before you get in.", "daily", 10),
+        q("Plunge before 9pm five nights", "Don't leave it for bedtime.", "weekly", 15),
+        q("Three minutes once this week", "Breath first. Out at three, not later.", "weekly", 20),
+        q("Write the water temp down", "Thermometer in before you get in.", "daily", 10),
+        q("No ice this week", "Let the nights do it. Log the temp.", "weekly", 15),
+        q("A lake plunge", "Somewhere other than the tank, once.", "weekly", 20),
+      ]),
+  },
+  {
+    key: "grid-muscle-up-and-10m-handstand-walk",
+    slug: "muscle-up-and-10m-handstand-walk",
+    title: "Muscle-up and 10m handstand walk",
+    metric: { name: "skills unlocked", unit: "skills", target: 2, aggregation: "distinct" },
+    camps: [
+      { title: "Stable base", detail: "You can hold the positions without shaking out.", target: null, week: 3, emoji: "shield" },
+      { title: "Pull and balance", detail: "Strength and kick-up are consistent on both skills.", target: null, week: 15, emoji: "chart" },
+      { title: "First muscle-up", detail: "You own the transition and longer freestanding holds.", target: 1, week: 28, emoji: "flag" },
+      { title: "Link distance", detail: "Both skills are linked and repeatable under fatigue.", target: null, week: 42, emoji: "running" },
+      { title: "Walk and muscle-up test", detail: "One strict muscle-up plus a 10m handstand walk in one session.", target: 2, week: 51, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "benlarsen",
+        daysAgo: 160,
+        items: [
+          { label: "Bar muscle-up", note: "First one. Left arm chicken-winged, but I was over the bar.", daysAgo: 41 },
+          { label: "Bar muscle-up", note: "Two singles, cleaner turnover. Handstand: first two steps off the wall.", daysAgo: 36 },
+          { label: "Bar muscle-up", daysAgo: 31 },
+          { label: "Bar muscle-up", note: "Three in a row. Handstand walk 1.5 m before I fell over.", daysAgo: 27 },
+          { label: "Bar muscle-up", daysAgo: 20 },
+          { label: "Bar muscle-up", note: "Four singles, no chicken wing. Walked 3 m on my hands down the hallway.", daysAgo: 13 },
+          { label: "Bar muscle-up", note: "Kept it to three. Half marathon on Sunday.", daysAgo: 6 },
+          { label: "Bar muscle-up", note: "Five singles, full reset between. Handstand walk 4 m, new mark on the tape.", daysAgo: 1 },
+        ],
+        plan: {
+          summary:
+            "You are building two separate engines: pull power for the muscle-up and overhead balance for the walk. Summer is strict strength and wall time. Fall turns that into your first bar muscle-up and freestanding steps. Winter adds volume and distance so both hold up when tired. You finish with a combined test day that proves both skills in one session.",
+          cadence: "4 sessions a week: 2 pulling, 2 handstand. Check in Sunday",
+        },
+      },
+    ],
+    openQuests: [
+      q("Five muscle-up singles", "Full reset between. Film the last one.", "weekly", 20),
+      q("Ten handstand walk tries", "Hallway, tape on the floor. Log the best distance.", "weekly", 20),
+      q("Freestanding hold, 3 x 30s", "Away from the wall. Fingers do the work.", "daily", 10),
+      q("False-grip hang, 3 x 30s", "Wrists over the bar the whole time.", "weekly", 15),
+      q("Two muscle-ups, then 5 m on your hands", "Same session, five minutes apart.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Banded transitions, 5 x 5", "Slow through the turnover.", "weekly", 20),
+        q("Ten kick-ups to freestanding", "Count the ones you hold for 5 seconds.", "weekly", 15),
+        q("False-grip hang, 3 x 30s", "Wrists over the bar the whole time.", "weekly", 15),
+        q("Negative muscle-ups, 3 x 3", "Five seconds down from the top.", "weekly", 20),
+        q("Wall walks, 3 x 5", "Chest to the wall at the top.", "weekly", 15),
+        q("Film both skills", "One clip each for the Sunday check-in.", "weekly", 10),
+      ]),
+  },
+  {
+    key: "grid-run-four-half-marathons-in-four-quarters",
+    slug: "run-four-half-marathons-in-four-quarters",
+    title: "Run four half marathons in four quarters",
+    metric: { name: "half marathons run", unit: "", target: 4, aggregation: "count" },
+    camps: [
+      { title: "Ten mile base", detail: "You can run 10 miles steady without walking.", target: null, week: 3, emoji: "running" },
+      { title: "First half done", detail: "First 13.1 done, pacing and fueling dialed.", target: 1, week: 13, emoji: "flag" },
+      { title: "Second quarter half", detail: "Second 13.1 done, faster or stronger than the first.", target: 2, week: 26, emoji: "map" },
+      { title: "Third quarter half", detail: "Third 13.1 done through winter cold.", target: 3, week: 39, emoji: "summit" },
+      { title: "Four for four finish", detail: "Fourth 13.1 done, your strongest finish of the year.", target: 4, week: 51, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "benlarsen",
+        daysAgo: 130,
+        items: [
+          {
+            label: "Half #1: time trial around the lakes",
+            note: "On my own: Bde Maka Ska, Lake Harriet, down Minnehaha Parkway and back. 1:54:20. Gels at 5 and 9. Faded after 10.",
+            daysAgo: 45,
+          },
+          { label: "Half #2: race day in St. Paul", note: "1:49:52. Four and a half minutes faster than September. 37F at the start, gloves off by mile 4.", daysAgo: 3 },
+        ],
+        plan: {
+          summary:
+            "You will run one half marathon each quarter, four total by June. Build a 10-mile base by mid-July, then hold three runs a week with a growing weekend long run. Each quarter ends with a race or time-trial half, followed by an easy recovery week. Summer training shifts earlier and slower to handle heat, spring is for your cleanest effort.",
+          cadence: "3 runs a week, one long run on weekends, check in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Recovery week: three easy runs", "Nothing over 5 miles. Conversation pace.", "weekly", 15),
+      q("Strides after one easy run", "Six by 20 seconds, walk back.", "weekly", 10),
+      q("Long run: 8 miles easy", "Sunday. Start building back toward 10.", "weekly", 25),
+      q("Traction for the winter runs", "Ice comes in December. Spikes or screw shoes before then.", "weekly", 10),
+      q("Run your winter half", "A race or a treadmill time trial before the end of March. Pick the date this week.", "boss", 100),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Race-week taper", "Two easy runs and strides. Nothing new on race day.", "weekly", 30),
+        q("Long run: 11 miles easy", "Practise the gels at 5 and 9.", "weekly", 30),
+      ]),
+  },
+  {
+    key: "grid-read-50-books-on-one-country-in-a-year",
+    slug: "read-50-books-on-one-country-in-a-year",
+    title: "Read 50 books on one country in a year",
+    metric: { name: "books read", unit: "books", target: 50, aggregation: "count" },
+    camps: [
+      { title: "Choose your ground", detail: "You pick one country or era and finish your first three books.", target: 3, week: 3, emoji: "map" },
+      { title: "First dozen", detail: "Early rhythm is set and you can summarize each book in two lines.", target: 12, week: 12, emoji: "books" },
+      { title: "Deep in the story", detail: "Halfway shelf with fiction, history, and one memoir covered.", target: 25, week: 26, emoji: "camp" },
+      { title: "Near expert", detail: "You know the era cold and have notes on patterns across books.", target: 38, week: 40, emoji: "chart" },
+      { title: "Fifty book shelf", detail: "Full year shelf done plus a one-page guide for someone else.", target: 50, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "claireb",
+        daysAgo: 95,
+        items: [
+          { label: "Kitchen by Banana Yoshimoto", note: "Started with a short one to get on the board. Two evenings. Now I want katsudon.", daysAgo: 91 },
+          { label: "Modern Japan: A Very Short Introduction by Christopher Goto-Jones", daysAgo: 85 },
+          { label: "Kokoro by Natsume Soseki", note: "Sensei's letter is half the book and I read it in one go. Three in. Ground chosen: Japan, all year.", daysAgo: 80 },
+          { label: "In Praise of Shadows by Junichiro Tanizaki", note: "Fifty pages on the beauty of dim rooms and lacquer. Turned the big light off and finished it by lamp.", daysAgo: 76 },
+          { label: "Hiroshima by John Hersey", daysAgo: 70 },
+          { label: "Snow Country by Yasunari Kawabata", note: "Snow Country at the end of August. Wrong season, right book.", daysAgo: 64 },
+          { label: "The Housekeeper and the Professor by Yoko Ogawa", daysAgo: 58 },
+          { label: "Embracing Defeat by John W. Dower", note: "The occupation in 600 pages. Twelve days and most of a weekend. Worth it.", daysAgo: 46 },
+          { label: "Convenience Store Woman by Sayaka Murata", daysAgo: 42 },
+          { label: "Silence by Shusaku Endo", daysAgo: 36 },
+          { label: "The Pillow Book by Sei Shonagon", note: "A thousand years old and half of it is lists of things that annoy her. Kindred spirit.", daysAgo: 29 },
+          { label: "An Artist of the Floating World by Kazuo Ishiguro", note: "Twelve. Ishiguro counts: born in Nagasaki, and the book never leaves Japan.", daysAgo: 23 },
+          { label: "Black Rain by Masuji Ibuse", note: "Finished it in bed with a cold. Not the cheeriest sickbed reading.", daysAgo: 17 },
+          { label: "Strange Weather in Tokyo by Hiromi Kawakami", daysAgo: 11 },
+          { label: "Ghosts of the Tsunami by Richard Lloyd Parry", note: "The school at Okawa. Had to put it down twice.", daysAgo: 2 },
+        ],
+        plan: {
+          summary:
+            "You will pick one country or era and stay with it all year so the books stack. The mix is simple: history for context, fiction for texture, memoir and essays for voice. Fifty books gives you slack for two slow weeks without losing one-a-week pace. By next August you will have a shelf and notes that read like a personal course on the place.",
+          cadence: "Read 30-45 min daily, log each finish, check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Read 40 minutes every day", "Phone in the other room.", "daily", 10),
+      q("Two lines on Ghosts of the Tsunami", "What it's about, and what it changed in your picture of the place.", "one_off", 15),
+      q("Pick the next three from the stack", "One history, one novel, one memoir.", "weekly", 15),
+      q("Note one pattern across the books", "Something that keeps coming back. Add it to the reading notes.", "weekly", 20),
+      q("Sunday check-in", "Log what you finished and what's next.", "weekly", 10),
+      q("Finish a memoir", "The halfway shelf needs one voice from the inside. Totto-chan is on the stack.", "boss", 60),
+    ],
+    doneQuest: (log) => q(`Finish ${(log.label ?? "").split(" by ")[0]}`, "Then two lines in the notes: what it's about and what surprised you.", "weekly", 25),
+  },
+  {
+    key: "grid-ship-one-tiny-machine-every-month",
+    slug: "ship-one-tiny-machine-every-month",
+    title: "Ship one tiny machine every month",
+    metric: { name: "hardware builds", unit: "builds", target: 12, aggregation: "count" },
+    camps: [
+      { title: "First working build", detail: "Prove you can finish and document a working build.", target: 1, week: 4, emoji: "flag" },
+      { title: "Three in the log", detail: "Three builds done, with code and wiring saved.", target: 3, week: 13, emoji: "backpack" },
+      { title: "Half dozen running", detail: "Halfway there, builds getting harder on purpose.", target: 6, week: 26, emoji: "camp" },
+      { title: "Nine and iterating", detail: "Nine builds banked, only original ideas left.", target: 9, week: 39, emoji: "map" },
+      { title: "Twelve month shelf", detail: "Twelve builds finished, one demoed to another human.", target: 12, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "claireb",
+        daysAgo: 125,
+        items: [
+          {
+            label: "Starter circuit: LED, button and light sensor",
+            note: "Build zero. A Pico on a breadboard, 30 lines of MicroPython, and a 20-second clip of the LED coming on when I cover the sensor. The plan says it counts. Not arguing.",
+            daysAgo: 122,
+          },
+          { label: "Kitchen timer with a rotary knob", daysAgo: 95 },
+          { label: "Plant monitor for the windowsill", note: "Soil sensor and an LED that goes red when it's dry. The basil was already dead, so it watches the mint.", daysAgo: 66 },
+          { label: "Light-up metronome", note: "LED on the beat, a knob for tempo from 40 to 208. Built for the piano, which now has no excuse to let me rush.", daysAgo: 38 },
+          {
+            label: "Bluetooth page-turn pedal",
+            note: "First one off the breadboard: Pico W, two AAs and a foot switch in a sandwich box. Stamp and the sheet music turns. Shipped on the last day of month four, as is tradition.",
+            daysAgo: 3,
+          },
+        ],
+        plan: {
+          summary:
+            "You will ship one small, working device each month, no half-wired drawer projects. Months 1-3 stay simple: sensors, lights, and basic input output to build fluency. Months 4-9 add power, enclosures, and wireless so builds survive off the breadboard. Months 10-12 are original builds with a final live demo. Each build needs photos, wiring notes, and code to count.",
+          cadence: "2 build sessions a week, 60-90 min each, log every build Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pick month five's build from the queue", "Something that runs on batteries for a week without you touching it.", "one_off", 20),
+      q("Two build sessions this week", "60 to 90 minutes each. Breadboard first, solder second.", "weekly", 25),
+      q("Write up the page-turn pedal", "Photos, wiring notes and code in one place, so it counts properly.", "one_off", 20),
+      q("Measure the pedal's battery drain", "Multimeter on the supply for an hour idle, then work out how long two AAs last.", "weekly", 20),
+      q("Move the plant monitor onto perfboard", "Solder it. No jumper wires left.", "weekly", 30),
+      q("Ship a harder one on purpose", "Month five's build: battery, enclosure and wireless together, documented by the 1st.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Finish the build before the month runs out", "Working, photographed, code saved.", "weekly", 40),
+        q("Film twenty seconds of it working", "One take, on the bench.", "weekly", 15),
+        q("Write the wiring notes", "Every pin and resistor value, before you forget.", "weekly", 20),
+        q("A 90-minute build session", "Phone in another room.", "weekly", 20),
+      ]),
+  },
+  {
+    key: "grid-learn-and-play-52-piano-songs-in-a-year",
+    slug: "learn-and-play-52-piano-songs-in-a-year",
+    title: "Learn and play 52 piano songs in a year",
+    metric: { name: "songs learned", unit: "songs", target: 52, aggregation: "count" },
+    camps: [
+      { title: "First three songs", detail: "You can learn simple songs cleanly from start to finish.", target: 3, week: 3, emoji: "seedling" },
+      { title: "Baker's dozen", detail: "A small set you can play without stopping to fix notes.", target: 13, week: 13, emoji: "books" },
+      { title: "Half the songbook", detail: "Halfway there with steadier rhythm and both hands.", target: 26, week: 26, emoji: "map" },
+      { title: "Nearly forty deep", detail: "A full setlist you could play for friends for an hour.", target: 39, week: 39, emoji: "music" },
+      { title: "Fifty-two song year", detail: "52 songs learned, 10 polished by memory for a final recital.", target: 52, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "claireb",
+        daysAgo: 60,
+        items: [
+          { label: "Minuet in G", note: "Last played this for a grade two exam. It has not got easier.", daysAgo: 56 },
+          { label: "Ode to Joy", daysAgo: 53 },
+          { label: "Let It Be", note: "Three songs. The neighbour knocked to say she liked this one. I'm choosing to believe her.", daysAgo: 48 },
+          { label: "Gymnopédie No. 1", note: "Slow enough that every mistake sounds deliberate.", daysAgo: 43 },
+          { label: "Lean on Me", daysAgo: 38 },
+          { label: "Prelude in C Major", note: "With the new metronome at 60. Clean take on the ninth try.", daysAgo: 31 },
+          { label: "Moon River", daysAgo: 26 },
+          { label: "Comptine d'un autre été", daysAgo: 21 },
+          { label: "One Summer's Day", note: "From Spirited Away. Japan again. It's been that kind of year.", daysAgo: 11 },
+          { label: "Hallelujah", note: "Ten. Headphones for the first thirty takes, speakers for the one that counted.", daysAgo: 4 },
+        ],
+        plan: {
+          summary:
+            "You will learn one short, complete song each week for 52 weeks. Keep songs at your level and cap them at 3 minutes so a busy week still works. Record one full take per song to count it, then keep 10 favorites polished for a final recital by September 2027.",
+          cadence: "3 focused sessions a week, 25 minutes each, check-in Sunday",
+        },
+      },
+    ],
+    openQuests: [
+      q("Three 25-minute sessions", "Scales for five minutes, the new song, then one old one.", "weekly", 20),
+      q("Song eleven, hands separately", "Right hand first, left hand next, together by Sunday.", "weekly", 20),
+      q("Hardest bar with the metronome", "Start at 60 and go up four at a time.", "daily", 10),
+      q("Play three old songs without stopping", "Wrong notes stay in. Keep going to the end.", "weekly", 15),
+      q("Pick the next three songs", "All under three minutes, each a step harder.", "one_off", 15),
+      q("Five songs back to back", "No stopping to fix notes. Record the whole set in one take.", "boss", 70),
+    ],
+    doneQuest: (log) => q(`Record a full take of ${log.label}`, "One take, flaws included.", "weekly", 25),
+  },
+  {
+    key: "grid-cook-50-dishes-from-50-countries",
+    slug: "cook-50-dishes-from-50-countries",
+    title: "Cook 50 dishes from 50 countries",
+    metric: { name: "countries cooked", unit: "countries", target: 50, aggregation: "distinct" },
+    camps: [
+      { title: "First five flags", detail: "You prove the system works with five distinct cuisines.", target: 5, week: 3, emoji: "flag" },
+      { title: "Fifteen kitchens", detail: "You can shop and season across regions without stress.", target: 15, week: 15, emoji: "map" },
+      { title: "Half the world", detail: "Past halfway with repeatable pantry and technique base.", target: 30, week: 30, emoji: "cooking" },
+      { title: "Final stretch", detail: "Only harder or less familiar cuisines remain.", target: 42, week: 42, emoji: "compass" },
+      { title: "Fifty country feast", detail: "Fifty countries cooked, with a tasting menu for guests.", target: 50, week: 52, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "claireb",
+        daysAgo: 85,
+        items: [
+          { label: "Japan", note: "Katsudon, because Kitchen made it sound like a rescue. It is one.", daysAgo: 84 },
+          { label: "Mexico", daysAgo: 80 },
+          { label: "Ethiopia", note: "Misir wat, with berbere from a shop on Leith Walk. Injera is a project for another week.", daysAgo: 75 },
+          { label: "Italy", note: "Cacio e pepe. Three ingredients, two attempts. The first was cheese soup.", daysAgo: 70 },
+          { label: "Lebanon", note: "Mujaddara: lentils, rice and an irresponsible amount of crispy onion. Five flags.", daysAgo: 65 },
+          { label: "Vietnam", daysAgo: 58 },
+          { label: "Nigeria", daysAgo: 51 },
+          { label: "Peru", daysAgo: 45 },
+          { label: "Georgia", note: "Chkmeruli, chicken in garlic and milk. The flat smelled of garlic for three days. No complaints filed.", daysAgo: 38 },
+          { label: "Sweden", daysAgo: 31 },
+          { label: "Sri Lanka", note: "Parippu and pol sambol. Cracked the coconut on the back step with a hammer. The neighbours have questions.", daysAgo: 24 },
+          { label: "Morocco", note: "Chicken with preserved lemon and olives. The lemons went in a jar in September for exactly this.", daysAgo: 20 },
+          { label: "South Korea", daysAgo: 10 },
+          { label: "Poland", note: "Żurek, sour rye soup with sausage and a halved egg. The rye starter took five days. Fourteen.", daysAgo: 3 },
+        ],
+        plan: {
+          summary:
+            "You will cook one country a week, rotating continents so flavors stay fresh and shopping stays simple. Each month has one easy week, one technique week, and one unfamiliar cuisine week. You will keep a photo log with country labels and repeat base ingredients to control cost. The year ends with a small tasting menu from your best dishes.",
+          cadence: "Cook 1 dish a week, log country and photo, review list on Sundays",
+        },
+      },
+    ],
+    openQuests: [
+      q("Plan country fifteen", "A continent you haven't cooked from in three weeks. Shopping list by Thursday.", "weekly", 15),
+      q("Make a stock from bones", "Technique week. It goes under three dishes this month.", "weekly", 25),
+      q("Cook from the pantry", "A country whose dish uses what's already in the cupboard.", "weekly", 20),
+      q("Photograph the dish before anyone eats it", "One photo, natural light if there is any.", "weekly", 10),
+      q("Sunday list review", "Cross off what's done and move one hard country closer.", "weekly", 10),
+      q("Fifteenth kitchen, recipe closed", "Shop for it, cook it and season it by taste. Read the recipe once, then close it.", "boss", 70),
+    ],
+    doneQuest: (log) => q(`Cook a dish from ${log.label}`, "One dish, one photo, one technique noted.", "weekly", 30),
+  },
+  {
+    key: "grid-draw-one-sketch-every-day-for-a-year",
+    slug: "draw-one-sketch-every-day-for-a-year",
+    title: "Draw one sketch every day for a year",
+    metric: { name: "days sketched", unit: "days", target: 300, aggregation: "days" },
+    camps: [
+      { title: "First pages filled", detail: "Daily habit is set and first pages are filled.", target: 18, week: 3, emoji: "seedling" },
+      { title: "Ninety day rhythm", detail: "You can draw simple objects from life without photos.", target: 80, week: 13, emoji: "pencil" },
+      { title: "Half year of lines", detail: "Shading and proportion look steady across subjects.", target: 160, week: 26, emoji: "art" },
+      { title: "Full book finished", detail: "A full sketchbook done and style is emerging.", target: 240, week: 39, emoji: "books" },
+      { title: "Three hundred sketches", detail: "300 sketches logged and best 12 shown together.", target: 300, week: 52, emoji: "summit" },
+    ],
+    notes: [
+      "Teapot. Ellipses are a conspiracy.",
+      "My bike, leaning on the hall wall. The wheels came out as eggs.",
+      "Half an onion. Better than it had any right to be.",
+      "Fifteen minutes on the radiator. Never noticed it had so many fins.",
+      "Sketched on the bus. The bus did not hold still.",
+      "My left hand holding a pen. Hands are hard.",
+      "A pear. The shadow side finally reads as round.",
+      "Three people at a café counter, gesture only, no faces.",
+      "Rain on the window. Mostly erasing.",
+      "Timer on: pencil down at fifteen minutes, mid-line.",
+      "Kitchen chair in two-point perspective. Wonky, but it stands.",
+      "Tired. A lemon. It counts.",
+      "Shoes by the door, the whole row.",
+      "The mint on the windowsill, which outlived the basil.",
+      "Piano keys from above. Fifty-two white ones is a lot of rectangles.",
+      "Copied a page of hands from a library book. Learned more than from a week of my own.",
+    ],
+    shortNotes: ["Quick one", "From life", "Before bed", "Shading practice", "On the bus", "Kitchen table"],
+    members: [
+      {
+        handle: "claireb",
+        daysAgo: 40,
+        pace: 0.93,
+        gaps: [[19, 17]],
+        beats: [
+          { daysAgo: 40, note: "Day one. The kettle. Spout wrong, handle wrong, still recognisably a kettle." },
+          { daysAgo: 39, note: "Sketch corner is the piano lid: pencil, eraser, book. Can't sit down to play without passing it." },
+          { daysAgo: 36, note: "Mug, keys, left shoe. Three small objects done. The shoe is the best of them, which is worrying." },
+          { daysAgo: 33, note: "Redrew day one's kettle. Proportions better. The spout may just be wrong in real life." },
+          { daysAgo: 26, note: "Newsletter out at 8:57. Drew the laptop that sent it." },
+          { daysAgo: 16, note: "Back after three days in bed with a cold. Drew the tissue box. On theme." },
+          { daysAgo: 11, note: "The castle from the Grassmarket. Twenty minutes, cold fingers, perspective more ambitious than accurate." },
+          { daysAgo: 10, note: "Drew dinner before eating it: kimchi jjigae. It did not wait politely." },
+          { daysAgo: 7, note: "The page-turn pedal mid-build, wires everywhere. Easier to draw than to solder." },
+          { daysAgo: 6, note: "Cranes at Leith docks at dusk. First shading that didn't turn into a grey smudge." },
+          { daysAgo: 2, note: "The Japan shelf. Fifteen spines, no titles. I'm patient, not that patient." },
+        ],
+        plan: {
+          summary:
+            "You will do one pencil sketch a day in the same sketchbook, kept short enough to fit a busy day. The first months focus on simple objects and daily repetition to build the habit. Mid-year you add shading, perspective, and people to raise skill without adding time. Bad weeks are covered by the 300-day target, so a missed day does not break the year. You finish with a full body of work and a small curated set of your best pages.",
+          cadence: "One sketch daily, 15-20 min, check-in Sunday",
+        },
+      },
+    ],
+    openQuests: [
+      q("Sketch every day this week", "Fifteen minutes. A bad one still counts.", "daily", 10),
+      q("Draw from life, not from your phone", "Something you'd normally photograph. Look, then draw.", "weekly", 15),
+      q("One light source, three objects", "A lamp on one side. Shade what it leaves dark.", "weekly", 20),
+      q("A page of hands", "Ten small ones, two minutes each.", "weekly", 20),
+      q("Pick the week's best page", "Sunday check-in. One line on why.", "weekly", 10),
+      q("Seven days from life", "Every sketch this week from a real object in front of you, no photos.", "boss", 60),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Three small objects from life", "A mug, keys or shoes. Fifteen minutes each.", "weekly", 20),
+        q("Redraw a weak page", "Same subject, better proportions.", "weekly", 20),
+        q("A sketch away from home", "The bus, a café, a bench.", "weekly", 15),
+        q("Shade one object properly", "Light side, shadow side, cast shadow.", "weekly", 20),
+        q("Fifteen minutes, timer on", "Pencil down at the bell.", "daily", 10),
+      ]),
+  },
+  {
+    key: "grid-visit-all-51-lower-48-national-parks",
+    slug: "visit-all-51-lower-48-national-parks",
+    title: "Visit all 51 lower-48 national parks",
+    metric: { name: "national parks visited", unit: "", target: 51, aggregation: "distinct" },
+    camps: [
+      { title: "First three parks", detail: "First region is mapped, booked, and underway.", target: 3, week: 3, emoji: "map" },
+      { title: "Fifteen parks down", detail: "Core loops done and travel system is dialed.", target: 15, week: 15, emoji: "backpack" },
+      { title: "Past the halfway mark", detail: "Over halfway, only remote and western parks left.", target: 30, week: 30, emoji: "compass" },
+      { title: "Forty five parks", detail: "Final push with only a last cluster remaining.", target: 45, week: 45, emoji: "flag" },
+      { title: "All fifty one parks", detail: "Every lower-48 park visited with proof logged.", target: 51, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "ingrid",
+        daysAgo: 140,
+        items: [
+          { label: "Rocky Mountain", daysAgo: 124, note: "Park one. Trail Ridge Road to 3,713 m, with snow by the road in July. Annual pass at the gate: 250 dollars for non-residents." },
+          { label: "Great Sand Dunes", daysAgo: 117 },
+          { label: "Mesa Verde", daysAgo: 116, note: "Cliff Palace on the ranger tour, 150 rooms built into a cliff. Three parks, first region done." },
+          { label: "Black Canyon of the Gunnison", daysAgo: 115 },
+          { label: "Arches", daysAgo: 102, note: "Delicate Arch at sunrise with forty people and their tripods. Still worth the climb." },
+          { label: "Canyonlands", daysAgo: 101 },
+          { label: "Grand Teton", daysAgo: 88 },
+          { label: "Yellowstone", daysAgo: 87, note: "Grand Prismatic from the Fairy Falls trail. A bison held up 40 cars in Hayden Valley and took its time." },
+          { label: "Capitol Reef", daysAgo: 74, note: "Cassidy Arch by 9 and pie in Fruita before noon, as the author of my trail guide told me on the phone." },
+          { label: "Bryce Canyon", daysAgo: 73 },
+          { label: "Zion", daysAgo: 72, note: "Lost the Angels Landing lottery. Walked the Narrows instead: four hours in the river, water to my waist." },
+          { label: "Great Basin", daysAgo: 65, note: "On the drive to San Francisco. Bristlecone pines below Wheeler Peak, some 3,000 years old, and the darkest sky since Finnmark." },
+          { label: "Pinnacles", daysAgo: 60, note: "Bear Gulch cave by headlamp. Two condors over the High Peaks, the ranger confirmed it." },
+          { label: "Yosemite", daysAgo: 53, note: "Mist Trail to the top of Vernal Fall, 600 granite steps. No mist this late in the year." },
+          { label: "Redwood", daysAgo: 47, note: "Fifteen. Fern Canyon in the fog, then the tallest trees on Earth from a stiff-neck angle." },
+          { label: "Crater Lake", daysAgo: 46 },
+          { label: "Lassen Volcanic", daysAgo: 45 },
+          { label: "Sequoia", daysAgo: 39 },
+          { label: "Kings Canyon", daysAgo: 38 },
+          { label: "Congaree", daysAgo: 25 },
+          { label: "Great Smoky Mountains", daysAgo: 18, note: "Alum Cave Trail with the maples at peak. Busiest park in the country, but at 8 a.m. it was me and a man with a thermos." },
+          { label: "Mammoth Cave", daysAgo: 11 },
+          { label: "Hot Springs", daysAgo: 4, note: "Twenty-three, on the drive to Austin. The water comes out of the hill at 62 degrees. Shortest hike yet, best bath." },
+        ],
+        plan: {
+          summary:
+            "You will hit all 51 parks in the lower 48 by grouping them into regional road trips instead of one-off drives. Summer covers the mountains and West Coast, fall covers the Southeast and Midwest, winter covers the south and desert parks. Each visit counts with a hike and a logged entry, and you keep two buffer weeks for weather and closures. The last trip is your most remote cluster, saved for late spring.",
+          cadence: "1 park trip every 1-2 weeks, batch by region, check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Book the West Texas loop", "Big Bend, Guadalupe Mountains, Carlsbad Caverns and White Sands in one long weekend. Lodging first.", "weekly", 25),
+      q("Pick one long hike for Big Bend", "Lost Mine Trail or the South Rim. Start before sunrise.", "weekly", 15),
+      q("Sunday check-in: map the 28 left", "Sort them by the month each one is best.", "weekly", 10),
+      q("Photo at the sign, every park", "Before the hike, while you still have the energy.", "weekly", 10),
+      q("Thirty parks", "Over halfway, with only remote and western parks left.", "boss", 80),
+    ],
+    doneQuest: (log) => q(`Visit ${log.label}`, "A hike, a photo at the sign, and the log.", "weekly", 30),
+  },
+  {
+    key: "grid-live-a-month-in-12-different-cities",
+    slug: "live-a-month-in-12-different-cities",
+    title: "Live a month in 12 different cities",
+    metric: { name: "cities lived in for a month", unit: "cities", target: 12, aggregation: "distinct" },
+    camps: [
+      { title: "First city locked in", detail: "First city booked, remote setup tested, and bags ready to go.", target: 1, week: 3, emoji: "backpack" },
+      { title: "Three bases down", detail: "Three month-long stays done with work and budget still stable.", target: 3, week: 13, emoji: "map" },
+      { title: "Halfway around", detail: "Half a year of monthly moves without burning out or moving back.", target: 6, week: 26, emoji: "compass" },
+      { title: "Nine cities deep", detail: "Nine cities lived in, systems for housing and work on autopilot.", target: 9, week: 39, emoji: "pin" },
+      { title: "Twelve month finale", detail: "Twelve full month-long stays completed in twelve different cities.", target: 12, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "ingrid",
+        daysAgo: 190,
+        items: [
+          { label: "Lisbon", daysAgo: 187, note: "Month one. Graça, fourth floor, no lift. Tested the fibre before I unpacked: 500 Mbps." },
+          { label: "Mexico City", daysAgo: 156, note: "Roma Norte, 30 nights. The Oslo stand-up moves to 8 a.m. Packed a third less than for Lisbon and haven't missed any of it." },
+          { label: "Denver", daysAgo: 126, note: "A garden flat in Highland, 90 minutes from Rocky Mountain. The first US base for the park trips." },
+          { label: "Salt Lake City", daysAgo: 95, note: "Cheap month after Denver, on purpose: rent is 40 percent less. Capitol Reef, Bryce and Zion are each a morning's drive." },
+          { label: "San Francisco", daysAgo: 64 },
+          { label: "Atlanta", daysAgo: 34 },
+          { label: "Austin", daysAgo: 3, note: "Month seven, after two days of driving from Atlanta. A garage apartment in Travis Heights, and the travel guitar has its own corner." },
+        ],
+        plan: {
+          summary:
+            "You will live 28 plus nights in a new city each month, twelve in a row. Start with two easy, affordable cities to fix your packing, housing, and work routine. Then alternate cheap and expensive regions to protect your budget and energy. Keep one rest week per quarter with no travel. Finish with a city you actually might want to return to.",
+          cadence: "Move on the 1st of each month, weekly review on Sundays, one deep work setup per city",
+        },
+      },
+    ],
+    openQuests: [
+      q("Find a backup desk in Austin", "A library or a coworking day pass, tested with a video call.", "weekly", 15),
+      q("Shortlist three cheap cities for next month", "Rent, flights and internet speed for each. Book by the 15th.", "weekly", 30),
+      q("Sunday review: six months of spending", "Rent, flights, car. Compare it to the cap.", "weekly", 15),
+      q("Put the rest week in the calendar", "One week this quarter with no trips at all.", "weekly", 10),
+      q("Nine cities deep", "Two more moves with housing and work on autopilot.", "boss", 80),
+    ],
+    doneQuest: (log) => q(`Move to ${log.label}`, "28 nights or more. Test the internet and find a backup desk on day one.", "one_off", 40),
+  },
+  {
+    key: "grid-call-12-heroes-who-inspire-you",
+    slug: "call-12-heroes-who-inspire-you",
+    title: "Call 12 heroes who inspire you",
+    metric: { name: "heroes cold-called", unit: "", target: 12, aggregation: "count" },
+    camps: [
+      { title: "First cold call done", detail: "You prove you can get a stranger on the phone.", target: 1, week: 4, emoji: "chat" },
+      { title: "Four heroes reached", detail: "You have a repeatable script and follow-up system.", target: 4, week: 17, emoji: "target" },
+      { title: "Seven conversations in", detail: "You hold real 20-minute conversations, not just intros.", target: 7, week: 30, emoji: "highfive" },
+      { title: "Double digits hit", detail: "You get referrals and warm intros from past heroes.", target: 10, week: 43, emoji: "link" },
+      { title: "Twelve heroes called", detail: "You finish with 12 calls and notes on what you learned.", target: 12, week: 51, emoji: "crown" },
+    ],
+    members: [
+      {
+        handle: "ingrid",
+        daysAgo: 100,
+        items: [
+          {
+            label: "The author of my Utah trail guide",
+            daysAgo: 76,
+            note: "First call. She answered my email with her number and gave me 25 minutes. Takeaway: Cassidy Arch by 9, pie in Fruita before noon.",
+          },
+          {
+            label: "A cartographer who paints relief maps by hand",
+            daysAgo: 43,
+            note: "Asked how she decides what to leave off a map. Anything the hiker won't need in the next hour. Using that at work this week.",
+          },
+          {
+            label: "An architect of Norway's roadside rest stops",
+            daysAgo: 20,
+            note: "Called at 7 a.m. here, lunchtime in Norway. 40 minutes on small buildings in big landscapes. She wants pictures from the Smokies.",
+          },
+          {
+            label: "A hiker who has walked all three long US trails",
+            daysAgo: 2,
+            note: "Four. The cartographer passed my note on and she called back the same day. Takeaway: book the hardest stretch first.",
+          },
+        ],
+        plan: {
+          summary:
+            "You will call one hero a month for 12 months, people whose work you respect. Start with accessible heroes to build nerve, then aim higher as your hit rate improves. Each month is research, one short ask, one call, and a thank-you note with what you learned. Bad months roll forward with a backup list so you never stall. By spring you will be getting warmer intros and longer conversations.",
+          cadence: "One 30-min outreach block a week, check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Thank-you note to hero four", "Three lines on what you learned. Send it within two days.", "weekly", 15),
+      q("Pick hero five from the list", "Aim higher than the last one. Look for a warm path first.", "weekly", 20),
+      q("30-minute outreach block", "One short ask, sent before the block ends.", "weekly", 15),
+      q("Refresh the backup list", "Three names in case this month's ask stalls.", "weekly", 10),
+      q("Seven conversations", "Three more real calls, 20 minutes or longer.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Send the pre-call note", "Who you are, why them, one small ask, an easy out.", "weekly", 20),
+        q("Write three questions before the call", "The ones only this person can answer.", "weekly", 15),
+        q("Send the thank-you note", "What you learned, in three lines.", "weekly", 15),
+      ]),
+  },
+  {
+    key: "grid-have-coffee-with-45-strangers-in-a-year",
+    slug: "have-coffee-with-45-strangers-in-a-year",
+    title: "Have coffee with 45 strangers in a year",
+    metric: { name: "strangers met for coffee", unit: "people", target: 45, aggregation: "count" },
+    camps: [
+      { title: "First three coffees", detail: "You prove you can invite and show up without overthinking it.", target: 3, week: 3, emoji: "flag" },
+      { title: "Ten different stories", detail: "Invites feel normal and you have regular sources for new people.", target: 10, week: 13, emoji: "chat" },
+      { title: "Halfway table", detail: "Halfway there with repeatable invites, follow-ups, and notes.", target: 22, week: 26, emoji: "camp" },
+      { title: "Thirty five and fluent", detail: "You can connect anywhere, with a wider mix of ages and worlds.", target: 35, week: 39, emoji: "map" },
+      { title: "Forty five strangers in", detail: "A full year of strangers, with a few turning into real friends.", target: 45, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "ingrid",
+        daysAgo: 70,
+        items: [
+          { label: "Dale, retired geologist", daysAgo: 68, note: "Coffee one. He reads by the library window every morning. Drew Lake Bonneville on a napkin: this whole valley under 300 m of water." },
+          { label: "Luis, cable car gripman", daysAgo: 61 },
+          { label: "Margaret, my downstairs neighbour", daysAgo: 55, note: "81, in the Mission since 1971. She knew who lived in my room in 1985. Three coffees." },
+          { label: "Diego, sea otter researcher", daysAgo: 48 },
+          { label: "Ruth, night-shift nurse", daysAgo: 35 },
+          { label: "Keisha, rooftop beekeeper", daysAgo: 29, note: "Forty hives on roofs across the city. Brought me a jar of sourwood honey and wouldn't take money for it." },
+          { label: "Walt, who walks the BeltLine every day", daysAgo: 22, note: "Started walking at 70, eight km a day now. Next time we walk instead of sit." },
+          { label: "Simone, transit planner", daysAgo: 15 },
+          { label: "Kari, Norwegian in Atlanta since 1989", daysAgo: 7, note: "Found her through a Nordic society newsletter. First Norwegian coffee since I left Oslo, and she brought kvæfjordkake." },
+          { label: "Ray, guitar builder two doors down", daysAgo: 1, note: "Ten. He picked up my travel guitar, frowned, and lowered the action in ten minutes. Following up with Walt and Keisha this week." },
+        ],
+        plan: {
+          summary:
+            "You will meet 45 strangers for coffee by August 2027, leaving room for sick weeks and travel. Keep it simple: one short coffee a week, booked the Sunday before, logged with name and one takeaway. Rotate where you find people so you do not stall, from coworkers and neighbors to events and cold invites. Every 10 or so, revisit who energized you and follow up with two of them.",
+          cadence: "1 coffee a week, 30-45 min; check in Sunday night and book next invite",
+        },
+      },
+    ],
+    openQuests: [
+      q("Book this week's coffee by Sunday", "One invite, a time, and a place you can walk to.", "weekly", 15),
+      q("Follow up with Walt and Keisha", "A short message each, no ask.", "weekly", 15),
+      q("Add three Austin sources", "A running club, a library talk, the neighbours.", "weekly", 15),
+      q("Invite someone outside your world", "A different age, job or language from the last three.", "weekly", 20),
+      q("Twenty-two coffees: the halfway table", "Twelve more. One a week gets you there by February.", "boss", 80),
+    ],
+    doneQuest: (log) => q(`Coffee with ${log.label}`, "Thirty minutes. Write down one takeaway.", "weekly", 25),
+  },
+  {
+    key: "grid-eat-45-bib-gourmand-spots-in-a-year",
+    slug: "eat-45-bib-gourmand-spots-in-a-year",
+    title: "Eat 45 Bib Gourmand spots in a year",
+    metric: { name: "bib gourmand spots visited", unit: "spots", target: 45, aggregation: "distinct" },
+    camps: [
+      { title: "First tastes", detail: "You have a shortlist and your first three visits are logged.", target: 4, week: 4, emoji: "map" },
+      { title: "In the rhythm", detail: "Weekly rhythm is set and you have tried 5 cuisines.", target: 14, week: 13, emoji: "cooking" },
+      { title: "Halfway table", detail: "Halfway through the list with notes on every spot.", target: 25, week: 26, emoji: "flag" },
+      { title: "Deep cuts", detail: "Only the hardest reservations and day trips remain.", target: 35, week: 39, emoji: "pin" },
+      { title: "Full menu year", detail: "Full year of weekly spots plus one favorite revisit.", target: 45, week: 52, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "ingrid",
+        daysAgo: 115,
+        items: [
+          { label: "Taiwanese noodle house, Denver", daysAgo: 110, note: "Spot one. Beef noodle soup and a smashed cucumber salad. Would go back next week." },
+          { label: "Wood-fired pizza, Boulder", daysAgo: 108 },
+          { label: "Israeli grill, Denver", daysAgo: 104 },
+          { label: "Brisket by the pound, Denver", daysAgo: 98, note: "Four before Utah, which has no Bibs at all. The brisket sells out by 1 p.m. Would return." },
+          { label: "Roast chicken for two, San Francisco", daysAgo: 62, note: "First Bib in five weeks. The chicken for two takes an hour and I ate most of it alone. Yes, again." },
+          { label: "Dim sum in the Richmond, San Francisco", daysAgo: 57 },
+          { label: "Peking duck, Berkeley", daysAgo: 54 },
+          { label: "Vegan Singaporean café, Oakland", daysAgo: 49 },
+          { label: "Thai boat noodles, San Francisco", daysAgo: 41, note: "Boat noodles and a papaya salad that made my eyes water. Would go back." },
+          { label: "Mexican in the Inner Sunset, San Francisco", daysAgo: 36, note: "Ten. Six in San Francisco, which makes up for Utah." },
+          { label: "Korean-Texan barbecue, Atlanta", daysAgo: 32, note: "Pork belly and kimchi slaw on a picnic table by the highway. Would return." },
+          { label: "Biscuits in the Old Fourth Ward, Atlanta", daysAgo: 27 },
+          { label: "Sichuan off Buford Highway, Atlanta", daysAgo: 21, note: "Dry-fried green beans and fish in chili oil. Numb lips for an hour." },
+          { label: "Filipino plates in Grant Park, Atlanta", daysAgo: 14, note: "Fourteen. Chicken adobo with garlic rice. Next time with company." },
+          { label: "Persian plates in Inman Park, Atlanta", daysAgo: 8 },
+          { label: "Northern Thai trailer, Austin", daysAgo: 2, note: "First in Texas. Khao soi from a trailer, eaten at a picnic table. Going back this week." },
+        ],
+        plan: {
+          summary:
+            "You will visit 45 different Bib Gourmand spots by next July, averaging just under one a week with room for travel, budgets, and bad weeks. Keep a tight local list for busy weeks and save destination spots for months with more time. Log each place with what you ate and whether you would return. End with a revisit to your top pick and a ranked list of all 45.",
+          cadence: "1 restaurant visit a week, log and check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Put the Austin Bibs on the map", "Plus San Antonio for a day trip. Save ten.", "weekly", 15),
+      q("Bib night this week", "A barbecue spot. Order what the guide calls out.", "weekly", 20),
+      q("Bring this week's coffee stranger", "Ask at the end of the coffee. Worst case, you eat alone.", "weekly", 20),
+      q("Rank the first sixteen", "One line each on whether you'd go back.", "weekly", 15),
+      q("Twenty-five spots: the halfway table", "Nine more. Austin, San Antonio and Houston all count.", "boss", 80),
+    ],
+    doneQuest: (log) => q(`Bib night: ${log.label}`, "Order the dish the guide calls out. Log it with a photo and three lines.", "weekly", 25),
+  },
+  {
+    key: "grid-host-12-stranger-dinners-in-12-months",
+    slug: "host-12-stranger-dinners-in-12-months",
+    title: "Host 12 stranger dinners in 12 months",
+    metric: { name: "stranger dinners hosted", unit: "dinners", target: 12, aggregation: "count" },
+    camps: [
+      { title: "First table of eight", detail: "Prove the format works with real strangers at your table.", target: 1, week: 4, emoji: "flag" },
+      { title: "Three dinners down", detail: "Hosting feels repeatable without stress or high cost.", target: 3, week: 13, emoji: "camp" },
+      { title: "Six tables hosted", detail: "Half the year done and guests start bringing guests.", target: 6, week: 26, emoji: "map" },
+      { title: "Nine dinners strong", detail: "System is smooth and every seat fills in days.", target: 9, week: 39, emoji: "summit" },
+      { title: "Twelve month feast", detail: "A full year of strangers turned into a real community.", target: 12, week: 52, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "nadiah",
+        daysAgo: 150,
+        hours: [[7, 8]],
+        items: [
+          {
+            label: "First table",
+            daysAgo: 124,
+            note: "Eight strangers: three from the neighbourhood group, two from work, three friends of friends. Mujadara, fattoush, carrots with tahini. €71. Question of the night: what did you believe at fifteen that you still believe? Last guest left at 1:10.",
+          },
+          {
+            label: "Second table",
+            daysAgo: 96,
+            note: "Ran out of bread by nine. Two loaves per four people from now on. A nurse and a sommelier talked about night shifts for an hour. €68.",
+          },
+          {
+            label: "Third table",
+            daysAgo: 68,
+            note: "August, half of Paris away. Seven came, the eighth cancelled from a beach in Brittany. Prep was two short evenings and nothing burned. €59.",
+          },
+          {
+            label: "Fourth table",
+            daysAgo: 40,
+            note: "Question: what did you change your mind about this year? A retired pilot answered for twenty minutes and nobody minded. €74.",
+          },
+          {
+            label: "Fifth table",
+            daysAgo: 12,
+            note: "Seats filled in 36 hours. Two guests came because someone from the first table told them to. Lentil soup instead of fattoush, it's cold now. €66.",
+          },
+          {
+            label: "Waitlist potluck",
+            daysAgo: 2,
+            note: "Nineteen on the waitlist, so a Sunday potluck for the first eleven. Eleven dishes, three of them hummus. Six tables, halfway.",
+          },
+        ],
+        plan: {
+          summary:
+            "You will host one dinner for 8 strangers each month through next May. Keep the same weeknight, same simple menu base, and an open invite list so planning stays light. Track guests, cost, and what worked after each dinner so it gets easier. Missed months get made up with a casual potluck version, and month 12 is a reunion with favorites from prior tables.",
+          cadence: "One dinner a month, prep in two short blocks that week, check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Send the invite for table seven", "The waitlist first, then the same three places. Date, seats, and the question.", "weekly", 20),
+      q("Write down what worked at the potluck", "Guests, cost, and the one thing you'd keep for a Thursday.", "weekly", 15),
+      q("Pick the question for table seven", "One you'd want to answer yourself.", "weekly", 15),
+      q("A winter menu under €70", "Three dishes in 90 minutes, one pot if you can.", "weekly", 20),
+      q("Fill table seven in three days", "Post the invite once and don't chase anyone.", "boss", 60),
+    ],
+    doneQuest: (log) => q(`Host the ${(log.label ?? "next table").toLowerCase()}`, "Eight seats, three dishes, one good question.", "weekly", 50),
+  },
+  {
+    key: "grid-an-ai-chief-of-staff-running-10-life-tasks",
+    slug: "an-ai-chief-of-staff-running-10-life-tasks",
+    title: "An AI chief of staff running 10 life tasks",
+    metric: { name: "life tasks on autopilot", unit: "tasks", target: 10, aggregation: "latest" },
+    camps: [
+      { title: "First task off your plate", detail: "One boring task runs without you touching it", target: 1, week: 3, emoji: "seedling" },
+      { title: "Morning ops on autopilot", detail: "Inbox, calendar and bills triage themselves daily", target: 4, week: 13, emoji: "camp" },
+      { title: "Trusted with real money", detail: "Agent books, pays, and follows up within guardrails", target: 7, week: 26, emoji: "shield" },
+      { title: "Full week delegation test", detail: "A week of travel, meals and admin handled end to end", target: 9, week: 39, emoji: "map" },
+      { title: "Ten tasks running your life", detail: "Ten live workflows plus a fail-safe log and kill switch", target: 10, week: 51, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "nadiah",
+        daysAgo: 120,
+        pace: 0,
+        beats: [
+          { daysAgo: 120, value: null, note: "Listed 23 recurring tasks I hate. Inbox triage first: clear inputs, clear outputs. Then a second list of what it never touches: paying, replying to my mother, deleting anything." },
+          { daysAgo: 114, value: null, note: "Read-only access to mail and calendar. Its first summary of my day was correct and slightly smug." },
+          { daysAgo: 104, value: 1, note: "Triage v1 runs at 6:30. This morning: 41 emails, 6 act, 9 wait, 26 archive. I'd have moved two." },
+          { daysAgo: 95, value: 1, note: "A week in. Wrong on 4 of 280, all newsletters it thought were from people." },
+          { daysAgo: 86, value: 2, note: "Calendar brief at 6:45: tomorrow's meetings, the conflicts, and whether the 7:42 is late. Two running." },
+          { daysAgo: 75, value: 2, note: "Every action goes in a log now, one line each. Reading it on the train is oddly calming." },
+          { daysAgo: 63, value: 2, note: "Bills in shadow mode: it reads each invoice and says what it would do. Right on 11 of 12. It missed the quarterly one." },
+          { daysAgo: 54, value: 3, note: "Bills live. It files invoices and flags due dates, never pays. Three running." },
+          { daysAgo: 45, value: 3, note: "Kill switch: one message from my phone and everything stops. Tested it twice on the platform." },
+          { daysAgo: 35, value: 4, note: "Dinner RSVPs: it confirms seats, asks about allergies, sends the address the day before. Morning ops done, four running." },
+          { daysAgo: 24, value: 4, note: "Sunday audit: 312 actions this week, 3 I'd have done differently. All three too polite." },
+          { daysAgo: 15, value: 4, note: "My coach asked what would make me trust it with money. A cap, a log, and a confirm step I can answer from the train." },
+          { daysAgo: 8, value: 4, note: "Subscription watch in shadow mode: renewals flagged three days before they charge. It counts after two clean weeks." },
+          { daysAgo: 1, value: 4, note: "Wrote the spending rules: €50 a payment, €200 a month, my yes on anything new. The phone bill goes first." },
+        ],
+        plan: {
+          summary:
+            "You will build a personal chief-of-staff agent in small, safe layers. Start with read-only triage for inbox and calendar, then add one automation at a time with limits and logs. Mid-year you give it guarded permission to spend, book, and follow up. By next summer it runs ten real workflows while you audit weekly.",
+          cadence: "2 build sessions a week, 45 min each, review Sundays",
+        },
+      },
+    ],
+    openQuests: [
+      q("Sunday audit", "Read the week's action log. Mark anything you'd have done differently.", "weekly", 15),
+      q("Two 45-minute build sessions", "One layer at a time. The log before the feature.", "weekly", 20),
+      q("Two clean weeks of subscription watch", "Every renewal flagged three days out, no misses. Then it counts.", "weekly", 20),
+      q("Test the kill switch from the train", "Time how long until everything stops.", "weekly", 10),
+      q("Let it pay the phone bill", "Under €20, inside your rules, with a confirm step. Read the log after.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Sunday audit", "Read the week's action log. Mark anything you'd have done differently.", "weekly", 15),
+        q("Two 45-minute build sessions", "One layer at a time. The log before the feature.", "weekly", 20),
+        q("Run one task in shadow mode for a week", "It says what it would do. You check every line.", "weekly", 25),
+      ]),
+  },
+  {
+    key: "grid-interview-100-builders-publish-every-word",
+    slug: "interview-100-builders-publish-every-word",
+    title: "Interview 100 builders, publish every word",
+    metric: { name: "interviews published", unit: "", target: 100, aggregation: "count" },
+    camps: [
+      { title: "First five live", detail: "Proves you can book, record, and ship on repeat", target: 5, week: 4, emoji: "flag" },
+      { title: "Steady twenty five", detail: "System holds with outreach, calendar, and backlog", target: 25, week: 13, emoji: "camp" },
+      { title: "Halfway archive", detail: "Half the archive done and publishing stays current", target: 50, week: 26, emoji: "map" },
+      { title: "Seventy five builders", detail: "Only repeat guests and hard-to-book builders left", target: 75, week: 39, emoji: "compass" },
+      { title: "Hundred published", detail: "Full set of 100 transcripts public and searchable", target: 100, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "nadiah",
+        daysAgo: 90,
+        items: [
+          { label: "A type designer in Lyon", daysAgo: 84, note: "The pilot. 52 minutes, 9,400 words, all of them published. She asked me to cut nothing." },
+          { label: "A bike mechanic who wrote his own booking app", daysAgo: 79, note: "Recorded in his workshop. A third of it is him explaining a derailleur. Kept every word." },
+          { label: "Two sisters running a seed library", daysAgo: 73 },
+          { label: "A retired engineer who restores pinball machines", daysAgo: 68, note: "August. Everyone else said September. He said come Tuesday." },
+          { label: "A night nurse who built her ward's shift-swap tool", daysAgo: 64, note: "Five live. She ran it as a spreadsheet for two years before she wrote any code." },
+          { label: "A bookbinder in Montreuil", daysAgo: 61 },
+          { label: "A founder of a three-person accounting app", daysAgo: 57, note: "New last question for everyone: what did you build that nobody used? Best answers so far." },
+          { label: "A game designer who ships one puzzle a day", daysAgo: 54 },
+          { label: "A carpenter who designs in parametric CAD", daysAgo: 50 },
+          { label: "An urban farmer with a sensor in every bed", daysAgo: 47, note: "Ten. With the same question set, the answers finally line up side by side." },
+          { label: "A blind developer who builds screen reader tools", daysAgo: 43, note: "He checked the transcript with his screen reader before I published. Fixed three of my commas." },
+          { label: "A chef who wrote her kitchen's ordering system", daysAgo: 40 },
+          { label: "A luthier who 3D-prints guitar bodies", daysAgo: 36 },
+          { label: "A volunteer mapping every public toilet in Paris", daysAgo: 34, note: "She has walked to 412 of them. Best opening answer yet." },
+          { label: "A robotics student in Saclay", daysAgo: 31 },
+          { label: "An embroiderer who programs her own machine", daysAgo: 29, note: "She sent me the pull quote stitched on linen. It's on my desk." },
+          { label: "A printmaker who sells through a site she coded", daysAgo: 26, note: "First no-show last week. Rebooked her and she came with notes." },
+          { label: "A hobbyist running forty weather stations in the Alps", daysAgo: 23 },
+          { label: "An architect who models flats in a game engine", daysAgo: 21 },
+          { label: "A father who built a bedtime story app for his son", daysAgo: 19, note: "Twenty. Recorded at his kitchen table at half nine, right after the story." },
+          { label: "A pharmacist who automated her stock orders", daysAgo: 16 },
+          { label: "Two founders who shut their startup down", daysAgo: 14, note: "The most honest hour so far. They read the transcript and asked me to keep every word." },
+          { label: "A woodworker making tools for left-handers", daysAgo: 12 },
+          { label: "A teacher who built her class's reading tracker", daysAgo: 9 },
+          { label: "A sound engineer building plugins in his cellar", daysAgo: 7, note: "Twenty-five. My coach asked who's missing from the archive. Builders over sixty: one so far." },
+          { label: "A 71-year-old who learned to code at 68", daysAgo: 5, note: "Over sixty, as promised. She wrote a tool to label 3,000 of her family's slides." },
+          { label: "A data journalist who scrapes court records", daysAgo: 3 },
+          { label: "A baker who wrote her own ordering page", daysAgo: 1, note: "Recorded at 5am in her bakehouse. The oven timer is in the transcript, twice." },
+        ],
+        plan: {
+          summary:
+            "You will run this like a beat reporter, not a side project. Two interviews a week keeps you at 100 with room for no-shows and slow months. Use one fixed question set plus builder-specific questions so transcripts stay comparable and readable. Publish within 7 days of recording so backlog never grows past four.",
+          cadence: "2 interviews a week, one publishing block, check-in Sunday",
+        },
+      },
+    ],
+    openQuests: [
+      q("Record two interviews this week", "The fixed question set, plus three of their own.", "weekly", 25),
+      q("Clean one transcript a day", "Speaker labels and timestamps. Thirty minutes.", "daily", 10),
+      q("Pitch five builders over sixty", "The archive has one. Ask with a date this time.", "weekly", 20),
+      q("Publish within seven days", "Transcript first, then five pull quotes.", "weekly", 20),
+      q("Clear the backlog to zero", "Every recorded interview published, none waiting.", "boss", 60),
+    ],
+    doneQuest: (log) =>
+      q(
+        `Publish the interview with ${log.label ? log.label[0].toLowerCase() + log.label.slice(1) : "this week's builder"}`,
+        "Every word, within seven days of recording.",
+        "weekly",
+        25,
+      ),
+  },
+  {
+    key: "grid-replace-12-subscriptions-with-your-own-builds",
+    slug: "replace-12-subscriptions-with-your-own-builds",
+    title: "Replace 12 subscriptions with your own builds",
+    metric: { name: "subscriptions replaced", unit: "", target: 12, aggregation: "count" },
+    camps: [
+      { title: "First cancellation", detail: "You have shipped one working replacement and cancelled one bill.", target: 1, week: 4, emoji: "flag" },
+      { title: "Three tools live", detail: "Three subscriptions gone and your toolkit starts compounding.", target: 3, week: 13, emoji: "camp" },
+      { title: "Halfway homemade", detail: "Half the year done and half your stack is yours.", target: 6, week: 26, emoji: "map" },
+      { title: "Nine deep", detail: "Nine replacements shipped with docs and backups.", target: 9, week: 39, emoji: "summit" },
+      { title: "Twelve for twelve", detail: "A full year with no rented tools left on your list.", target: 12, week: 52, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "nadiah",
+        daysAgo: 105,
+        items: [
+          {
+            label: "Habit tracker app, €4.99 a month",
+            daysAgo: 82,
+            note: "A grid of squares, one tap a day, built in a weekend. Three days of use, then cancelled. €4.99 a month to savings.",
+          },
+          {
+            label: "Scheduling link service, €12 a month",
+            daysAgo: 56,
+            note: "My own booking page for interview guests. Time zones took longer than everything else. Four builders booked through it this week.",
+          },
+          {
+            label: "Transcription service, €20 a month",
+            daysAgo: 31,
+            note: "Interviews transcribe on my laptop now, with an open speech model. 50 minutes of audio in 6. Speaker labels still need a pass by hand.",
+          },
+          {
+            label: "Read-later app, €4.99 a month",
+            daysAgo: 4,
+            note: "Saved articles go into Commonplace with a later tag. One more button, same database. €41.98 a month back so far.",
+          },
+        ],
+        plan: {
+          summary:
+            "You will replace 12 paid tools with 12 small tools you built and actually use. Start with the simplest wins like habit trackers, notes, or dashboards, then take on harder ones like automations and invoicing. Keep each build scoped to one weekend and deploy it so you rely on it daily. If a build fails, swap in the next easiest subscription so you keep one cancellation a month.",
+          cadence: "2 build sessions a week, 60-90 min each, check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pick subscription five", "The next easiest on your list: what it costs and the one job it does.", "weekly", 15),
+      q("Two build sessions", "60 to 90 minutes each. Scope it to one weekend.", "weekly", 20),
+      q("Back up your four tools", "One export each, somewhere that isn't your laptop.", "weekly", 15),
+      q("A one-line doc for each tool", "What it replaced, where it runs, how to restore it.", "weekly", 15),
+      q("Replace the automation service", "The first hard one. Move its six automations into your own scripts, cancel after two clean weeks.", "boss", 80),
+    ],
+    doneQuest: (log) =>
+      q(
+        `Replace the ${(log.label ?? "next subscription").split(",")[0].toLowerCase()}`,
+        "Build it, use it three days straight, then cancel. Log proof.",
+        "weekly",
+        60,
+      ),
+  },
+  {
+    key: "grid-launch-12-apps-in-12-months",
+    slug: "launch-12-apps-in-12-months",
+    title: "Launch 12 apps in 12 months",
+    metric: { name: "apps launched", unit: "apps", target: 12, aggregation: "count" },
+    camps: [
+      { title: "First launch live", detail: "One small app live with real users, scope kept tight.", target: 1, week: 4, emoji: "rocket" },
+      { title: "Three apps shipped", detail: "Rhythm is set, reuse your stack and launch checklist.", target: 3, week: 13, emoji: "camp" },
+      { title: "Halfway to twelve", detail: "Halfway done, keep each app focused on one problem.", target: 6, week: 26, emoji: "flag" },
+      { title: "Nine launches done", detail: "Nine launches banked, cut scope faster to stay on pace.", target: 9, week: 39, emoji: "summit" },
+      { title: "Twelve launches in a year", detail: "Twelve public launches plus a retro on what worked.", target: 12, week: 52, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "nadiah",
+        daysAgo: 175,
+        items: [
+          {
+            label: "Tablée: RSVPs and a waitlist for dinners with strangers",
+            daysAgo: 148,
+            note: "First launch, 21 hours of work. 12 signups by bedtime, all from my first dinner invite. People found the waitlist button before the RSVP one.",
+          },
+          {
+            label: "7:42: tells you your train is late before you leave home",
+            daysAgo: 121,
+            note: "Posted it on a commuters' forum at 7:50. 140 signups by night, three of them from my platform.",
+          },
+          {
+            label: "Ouvert: which Paris bakeries stay open in August",
+            daysAgo: 99,
+            note: "Half the bakeries near me close for August. Mapped the open ones from photos of the signs on their doors. Third launch, and the checklist took ten minutes.",
+          },
+          { label: "Table Questions: one good question at a time, for dinners", daysAgo: 72 },
+          {
+            label: "Commonplace: save a line from a book, get one back each morning",
+            daysAgo: 48,
+            note: "The one I use most myself. Built the save button first and nearly stopped there.",
+          },
+          {
+            label: "Grand: a phone home screen with three big buttons, for parents",
+            daysAgo: 22,
+            note: "Built for my mother first. 60 signups on day one, from people with mothers like mine. Six launched, halfway.",
+          },
+          {
+            label: "Every Word: search across every builder interview",
+            daysAgo: 2,
+            note: "Typed first customer and got answers from 19 of the 27 builders. The archive finally reads as one thing.",
+          },
+        ],
+        plan: {
+          summary:
+            "You will ship one small app per month, each solving one clear problem. Use the same stack, template, and launch checklist so shipping gets faster. Keep scope to what fits in 20 hours and launch even if it is rough. Track users and keep one monthly retro to carry lessons into the next build.",
+          cadence: "2 build sessions a week, 90 min each, ship review last Sunday",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pick app eight", "Rank the idea list by build speed and interest. Ten minutes, then decide.", "weekly", 15),
+      q("Write app eight's one-page spec", "The single core action, the user, and what v1 won't do.", "weekly", 20),
+      q("Two 90-minute build sessions", "Same stack, same template. Stop at 90.", "weekly", 20),
+      q("Answer Every Word's feedback", "Reply to each one and pick a single change for v2.", "weekly", 15),
+      q("Ship app eight in 15 hours", "Five fewer than usual. Cut scope until it fits.", "boss", 80),
+    ],
+    doneQuest: (log) =>
+      q(`Launch ${(log.label ?? "the next app").split(": ")[0]}`, "Live URL, signup, analytics, feedback form. Ship it rough.", "weekly", 40),
+  },
+  {
+    key: "grid-no-phone-before-noon-for-a-year",
+    slug: "no-phone-before-noon-for-a-year",
+    title: "No phone before noon for a year",
+    metric: { name: "mornings phone-free till noon", unit: "days", target: 320, aggregation: "days" },
+    camps: [
+      { title: "First two clean weeks", detail: "You prove you can do two clean weeks without reaching.", target: 14, week: 3, emoji: "seedling" },
+      { title: "Seventy five quiet mornings", detail: "Mornings without scrolling start to feel normal.", target: 75, week: 13, emoji: "camp" },
+      { title: "Half year of slow starts", detail: "You hold the line through travel, stress, and boredom.", target: 150, week: 26, emoji: "shield" },
+      { title: "Two hundred thirty by June", detail: "Noon feels late now, you fill mornings on purpose.", target: 230, week: 39, emoji: "camp" },
+      { title: "Three twenty phone-free dawns", detail: "A full year of owning your attention before noon.", target: 320, week: 52, emoji: "summit" },
+    ],
+    notes: [
+      "Clean. Picked it up at 12:04.",
+      "Reached for my pocket at the bus stop. Nothing there. Walked on.",
+      "Breakfast at the kopitiam with the paper. Read all of it for once.",
+      "Maps once, to find a hardware shop in Jalan Besar. Allowed.",
+      "Standup on the laptop at 9:30. Phone stayed in the bag till 12:10.",
+      "Call from my mum at 8. Allowed, and the best part of the morning.",
+      "Boring morning. That's the point.",
+      "Left the phone at home for the walk. The watch counted the steps.",
+      "Unlocked it to check the time out of habit. The time was on my wrist. Put it back.",
+      "Forgot to check it at noon. Didn't miss it.",
+      "Work 2FA tried to pull me in. Used the hardware key instead.",
+      "Forty pages of The Soul of a New Machine on the MRT.",
+      "The urge was strongest at 11:40, waiting for lunch. Held.",
+      "Two hours of real work before the first message.",
+    ],
+    shortNotes: ["Clean.", "Clean till noon.", "Phone stayed in the hallway.", "Walk, toast, paper.", "Maps only.", "One reach, no unlock."],
+    members: [
+      {
+        handle: "weizhang",
+        daysAgo: 65,
+        pace: 0.95,
+        hours: [[12, 13]],
+        gaps: [
+          [33, 31],
+          [20, 19],
+        ],
+        beats: [
+          { daysAgo: 65, note: "Day one. Phone charges in a shoebox by the front door, a $12 alarm clock by the bed. Picked it up at 12:03." },
+          { daysAgo: 63, note: "Allowed list taped inside the front door: calls, maps, alarm. Everything else waits till noon." },
+          { daysAgo: 59, note: "First Sunday review: 6 of 7. The slip was Friday at 8:10, in the lift lobby. Next: a paperback in the work bag." },
+          { daysAgo: 52, note: "13 of 14. The reaching mostly stops by 10 now. Next: badges off on the last two apps." },
+          { daysAgo: 45, note: "Built the phone a proper dock yesterday, bent aluminium, by the front door. It sleeps there face down. 20 of 21." },
+          { daysAgo: 30, note: "Back from a cousin's wedding in KL. Three mornings lost to boarding passes and the family group chat. Clean again today." },
+          { daysAgo: 25, note: "Rain, no walk. Read on the sofa till noon and missed nothing." },
+          { daysAgo: 18, note: "Two mornings lost to an incident at work: paged at 7, phone in hand till lunch. Not counting them. Clean today." },
+          { daysAgo: 11, note: "Build day at the bench. Five hours, no idea where the phone was." },
+          { daysAgo: 3, note: "October: 26 of 31. Three lost to the trip, two to the incident. Next: print boarding passes and the hotel address the night before." },
+          { daysAgo: 1, note: "58. Woke before the alarm clock, walked, two hours of real work before the first message. Noon felt early." },
+        ],
+        plan: {
+          summary:
+            "You keep your phone untouched until noon except calls and maps, every day for a year. Start by making the phone boring and far away: charger outside the bedroom, notifications off, a written morning routine to replace the scroll. Expect slips on travel and rough weeks, so the target is 320 days to leave room. You track each clean morning and review Sundays to fix what tempted you.",
+          cadence: "Daily morning block until noon, check in every Sunday evening",
+        },
+      },
+    ],
+    openQuests: [
+      q("Phone on the dock by 22:30", "Face down by the front door, every night this week.", "daily", 10),
+      q("A paperback in every bag", "The lift lobby and the MRT platform are where the slips happen.", "weekly", 15),
+      q("Sunday review", "Count the clean mornings and name what tempted you on the rest.", "weekly", 15),
+      q("Pager rules for on-call week", "Pages on the laptop, phone for calls only. Write it down before the rota starts.", "one_off", 20),
+      q("Seventy-five quiet mornings", "Every morning clean until the camp, weekends included.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Charger outside the bedroom all week", "Alarm clock by the bed, phone by the front door.", "weekly", 15),
+        q("Seven clean mornings in a row", "Calls, maps and the alarm only.", "weekly", 25),
+        q("Sunday review", "Count the clean mornings and name what tempted you on the rest.", "weekly", 15),
+        q("A morning swap every day", "Walk, paper, breakfast without feeds.", "daily", 10),
+        q("Notifications off for one more app", "Whichever one pinged first this morning.", "one_off", 15),
+        q("Leave the phone home for the walk", "The watch counts the steps.", "daily", 10),
+        q("Move work 2FA off the phone", "A hardware key, so the code isn't an excuse.", "one_off", 20),
+        q("Read on the MRT instead", "A paperback in the bag, every commute this week.", "weekly", 15),
+        q("A clean morning on a travel day", "Boarding pass printed, map downloaded the night before.", "boss", 60),
+      ]),
+  },
+  {
+    key: "grid-build-twelve-things-by-hand-in-a-year",
+    slug: "build-twelve-things-by-hand-in-a-year",
+    title: "Build twelve things by hand in a year",
+    metric: { name: "handmade objects finished", unit: "pieces", target: 12, aggregation: "count" },
+    camps: [
+      { title: "First finished piece", detail: "Prove the habit with a simple finished object", target: 1, week: 4, emoji: "seedling" },
+      { title: "Four builds in", detail: "Three different materials under your belt", target: 4, week: 17, emoji: "camp" },
+      { title: "Halfway shelf", detail: "Half a year of steady making without a skip", target: 7, week: 30, emoji: "backpack" },
+      { title: "Skilled ten", detail: "Tackle joinery, fit, and finish on purpose", target: 10, week: 43, emoji: "target" },
+      { title: "Year of twelve", detail: "Twelve objects displayed together in one place", target: 12, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "weizhang",
+        daysAgo: 135,
+        items: [
+          { label: "Oak hook rack for the front door", note: "Five dowel hooks on an oak strip. Three hours, two of them sanding. Keys live by the door now.", daysAgo: 130 },
+          { label: "Teak cutting board", daysAgo: 102 },
+          { label: "Stoneware cups, set of four", note: "Hand-built, fired at a community studio. Three hold coffee. One leaks, so it holds pens.", daysAgo: 74 },
+          { label: "Bent aluminium phone dock", note: "3 mm sheet, a hacksaw, files and a bend in the vise. Replaces the shoebox the phone slept in. Three materials in: wood, clay, metal.", daysAgo: 46 },
+          { label: "Waxed canvas tool roll", note: "Ten pockets for chisels and files. Saddle-stitched by hand, about 600 stitches. Slow, and it won't come apart.", daysAgo: 11 },
+        ],
+        plan: {
+          summary:
+            "You will finish one tangible object every calendar month, twelve total by next June. Start with small wins like a cutting board, hook rack, or planter to lock the rhythm. Then rotate materials each month across wood, clay, metal, textile, and paper so your skills widen. The last two months are for harder builds that combine fit and finish, ending with a full set you can hold and show.",
+          cadence: "One build day a month plus one 45 minute shop session a week, check-in last Sunday",
+        },
+      },
+    ],
+    openQuests: [
+      q("45 minutes at the bench", "Fold and press the signatures for the notebook.", "weekly", 15),
+      q("Make a sewing cradle", "Scrap plywood, so the holes land in the same place on every signature.", "weekly", 20),
+      q("Sharpen the chisels", "1000 grit, then 6000. Before the next wood build.", "weekly", 15),
+      q("Plan December and January", "One joinery build, one metal. Order the stock now.", "one_off", 20),
+      q("Photograph the five on one shelf", "Same light, same angle. The start of the year-of-twelve wall.", "one_off", 10),
+      q("A hand-bound notebook by month's end", "Six signatures, coptic stitch, board covers. Paper is November's material.", "boss", 70),
+    ],
+    doneQuest: (log) => q(`Build day: ${log.label}`, "Cut, shape, finish. A photo on the shelf when it's done.", "weekly", 30),
+  },
+  {
+    key: "grid-a-merged-open-source-pr-every-month",
+    slug: "a-merged-open-source-pr-every-month",
+    title: "A merged open source PR every month",
+    metric: { name: "months with a merged PR", unit: "months", target: 12, aggregation: "distinct" },
+    camps: [
+      { title: "First merge done", detail: "You have your setup and first contribution live in a real repo.", target: null, week: 3, emoji: "flag" },
+      { title: "Three month streak", detail: "You can find and scope good issues without getting stuck.", target: 3, week: 13, emoji: "map" },
+      { title: "Half year steady", detail: "You handle reviews, tests, and larger changes with confidence.", target: 6, week: 26, emoji: "code" },
+      { title: "Nine months deep", detail: "You contribute to harder repos and help other newcomers.", target: 9, week: 39, emoji: "highfive" },
+      { title: "Twelve for twelve", detail: "You closed all twelve months with merged work you can show.", target: 12, week: 52, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "weizhang",
+        daysAgo: 200,
+        items: [
+          { label: "May 2026", note: "First one. A wrong install command in the README of a command-line tool I use every day. Merged in a day.", daysAgo: 176 },
+          { label: "June 2026", daysAgo: 147 },
+          { label: "July 2026", daysAgo: 119 },
+          { label: "August 2026", note: "July's second PR is still waiting on a quiet maintainer. Took a flaky-test fix to the next repo on the shortlist instead. Merged in two days.", daysAgo: 83 },
+          { label: "September 2026", note: "First feature, not a fix: a --json flag for a CLI's status command. 140 lines, three rounds of review.", daysAgo: 56 },
+          { label: "October 2026", note: "The home automation platform I run at home: its IR remote integration dropped the fan speed on old aircon units. Mine are old. Six months running.", daysAgo: 21 },
+          { label: "November 2026", note: "Clearer error in the speech-to-text tool on my mini PC when the mic's sample rate is wrong. It cost me an evening last week. Next: pick December's issue early.", daysAgo: 2 },
+        ],
+        plan: {
+          summary:
+            "You will build a steady open source habit, one merged PR per calendar month. Start with docs and small fixes to learn the workflow, then move to bug fixes and small features. Keep a shortlist of 4 to 5 friendly repos so a quiet maintainer never blocks your streak. Finish the year with twelve merges and a public record of real contributions.",
+          cadence: "2 focused sessions a week, 60-90 min each, check-in Sun",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pick December's issue now", "One bug with a clear repro, in a repo on the shortlist.", "one_off", 15),
+      q("Two focused sessions this week", "60 to 90 minutes each, one issue at a time.", "weekly", 20),
+      q("Review a newcomer's PR", "Run it locally and leave one useful comment.", "weekly", 20),
+      q("Answer one question in an issue thread", "Somewhere you know the code now.", "weekly", 15),
+      q("A fix in a harder repo", "A bug with a failing test first, in a codebase you haven't touched.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Two focused sessions this week", "60 to 90 minutes each, one issue at a time.", "weekly", 20),
+        q("Answer review comments within a day", "Push the fix, then reply to each comment.", "weekly", 15),
+        q("Find two good first issues", "In repos on the shortlist. Save the links.", "weekly", 15),
+        q("Run the full test suite before you push", "Not after CI fails.", "weekly", 15),
+        q("Get this month's PR merged", "Small and finished beats big and open.", "weekly", 30),
+        q("Refresh the repo shortlist", "Drop the one with a quiet maintainer, add one you used this month.", "one_off", 15),
+      ]),
+  },
+];
+
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const MIN = 60_000;
 const HOUR = 3_600_000;
@@ -4349,10 +5654,10 @@ function seedHistory(spec: HistorySpec, cid: string, runs: MemberRun[], now: num
 }
 
 /**
- * One of the film's friends' challenges, given its history afresh: what its creator did in it before is replaced, and
- * their account is labelled demo and guided by Muse. Anyone else's part in it stays.
+ * A challenge made on the site, by one of the film's friends or by a demo climber, given its history afresh: what its
+ * creator did in it before is replaced. A friend's account is labelled demo and guided by Muse. Anyone else's part in it stays.
  */
-function seedFriend(spec: HistorySpec, now: number, counts: Counts): string | null {
+function seedOwn(spec: HistorySpec, users: Map<string, SeedUser>, now: number, counts: Counts): string | null {
   const m = spec.members[0];
   const row = one<{ cid: string; uid: string; name: string; tz: string; avatar: Avatar; style: string | null }>(
     `SELECT c.id AS cid, u.id AS uid, u.display_name AS name, u.timezone AS tz, u.avatar, u.motivation_style AS style
@@ -4364,7 +5669,9 @@ function seedFriend(spec: HistorySpec, now: number, counts: Counts): string | nu
   exec("DELETE FROM cheers WHERE log_id IN (SELECT id FROM logs WHERE challenge_id = ? AND user_id = ?)", row.cid, row.uid);
   exec("DELETE FROM activity WHERE challenge_id = ? AND user_id = ? AND kind != 'space'", row.cid, row.uid);
   for (const table of ["logs", "quests", "plans", "memberships"]) exec(`DELETE FROM ${table} WHERE challenge_id = ? AND user_id = ?`, row.cid, row.uid);
-  const user: SeedUser = {
+  // A demo climber is already among the seeded people; a friend's account becomes one here.
+  const climber = users.get(m.handle);
+  const user: SeedUser = climber ?? {
     handle: m.handle,
     name: row.name,
     tz: row.tz,
@@ -4380,12 +5687,13 @@ function seedFriend(spec: HistorySpec, now: number, counts: Counts): string | nu
   seedHistory(spec, row.cid, runs, now, counts);
   const joined = runs[0].joinAt;
   exec("UPDATE challenges SET created_at = ? WHERE id = ?", isoAt(joined), row.cid);
-  exec(
-    "UPDATE users SET is_demo = 1, agent_kind = 'muse', created_at = ?, agent_seen_at = ? WHERE id = ?",
-    isoAt(joined - 10 * MIN),
-    isoAt(Math.min(user.lastLog, now - MIN)),
-    row.uid,
-  );
+  if (!climber)
+    exec(
+      "UPDATE users SET is_demo = 1, agent_kind = 'muse', created_at = ?, agent_seen_at = ? WHERE id = ?",
+      isoAt(joined - 10 * MIN),
+      isoAt(Math.min(user.lastLog, now - MIN)),
+      row.uid,
+    );
   return spec.slug;
 }
 
@@ -4457,8 +5765,8 @@ type Raw = { d: number; value: number | null; label: string | null; note: string
 
 function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
   const inGap = (d: number) => (m.gaps ?? []).some(([from, to]) => d <= from && d >= to);
-  // A count log is one of something, so like a real one it carries no number.
-  const val = (v: number) => (spec.metric.aggregation === "count" ? null : v);
+  // A count log is one of something, and a days log is a day done, so like real ones they carry no number.
+  const val = (v: number) => (spec.metric.aggregation === "count" || spec.metric.aggregation === "days" ? null : v);
   const out: Raw[] = [];
   if (m.items) {
     const explicit = m.items.every((it) => it.daysAgo != null);
@@ -4615,6 +5923,7 @@ function simulateMember(
   let xp = 0;
   let total = 0;
   const seen = new Set<string>();
+  const days = new Set<string>();
   for (const log of logs) {
     log.xp += 10 + (log.note.length >= 30 ? 5 : 0);
     const before = levelFor(xp).level;
@@ -4622,6 +5931,7 @@ function simulateMember(
     if (spec.metric.aggregation === "sum") total += log.value ?? 0;
     else if (spec.metric.aggregation === "count") total += log.value ?? 1;
     else if (spec.metric.aggregation === "latest") total = log.value ?? total;
+    else if (spec.metric.aggregation === "days") total = days.add(log.date).size;
     else {
       seen.add((log.label ?? "").trim().toLowerCase());
       total = seen.size;
@@ -4645,7 +5955,8 @@ function simulateMember(
         },
       });
     spec.camps.forEach((c, ci) => {
-      if (!doneAt.has(ci) && total >= c.target - 1e-9) {
+      const reached = c.target == null ? log.date >= ("on" in c ? c.on : campDue(startsOn, endsOn, c.week)) : total >= c.target - 1e-9;
+      if (!doneAt.has(ci) && reached) {
         doneAt.set(ci, log.at);
         log.crossed = true;
         xp += MILESTONE_XP;
@@ -4879,7 +6190,7 @@ export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
       const r = seedChallenge(spec, users, now, counts);
       out.push({ slug: r.slug, title: spec.title, status: "active", members: r.members });
     }
-    for (const spec of FRIENDS) if (seedFriend(spec, now, counts)) out.push({ slug: spec.slug, title: spec.title, status: "active", members: 1 });
+    for (const spec of [...FRIENDS, ...GRID]) if (seedOwn(spec, users, now, counts)) out.push({ slug: spec.slug, title: spec.title, status: "active", members: 1 });
     keepCheers(cheers);
     for (const p of photos) exec("UPDATE media SET sticker = ?, caption = ? WHERE id = ?", p.sticker, p.caption, p.id);
     finishUsers(users, now, counts);
