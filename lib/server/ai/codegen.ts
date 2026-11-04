@@ -24,6 +24,8 @@ const DATA_CONTRACT = `type SpaceData = {
   members: { handle; name; total; progress: number|null; rank; streak; level }[];   // leaderboard, best first
   logs: { who; date; value: number|null; label: string|null; note }[];               // newest first (max 400)
   generated_at: string;
+  saved: unknown | null;                   // what this viewer last kept with misogiSave on this page; null until they have
+  can_save: boolean;                       // false when the viewer isn't signed in
 };`;
 
 function systemPrompt(): string {
@@ -42,6 +44,10 @@ Hard rules:
 - Read all data at runtime: const data = JSON.parse(document.getElementById("misogi-data").textContent);
   Render everything from data. Never hard-code numbers, names or dates that come from data, because the data changes every day.
 - Every view must look intentional with empty data (no logs, no plan, no quests): show a friendly empty state.
+- Keep what the person does: wherever the page lets them tick, pick, rate or jot something (a checklist, a wishlist, a favourite),
+  start from data.saved and call misogiSave(value) after each change with the whole value (any JSON under 8 KB). It's kept for this
+  person on this page only, and everyone sees their own. When data.can_save is false they aren't signed in: it still works for the
+  visit, with a small "Sign in to keep your ticks" note. localStorage and cookies don't work in the frame.
 - Put data on screen with textContent or createTextNode, never innerHTML/insertAdjacentHTML with data values. Data is untrusted text.
 - The page must never throw. Guard every optional value: data.member?.facts?.total ?? 0, (data.member?.plan?.camps ?? []), etc.
   Wrap rendering in try/catch per section so one bad field can't blank the page.

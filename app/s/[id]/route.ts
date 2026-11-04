@@ -1,16 +1,19 @@
 import type { NextRequest } from "next/server";
+import { currentUser } from "@/lib/server/auth";
 import { one } from "@/lib/server/db";
 import { originOf } from "@/lib/server/http";
 import { inlineJson, spaceData } from "@/lib/server/space-data";
-import { getVersion } from "@/lib/server/spaces";
+import { getVersion, savedMarks } from "@/lib/server/spaces";
 import type { ChallengeRow } from "@/lib/server/domain/challenges";
 
 export const dynamic = "force-dynamic";
 
-function bootstrap(versionId: string) {
-  // Reports runtime errors and content height to the Misogi page that embeds this space.
+function bootstrap(versionId: string, canSave: boolean) {
+  // Reports runtime errors and content height to the Misogi page that embeds this space, and hands it what the
+  // person saves (misogiSave), since the page itself can't reach the network.
   return `<script>(function(){var id=${JSON.stringify(versionId)};var sent=0;
 function post(m){try{m.source="misogi-space";m.id=id;parent.postMessage(m,"*")}catch(e){}}
+window.misogiSave=function(v){if(${canSave})post({type:"save",data:v})};
 function err(msg,shows){if(sent++<3)post({type:"error",message:String(msg||"error").slice(0,300),shows:!!shows})}
 addEventListener("error",function(e){err(e.message)});
 addEventListener("unhandledrejection",function(e){err(e.reason&&e.reason.message||e.reason)});
@@ -38,8 +41,10 @@ export async function GET(req: NextRequest, ctx: RouteContext<"/s/[id]">) {
   if (!v || !v.html) return new Response("This space doesn't exist.", { status: 404, headers: { "Content-Type": "text/plain" } });
   const c = one<ChallengeRow>("SELECT * FROM challenges WHERE id = ?", v.challenge_id);
   if (!c) return new Response("Not found", { status: 404 });
-  const data = spaceData(c, v.owner_key || null);
-  const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script id="misogi-data" type="application/json">${inlineJson(data)}</script>${bootstrap(v.id)}`;
+  // The home page shows someone's page as an example, with nowhere to save to: there it keeps nothing.
+  const viewer = req.nextUrl.searchParams.has("showcase") ? null : await currentUser();
+  const data = { ...spaceData(c, v.owner_key || null), saved: savedMarks(c.id, v.owner_key, viewer?.id ?? null), can_save: !!viewer };
+  const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script id="misogi-data" type="application/json">${inlineJson(data)}</script>${bootstrap(v.id, !!viewer)}`;
   const origin = originOf(req);
   const csp = [
     "default-src 'none'",

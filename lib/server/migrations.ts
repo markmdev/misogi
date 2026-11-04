@@ -211,4 +211,14 @@ export const migrations: string[] = [
   ALTER TABLE users ADD COLUMN connect_epoch INTEGER NOT NULL DEFAULT 0;
   ALTER TABLE api_keys ADD COLUMN client_id TEXT REFERENCES oauth_clients(id) ON DELETE SET NULL;
   `,
+  /* 4: what each person ticks, picks or jots on a page Muse Wonder wrote, kept for them alone */ `
+  CREATE TABLE space_marks (
+    challenge_id TEXT NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,
+    owner_key    TEXT NOT NULL DEFAULT '',
+    user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    data         TEXT NOT NULL,
+    updated_at   TEXT NOT NULL,
+    PRIMARY KEY (challenge_id, owner_key, user_id)
+  );
+  `,
 ];

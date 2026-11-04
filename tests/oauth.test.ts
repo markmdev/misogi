@@ -26,9 +26,10 @@ async function connectCodeFor(cookie: string) {
 
 /** A new account with a challenge, and the connect code from its Connect page's Muse message. */
 async function personWithConnectCode() {
+  const ip = `10.8.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
   const r = await fetch(`${BASE}/api/v1/accounts`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-forwarded-for": `10.8.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` },
+    headers: { "content-type": "application/json", "x-forwarded-for": ip },
     body: JSON.stringify({ display_name: "Oauth Tester", timezone: "America/New_York" }),
   });
   const account = (await r.json()) as { key: string; handle: string; sign_in_url: string };
@@ -38,7 +39,7 @@ async function personWithConnectCode() {
     body: JSON.stringify({ challenge: "read-25-books" }),
   });
   const token = account.sign_in_url.split("/signin/")[1];
-  const signIn = await fetch(`${BASE}/api/signin`, { method: "POST", body: new URLSearchParams({ token }), redirect: "manual" });
+  const signIn = await fetch(`${BASE}/api/signin`, { method: "POST", headers: { "x-forwarded-for": ip }, body: new URLSearchParams({ token }), redirect: "manual" });
   const cookie = (signIn.headers.get("set-cookie") ?? "").split(";")[0];
   return { ...account, cookie, code: await connectCodeFor(cookie) };
 }

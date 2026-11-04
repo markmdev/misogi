@@ -214,8 +214,10 @@ describe("a full climb over the HTTP API", () => {
     const preview = await fetch(link.body.url);
     expect(preview.status).toBe(200); // a link preview (GET) doesn't use the token
     const token = String(link.body.url).split("/signin/")[1];
+    // Its own address, so back-to-back runs don't trip the sign-in limit of 10 a minute per address.
+    const ip = `10.6.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
     const post = () =>
-      fetch(`${BASE}/api/signin`, { method: "POST", body: new URLSearchParams({ token }), redirect: "manual" });
+      fetch(`${BASE}/api/signin`, { method: "POST", headers: { "x-forwarded-for": ip }, body: new URLSearchParams({ token }), redirect: "manual" });
     const first = await post();
     expect(first.status).toBe(303);
     expect(first.headers.get("set-cookie") ?? "").toContain("misogi_session");

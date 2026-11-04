@@ -13,12 +13,54 @@ export function SpaceFrame({ space, title, reloadKey, empty }: { space: SpaceSta
   const [height, setHeight] = useState(560);
   const [loaded, setLoaded] = useState(false);
   const current = space.current;
+  // While a tick is still being saved, the frame isn't reloaded: a reload then would start from the value before it.
+  const [held, setHeld] = useState<{ key: string; src: string } | null>(null);
+  const live = current ? { key: `${current.id}:${reloadKey ?? ""}`, src: `${current.url}?v=${encodeURIComponent(reloadKey ?? "")}` } : null;
+  const shown = held ?? live;
+  const shownRef = useRef(shown);
+  const waiting = useRef<{ id: string; body: string } | null>(null);
+  const sending = useRef(0);
+  const timer = useRef(0);
 
   useEffect(() => {
+    shownRef.current = shown;
+  });
+
+  useEffect(() => {
+    // A burst of ticks is saved once, as where they ended up; leaving or hiding the page sends what's still waiting.
+    const flush = () => {
+      clearTimeout(timer.current);
+      const w = waiting.current;
+      if (!w) return;
+      waiting.current = null;
+      sending.current++;
+      void fetch(`/api/spaces/${w.id}/marks`, { method: "POST", headers: { "Content-Type": "application/json" }, body: w.body, keepalive: true })
+        .catch(() => {})
+        .finally(() => {
+          sending.current--;
+          if (!waiting.current && sending.current === 0) setHeld(null);
+        });
+    };
+    const onHide = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
     function onMessage(e: MessageEvent) {
       if (!frame.current || e.source !== frame.current.contentWindow) return;
-      const d = e.data as { source?: string; type?: string; height?: number; message?: string; shows?: boolean; id?: string };
+      const d = e.data as { source?: string; type?: string; height?: number; message?: string; shows?: boolean; id?: string; data?: unknown };
       if (d?.source !== "misogi-space") return;
+      if (d.type === "save" && current && d.id === current.id) {
+        let body: string;
+        try {
+          body = JSON.stringify({ data: d.data ?? null });
+        } catch {
+          return;
+        }
+        if (body.length > 10_000) return;
+        waiting.current = { id: current.id, body };
+        setHeld((h) => h ?? shownRef.current);
+        clearTimeout(timer.current);
+        timer.current = window.setTimeout(flush, 500);
+      }
       if (d.type === "height" && typeof d.height === "number") setHeight(Math.min(Math.max(d.height, 240), 6000));
       if (d.type === "error" && current && d.id === current.id) {
         void fetch(`/api/spaces/${current.id}/error`, {
@@ -29,7 +71,14 @@ export function SpaceFrame({ space, title, reloadKey, empty }: { space: SpaceSta
       }
     }
     window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      flush();
+      window.removeEventListener("message", onMessage);
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener("visibilitychange", onHide);
+    };
   }, [current]);
 
   if (!current) {
@@ -55,8 +104,8 @@ export function SpaceFrame({ space, title, reloadKey, empty }: { space: SpaceSta
         {!loaded && <div className="h-[420px] animate-pulse bg-cream-2/60" />}
         <iframe
           ref={frame}
-          key={`${current.id}:${reloadKey ?? ""}`}
-          src={`${current.url}?v=${encodeURIComponent(reloadKey ?? "")}`}
+          key={shown!.key}
+          src={shown!.src}
           title={title}
           sandbox="allow-scripts"
           referrerPolicy="no-referrer"

@@ -338,3 +338,30 @@ export function reportRenderError(versionId: string, message: string, stillShows
     enqueue(repairId, owner);
   }
 }
+
+/** The most a page can keep for one person, as JSON. */
+const MARKS_MAX = 8_000;
+
+/** What this person kept on this page (ticks, picks, notes), or null when they haven't or aren't signed in. */
+export function savedMarks(challengeId: string, ownerKey: string, userId: string | null): unknown {
+  if (!userId) return null;
+  const row = one<{ data: string }>("SELECT data FROM space_marks WHERE challenge_id = ? AND owner_key = ? AND user_id = ?", challengeId, ownerKey, userId);
+  return row ? JSON.parse(row.data) : null;
+}
+
+/** Keeps what a signed-in person did on a page, for them alone; it carries over to the page's later versions. */
+export function saveMarks(versionId: string, user: UserRow, value: unknown) {
+  const v = getVersion(versionId);
+  if (!v) throw new AppError("not_found", "This page doesn't exist.");
+  const data = JSON.stringify(value ?? null);
+  if (data.length > MARKS_MAX) throw new AppError("invalid", "That's more than a page can keep for you.");
+  run(
+    `INSERT INTO space_marks (challenge_id, owner_key, user_id, data, updated_at) VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(challenge_id, owner_key, user_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`,
+    v.challenge_id,
+    v.owner_key,
+    user.id,
+    data,
+    nowIso(),
+  );
+}

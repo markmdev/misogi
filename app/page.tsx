@@ -175,7 +175,7 @@ export default async function Home() {
                 <figure className="mx-auto w-full max-w-[420px]">
                   <div className="h-[520px] overflow-hidden rounded-[30px] bg-white shadow-[var(--shadow-float)] ring-1 ring-line sm:h-[560px]">
                     <iframe
-                      src={proof.page.url}
+                      src={`${proof.page.url}?showcase=1`}
                       title={`${firstName(proof.name)}'s page`}
                       sandbox="allow-scripts"
                       referrerPolicy="no-referrer"
