@@ -33,7 +33,7 @@ export function shortDate(date: string | null | undefined, withYear = false): st
 export function num(n: number | null | undefined): string {
   if (n == null) return "–";
   if (Math.abs(n) >= 1000) return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
-  return Number.isInteger(n) ? String(n) : n.toFixed(Math.abs(n) < 10 ? 1 : 0);
+  return String(Math.round(n * 10) / 10);
 }
 
 /** "12.5 mi", "3 books", "HSK 2", "V5" style value. */
