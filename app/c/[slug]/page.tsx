@@ -40,7 +40,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
   const viewer = await currentUser();
   const v = challengeView(slug, viewer);
   if (!v) notFound();
-  const { c, summary, board, feed, space, metric, creator, isMember, myFacts, membership } = v;
+  const { c, summary, board, feed, space, metric, creator, startedOn, isMember, myFacts, membership } = v;
   const pal = palette(c.theme);
   const isTemplate = c.status === "template";
   const top = board.slice(0, 10);
@@ -255,7 +255,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
               <Row icon="target" label="Goal" value={metric.target != null ? withUnit(metric.target, metric.unit) : metric.name} />
               <Row icon="chart" label="How it counts" value={HOW[metric.aggregation]} />
               <Row icon="calendar" label="Length" value="One year from the day you start" />
-              {!isTemplate && <Row icon="flag" label="Started" value={shortDate(c.created_at.slice(0, 10), true)} />}
+              {!isTemplate && <Row icon="flag" label="Started" value={shortDate(startedOn, true)} />}
               {c.description_md && !isTemplate && <p className="border-t border-line pt-4 text-[14px] leading-6 text-ink-2">{c.description_md}</p>}
             </div>
           </section>
