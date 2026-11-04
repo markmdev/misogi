@@ -38,7 +38,7 @@ Misogi doesn't build another chatbot. People already have an agent that knows th
 
 On the Connect step you paste one message into Muse. Its link opens the agent guide written for you ([`/hi/<code>`](app/hi/[code]/route.ts)), and Muse connects through Misogi's own OAuth sign-in ([`lib/server/oauth.ts`](lib/server/oauth.ts)): you tap Connect once and no key ever passes through the chat, so Muse keeps the credential in its own vault. Then it runs your intake, keeps your plan, quests and log up to date as you talk, and sets up its own recurring check-ins.
 
-The 19 tools live in one registry, [`lib/server/tools.ts`](lib/server/tools.ts). The same registry serves the HTTP API Muse calls, an MCP server at `/api/mcp` for Claude and other MCP agents, and Virgil, so every guide acts through the same tools. The agent guide is generated from it, so it can't drift from the API. Misogi hands agents facts rather than advice ([`lib/server/facts.ts`](lib/server/facts.ts): pace, streak, gaps, rank), plus a short coaching playbook.
+The 21 tools live in one registry, [`lib/server/tools.ts`](lib/server/tools.ts). The same registry serves the HTTP API Muse calls, an MCP server at `/api/mcp` for Claude and other MCP agents, and Virgil, so every guide acts through the same tools. The agent guide is generated from it, so it can't drift from the API. Misogi hands agents facts rather than advice ([`lib/server/facts.ts`](lib/server/facts.ts): pace, streak, gaps, rank), plus a short coaching playbook.
 
 ## Pages written by Muse Wonder, safely
 

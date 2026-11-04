@@ -21,6 +21,8 @@ import { listActivity } from "./domain/feed";
 import { addQuests, completeMilestone, logProgress, memberFacts, removeLog, setPlan, skipQuest } from "./domain/progress";
 import { getUser, publicUser, touchAgent, updatePreferences } from "./domain/users";
 import { queueCover } from "./covers";
+import { cityLabel, resolveCity } from "./cities";
+import { setCity } from "./geo";
 import { MEDIA_PER_LOG, uploadLink } from "./log-media";
 import { ownerKeyFor, queueChallengeApp, requestSpace, spaceStatus, undoSpace } from "./spaces";
 import { queueVirgil } from "./virgils";
@@ -393,6 +395,27 @@ export const TOOLS = [
     handler: (ctx, a) => {
       const u = updatePreferences(ctx.user.id, a);
       return { display_name: u.display_name, motivation_style: u.motivation_style, timezone: u.timezone, agent_name: u.agent_name };
+    },
+  }),
+  tool({
+    name: "set_city",
+    label: "Putting them on the map",
+    writes: true,
+    description:
+      "Set the city that puts the person's Muse on Misogi's world map, only when they tell you where they are (\"I'm in Lisbon\"). Only the city shows, never anything finer. Add the region or country to tell places apart (\"Portland, Oregon\"). If several places fit, you get choices back: ask which one. Pass null to take them off the map.",
+    input: z.object({ city: z.string().max(80).nullable().describe("A city in their words, e.g. \"Lisbon\" or \"Portland, Oregon\"; null to remove it") }),
+    handler: (ctx, a) => {
+      if (a.city === null || !a.city.trim()) {
+        setCity(ctx.user.id, null);
+        return { city: null, note: "They're off the world map." };
+      }
+      const r = resolveCity(a.city);
+      if ("choices" in r) {
+        if (!r.choices.length) throw new AppError("not_found", `No city called "${a.city}" on the list.`, "Ask for the nearest bigger city.");
+        return { city: null, choices: r.choices, note: "Several places fit. Ask which one, then call set_city with it." };
+      }
+      setCity(ctx.user.id, r.city.key);
+      return { city: cityLabel(r.city, true), note: "Their Muse now stands there on the world map on Explore." };
     },
   }),
   tool({

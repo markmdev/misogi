@@ -228,4 +228,7 @@ export const migrations: string[] = [
   ALTER TABLE media ADD COLUMN caption TEXT;
   CREATE INDEX media_log ON media(log_id);
   `,
+  /* 6: the city a person picked for the world map, a key into lib/server/geo/cities.json; nobody has one unless they pick it */ `
+  ALTER TABLE users ADD COLUMN city TEXT;
+  `,
 ];

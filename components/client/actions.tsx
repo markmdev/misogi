@@ -6,6 +6,7 @@ import { cheerAction, joinAction, logFromWeb, skipQuestAction } from "@/app/acti
 import { shortDate } from "@/lib/shared/format";
 import type { Metric, Quest } from "@/lib/shared/types";
 import { cx, Icon, IconTile } from "../ui";
+import { CITY_HELP, CityPicker, type PickedCity } from "./city-picker";
 import { Fresh } from "./live";
 import { MediaPicker } from "./media";
 import { Sheet } from "./sheet";
@@ -23,13 +24,14 @@ export function JoinButton({ slug, signedIn, title, className }: { slug: string;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [city, setCity] = useState<PickedCity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   function join(withName?: string) {
     setError(null);
     start(async () => {
-      const r = await joinAction(slug, withName, tz());
+      const r = await joinAction(slug, withName, tz(), city?.key ?? null);
       if (!r.ok) return setError(r.error);
       router.push(`/c/${slug}/${r.data!.handle}?welcome=1`);
     });
@@ -55,6 +57,11 @@ export function JoinButton({ slug, signedIn, title, className }: { slug: string;
             Your name
           </label>
           <input id="join-name" className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} required placeholder="First name is fine" />
+          <label className="label mt-2" htmlFor="join-city">
+            Your city (optional)
+          </label>
+          <CityPicker id="join-city" value={city} onChange={setCity} />
+          <p className="-mt-1 text-[13px] leading-5 text-ink-3">{CITY_HELP}</p>
           {error && <p className="text-[14px] font-bold text-coral-deep">{error}</p>}
           <button className="btn mt-1" disabled={pending || !name.trim()}>
             {pending && <Spinner />}
