@@ -61,7 +61,6 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
     title: imaginer ? `${imaginer} is imagining this page…` : "Imagining this challenge's page…",
     body: builder ? `${builder} starts building it in a few seconds.` : "It starts building in a few seconds.",
   };
-  const emptyBody = `Tell ${askWho} what this page should be. Try: “A cozy study notebook with this week's words and my streak.”`;
 
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
@@ -242,14 +241,14 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               imagining ? (
                 <EmptyState pose="think" {...imaginingText} />
               ) : isOwner && c.creator_id === v.userId ? (
-                <BuildPageAgain slug={c.slug} title="Your page is empty" body={emptyBody} imagining={imaginingText} />
+                <BuildPageAgain slug={c.slug} title="Your page didn't build" body={`Tap Build it again, or tell ${askWho} what this page should be.`} imagining={imaginingText} />
               ) : (
                 <EmptyState
                   pose="flag"
                   title={isOwner ? "Your page is empty" : "Nothing here yet"}
                   body={
                     isOwner
-                      ? emptyBody
+                      ? `Tell ${askWho} what this page should be. Try: “A cozy study notebook with this week's words and my streak.”`
                       : `${guideDoes} hasn't built a page yet.`
                   }
                 />
