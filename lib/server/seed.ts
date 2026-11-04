@@ -4228,7 +4228,7 @@ const GRID: HistorySpec[] = [
     key: "grid-run-four-half-marathons-in-four-quarters",
     slug: "run-four-half-marathons-in-four-quarters",
     title: "Run four half marathons in four quarters",
-    metric: { name: "half marathons run", unit: "", target: 4, aggregation: "count" },
+    metric: { name: "half marathons run", unit: "half marathons", target: 4, aggregation: "count" },
     camps: [
       { title: "Ten mile base", detail: "You can run 10 miles steady without walking.", target: null, week: 3, emoji: "running" },
       { title: "First half done", detail: "First 13.1 done, pacing and fueling dialed.", target: 1, week: 13, emoji: "flag" },
@@ -4544,7 +4544,7 @@ const GRID: HistorySpec[] = [
     key: "grid-visit-all-51-lower-48-national-parks",
     slug: "visit-all-51-lower-48-national-parks",
     title: "Visit all 51 lower-48 national parks",
-    metric: { name: "national parks visited", unit: "", target: 51, aggregation: "distinct" },
+    metric: { name: "national parks visited", unit: "parks", target: 51, aggregation: "distinct" },
     camps: [
       { title: "First three parks", detail: "First region is mapped, booked, and underway.", target: 3, week: 3, emoji: "map" },
       { title: "Fifteen parks down", detail: "Core loops done and travel system is dialed.", target: 15, week: 15, emoji: "backpack" },
@@ -4642,7 +4642,7 @@ const GRID: HistorySpec[] = [
     key: "grid-call-12-heroes-who-inspire-you",
     slug: "call-12-heroes-who-inspire-you",
     title: "Call 12 heroes who inspire you",
-    metric: { name: "heroes cold-called", unit: "", target: 12, aggregation: "count" },
+    metric: { name: "heroes cold-called", unit: "heroes", target: 12, aggregation: "count" },
     camps: [
       { title: "First cold call done", detail: "You prove you can get a stranger on the phone.", target: 1, week: 4, emoji: "chat" },
       { title: "Four heroes reached", detail: "You have a repeatable script and follow-up system.", target: 4, week: 17, emoji: "target" },
@@ -4914,7 +4914,7 @@ const GRID: HistorySpec[] = [
     key: "grid-interview-100-builders-publish-every-word",
     slug: "interview-100-builders-publish-every-word",
     title: "Interview 100 builders, publish every word",
-    metric: { name: "interviews published", unit: "", target: 100, aggregation: "count" },
+    metric: { name: "interviews published", unit: "interviews", target: 100, aggregation: "count" },
     camps: [
       { title: "First five live", detail: "Proves you can book, record, and ship on repeat", target: 5, week: 4, emoji: "flag" },
       { title: "Steady twenty five", detail: "System holds with outreach, calendar, and backlog", target: 25, week: 13, emoji: "camp" },
@@ -4982,7 +4982,7 @@ const GRID: HistorySpec[] = [
     key: "grid-replace-12-subscriptions-with-your-own-builds",
     slug: "replace-12-subscriptions-with-your-own-builds",
     title: "Replace 12 subscriptions with your own builds",
-    metric: { name: "subscriptions replaced", unit: "", target: 12, aggregation: "count" },
+    metric: { name: "subscriptions replaced", unit: "subscriptions", target: 12, aggregation: "count" },
     camps: [
       { title: "First cancellation", detail: "You have shipped one working replacement and cancelled one bill.", target: 1, week: 4, emoji: "flag" },
       { title: "Three tools live", detail: "Three subscriptions gone and your toolkit starts compounding.", target: 3, week: 13, emoji: "camp" },
