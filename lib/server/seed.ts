@@ -3616,7 +3616,7 @@ const CHALLENGES: ChallengeSpec[] = [
     metric: { name: "miles run", unit: "mi", target: 600, aggregation: "sum" },
     step: 0.1,
     camps: [
-      { title: "Base is back", detail: "You can run 60 minutes without stopping.", target: 80, on: "2026-11-29", emoji: "flag" },
+      { title: "Base is back", detail: "You can run 60 minutes without stopping.", target: 80, week: 8, emoji: "flag" },
       { title: "Run a fast 10K", detail: "Speed and hills feel controlled, not survival.", target: 220, on: "2027-02-14", emoji: "target" },
       { title: "Nail the 12 miler", detail: "You hold pace when tired past mile 10.", target: 380, on: "2027-04-25", emoji: "map" },
       { title: "Tune up half", detail: "Race pace feels familiar for 10 miles.", target: 520, on: "2027-06-20", emoji: "summit" },
