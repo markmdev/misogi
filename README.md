@@ -4,7 +4,7 @@
 
 ![Misogi: one hard thing this year. Say it in a line, and Muse plans the year](docs/images/cover.jpg)
 
-**Try it:** [getmisogi.com](https://getmisogi.com) · **Watch:** the 3-minute demo (link coming with the submission)
+**Try it:** [getmisogi.com](https://getmisogi.com) · **Watch:** [the 3-minute demo](https://getmisogi.com/film/misogi-v36.mp4)
 
 Type one hard thing, like *"Hold a 20-minute conversation in Mandarin"*. Muse Spark drafts your year: how it's measured, the camps on the way up, and this week's quests. Then your own Muse becomes your coach, Muse Wonder builds you a page that's yours, and anyone with the same goal can climb beside you.
 
