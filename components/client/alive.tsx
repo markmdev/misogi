@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { sizedSet } from "@/lib/shared/art";
 
 const cx = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).join(" ");
@@ -41,9 +41,10 @@ export function warmMascot(pose: string) {
 /**
  * A muted loop over its still. It loads as its spot nears the screen, once the first screen's pictures are in, so it's playing by the time it arrives, plays while it stays near, fades in over
  * the still and never starts under reduced motion. Once it shows it stays, only pausing off screen, so the still never
- * comes back over a frame that has moved. `onShown` says when it starts fading in.
+ * comes back over a frame that has moved. `onShown` says when it starts fading in. With `release` it lets go of the
+ * video whenever it's out of sight instead, for a row of many passing by, and `onGone` says so.
  */
-function Loop({ src, className, onShown }: { src: () => string; className?: string; onShown?: () => void }) {
+function Loop({ src, className, onShown, release, onGone }: { src: () => string; className?: string; onShown?: () => void; release?: boolean; onGone?: () => void }) {
   const ref = useRef<HTMLVideoElement>(null);
   const spot = useRef<HTMLSpanElement>(null);
   const [url, setUrl] = useState<string | null>(null);
@@ -54,10 +55,20 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
   useEffect(() => {
     if (calm()) return;
     const el = spot.current!;
-    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { rootMargin: "60% 0px" });
+    const io = new IntersectionObserver(
+      ([e]) => {
+        setSeen(e.isIntersecting);
+        if (release && !e.isIntersecting) {
+          setUrl(null);
+          setShown(false);
+          onGone?.();
+        }
+      },
+      { rootMargin: "60% 0px" },
+    );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [release, onGone]);
 
   if (seen && pictures && !url) setUrl(src());
 
@@ -93,15 +104,16 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
  * Virgil: his still until his loop has faded in over it, then only the loop, so he never shows twice.
  * `loop` is the loop's address without its ending: a pose's, or a dressed Virgil's own.
  */
-export function LiveMascot({ loop, still, size, alt, eager, className, style }: { loop: string; still: string; size: number; alt: string; eager?: boolean; className?: string; style?: CSSProperties }) {
+export function LiveMascot({ loop, still, size, alt, eager, className, style, release }: { loop: string; still: string; size: number; alt: string; eager?: boolean; className?: string; style?: CSSProperties; release?: boolean }) {
   const [liveLoop, setLiveLoop] = useState<string | null>(null);
+  const gone = useCallback(() => setLiveLoop(null), []);
   const set = sizedSet(still);
   return (
     <span className={cx("inline-block shrink-0 select-none", className)} style={{ width: size, height: size, ...style }}>
       <span className="relative block h-full w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={still} srcSet={set} sizes={set && `${size}px`} loading={eager ? undefined : "lazy"} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-opacity duration-0", liveLoop === loop ? "opacity-0 delay-500" : "delay-0")} draggable={false} />
-        <Loop key={loop} src={() => `${loop}.${seeThroughType()}`} onShown={() => setLiveLoop(loop)} className="absolute inset-0 h-full w-full object-contain" />
+        <Loop key={loop} src={() => `${loop}.${seeThroughType()}`} onShown={() => setLiveLoop(loop)} release={release} onGone={release ? gone : undefined} className="absolute inset-0 h-full w-full object-contain" />
       </span>
     </span>
   );
