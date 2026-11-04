@@ -64,7 +64,7 @@ The tests use the HTTP API, make no model calls, and create their own accounts. 
 ## Trying the product
 
 - **Start a challenge:** open `/start` and type one line. It drafts the year, creates your account (a browser session, no password) and opens your page.
-- **Virgil:** the "Ask Virgil" button on any page. It uses the same tools as outside agents.
+- **Try it without Muse:** the button on any page, a preview of what Muse does there. It uses the same tools as outside agents.
 - **Connect Claude Code to your local server:** make a key in the "Your AI" section of your page (or at `/connect`). The "Claude & other agents" tab shows the exact command, which looks like this:
   ```sh
   claude mcp add --transport http misogi-local http://localhost:3000/api/mcp --header "Authorization: Bearer msk_..."
@@ -87,9 +87,9 @@ The tests use the HTTP API, make no model calls, and create their own accounts. 
 |---|---|
 | `app/` | Pages, route handlers, server actions (`app/actions.ts`) |
 | `components/` | UI. `components/client/*` are client components. |
-| `lib/server/tools.ts` | The one tool registry behind the HTTP API, MCP and Virgil |
+| `lib/server/tools.ts` | The one tool registry behind the HTTP API, MCP and the preview without Muse |
 | `lib/server/domain/` | Challenges, plans, logs, quests, feed (SQLite) |
-| `lib/server/ai/` | Model client, drafting, Virgil, page builder |
+| `lib/server/ai/` | Model client, drafting, the preview without Muse, page builder |
 | `lib/server/spaces.ts` | Generated pages: build queue, validation, self-repair |
 | `lib/server/migrations.ts` | Database schema. It applies on server start. |
 | `tests/api.test.ts` | End-to-end tests |
