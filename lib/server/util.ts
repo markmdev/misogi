@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-export type ErrorCode = "invalid" | "unauthorized" | "forbidden" | "not_found" | "conflict" | "resting" | "internal";
+export type ErrorCode = "invalid" | "unauthorized" | "forbidden" | "not_found" | "conflict" | "too_large" | "unsupported" | "resting" | "internal";
 
 const STATUS: Record<ErrorCode, number> = {
   invalid: 400,
@@ -8,6 +8,8 @@ const STATUS: Record<ErrorCode, number> = {
   forbidden: 403,
   not_found: 404,
   conflict: 409,
+  too_large: 413,
+  unsupported: 415,
   resting: 503,
   internal: 500,
 };

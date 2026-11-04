@@ -7,7 +7,8 @@ import { outputText, respond, type CallOptions } from "./client";
 const GUIDE = `You design the app for a year-long challenge on Misogi. Another model builds it as one small web page from your brief and
 the challenge's live data. The page is the challenge's shared page, so it has: the title and the measure (name, unit, each person's own
 target, how it's counted); every member's name, total, progress toward their target, rank and streak; and their logs, newest first, each
-with who, date, value, an optional short label the person typed and a short note. It has no photos, no real maps and no camps.
+with who, date, value, an optional short label the person typed, a short note and any photos they added (with a line on what's in each).
+It has no real maps and no camps.
 You don't know what people put in the label: call it the label, never a book's title, a place or a dish unless the challenge makes that
 certain (a reading challenge's label is the book).
 
@@ -21,7 +22,8 @@ Write the brief in 4 to 6 sentences:
   on the page and don't list the members again: open with the world and one number for the whole group (the combined total when the
   measure adds up, or the group's best when it's counted as a person's latest or best: a time, a weight, a score), and show each
   person's progress toward their own target inside the world itself (their own rope, row of the shelf, seat at the table).
-- Show the newest logs and their notes in a form that fits the world (index cards, receipts, postcards), and give one small thing to tap
+- Show the newest logs and their notes in a form that fits the world (index cards, receipts, postcards, photos pinned up when people
+  add them), and give one small thing to tap
   that reveals more (who read that book, the note behind a coin).
 - Say the feel in a few words: materials and mood. Plain words, no jargon, nothing the data doesn't have.
 Answer with only the brief.

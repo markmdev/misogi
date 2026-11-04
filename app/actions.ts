@@ -9,6 +9,7 @@ import { normalizeDraft, DraftSchema, styleFromChoices } from "@/lib/server/ai/d
 import { createChallenge, getChallenge, joinChallenge } from "@/lib/server/domain/challenges";
 import { addQuests, cheer, logProgress, setPlan, skipQuest } from "@/lib/server/domain/progress";
 import { createUser } from "@/lib/server/domain/users";
+import { uploadLink } from "@/lib/server/log-media";
 import { connectCode } from "@/lib/server/oauth";
 import { queueChallengeApp, requestSpace, restoreSpaceVersion, type SpaceTarget } from "@/lib/server/spaces";
 import { queueCover } from "@/lib/server/covers";
@@ -119,7 +120,7 @@ export async function joinAction(slug: string, name?: string, timezone?: string)
 
 export async function logFromWeb(
   slug: string,
-  input: { value?: number | null; label?: string; note?: string; quest_id?: string; date?: string },
+  input: { value?: number | null; label?: string; note?: string; quest_id?: string; date?: string; media?: string[] },
 ): Promise<ActionResult<{ milestones: string[] }>> {
   try {
     const user = await requireUser();
@@ -127,6 +128,16 @@ export async function logFromWeb(
     revalidatePath(`/c/${slug}`);
     revalidatePath(`/c/${slug}/${user.handle}`);
     return { ok: true, data: { milestones: r.milestones_reached.map((m) => m.title) } };
+  } catch (e) {
+    return failure(e);
+  }
+}
+
+/** Where the log sheet sends photos and videos; the path only, so it works on whichever host the page came from. */
+export async function uploadLinkAction(slug: string): Promise<ActionResult<{ url: string }>> {
+  try {
+    const user = await requireUser();
+    return { ok: true, data: { url: uploadLink("", user, slug).upload_url } };
   } catch (e) {
     return failure(e);
   }

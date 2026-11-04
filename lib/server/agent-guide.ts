@@ -114,7 +114,8 @@ curl -s -X POST ${origin}/api/v1/tools/<tool_name> \\
 
 ## Keep their page alive
 When the conversation changes something, write it down right away: progress → \`log_progress\`, a new approach → \`set_plan\`,
-this week's steps → \`add_quests\`, a change in how they want their page to look → \`update_space\`.
+this week's steps → \`add_quests\`, a change in how they want their page to look → \`update_space\`,
+a photo or video they send you → \`get_upload_link\`, then \`log_progress\` with \`media\`.
 That's what keeps their page and their friends in sync with your conversations.
 
 ## Tools

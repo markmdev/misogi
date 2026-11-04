@@ -63,6 +63,19 @@ export type LogEntry = {
   quest_title?: string | null;
   cheers?: number;
   user?: PublicUser;
+  media: LogMedia[];
+};
+
+export type LogMedia = {
+  id: string;
+  kind: "photo" | "video";
+  url: string;
+  /** A small photo for walls and lists; null for a video, which shows its own first frame. */
+  thumb_url: string | null;
+  width: number | null;
+  height: number | null;
+  /** What Muse Spark read in the photo, shown as the log's words when it has none. */
+  caption: string | null;
 };
 
 export type PublicUser = {

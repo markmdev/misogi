@@ -6,6 +6,7 @@ import { all, one } from "./db";
 import { getMembership, metricOf, standings, type ChallengeRow } from "./domain/challenges";
 import { currentPlan, listQuests, memberFacts } from "./domain/progress";
 import { getUser } from "./domain/users";
+import { mediaForLogs } from "./log-media";
 
 export type SpaceData = {
   kind: "challenge" | "member";
@@ -32,8 +33,8 @@ export type SpaceData = {
   /** Same as member.facts (null on the shared page), at the top level for convenience. */
   facts: Facts | null;
   members: { handle: string; name: string; total: number; progress: number | null; rank: number; streak: number; level: number }[];
-  /** Newest first. On a member space, only that member's entries. */
-  logs: { who: string; date: string; value: number | null; label: string | null; note: string }[];
+  /** Newest first. On a member space, only that member's entries. Photo urls are Misogi paths, loaded like its art. */
+  logs: { who: string; date: string; value: number | null; label: string | null; note: string; photos: { url: string; caption: string | null }[] }[];
   generated_at: string;
 };
 
@@ -65,12 +66,13 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
       };
     }
   }
-  const logs = all<{ display_name: string; logged_for: string; value: number | null; label: string | null; note: string }>(
-    `SELECT u.display_name, l.logged_for, l.value, l.label, l.note FROM logs l JOIN users u ON u.id = l.user_id
+  const logs = all<{ id: string; display_name: string; logged_for: string; value: number | null; label: string | null; note: string }>(
+    `SELECT l.id, u.display_name, l.logged_for, l.value, l.label, l.note FROM logs l JOIN users u ON u.id = l.user_id
      WHERE l.challenge_id = ? AND l.deleted_at IS NULL ${ownerUserId ? "AND l.user_id = ?" : ""}
      ORDER BY l.logged_for DESC, l.created_at DESC LIMIT 400`,
     ...(ownerUserId ? [c.id, ownerUserId] : [c.id]),
   );
+  const media = mediaForLogs(logs.map((l) => l.id));
   return {
     kind: ownerUserId ? "member" : "challenge",
     challenge: {
@@ -94,7 +96,14 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
       streak: s.streak,
       level: s.level,
     })),
-    logs: logs.map((l) => ({ who: clean(l.display_name), date: l.logged_for, value: l.value, label: clean(l.label), note: clean(l.note) })),
+    logs: logs.map((l) => ({
+      who: clean(l.display_name),
+      date: l.logged_for,
+      value: l.value,
+      label: clean(l.label),
+      note: clean(l.note),
+      photos: (media.get(l.id) ?? []).filter((m) => m.kind === "photo").map((m) => ({ url: m.thumb_url!, caption: clean(m.caption) })),
+    })),
     generated_at: new Date().toISOString(),
   };
 }

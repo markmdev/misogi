@@ -6,6 +6,7 @@ import { LiveScene } from "@/components/client/alive";
 import { CheerButton, LogButton, QuestList, ShareButton, ShareWeekButton } from "@/components/client/actions";
 import { ConnectPanel } from "@/components/client/connect";
 import { Fresh, LivePulse } from "@/components/client/live";
+import { LogMediaRow, PhotoWall } from "@/components/client/media";
 import { SpaceFrame } from "@/components/client/space-frame";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
@@ -34,7 +35,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const viewer = await currentUser();
   const v = memberView(slug, handle, viewer);
   if (!v) notFound();
-  const { c, user, facts, plan, quests, logs, space, metric, isOwner, membership, plans } = v;
+  const { c, user, facts, plan, quests, logs, space, metric, isOwner, membership, plans, wall } = v;
   const pal = palette(c.theme);
   const stamp = pulse(c);
   const name = firstName(user.display_name);
@@ -228,6 +229,13 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
           />
         </section>
 
+        {wall.length > 0 && (
+          <section>
+            <SectionTitle title="Photos" icon="camera" action={<span className="text-[13px] font-bold text-ink-3">{wallCount(wall)}</span>} />
+            <PhotoWall items={wall} />
+          </section>
+        )}
+
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
           {/* Log */}
           <section>
@@ -253,7 +261,16 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                           {l.quest_title && <Pill tone="moss" className="!min-h-6 !py-0.5 !text-[12px]">✓ {l.quest_title}</Pill>}
                           <span className="text-[12px] font-extrabold text-gold-deep">+{l.xp} XP</span>
                         </div>
-                        {l.note && <p className="mt-1 text-[15px] leading-6 text-ink-2">{l.note}</p>}
+                        {l.note ? (
+                          <p className="mt-1 text-[15px] leading-6 text-ink-2">{l.note}</p>
+                        ) : (
+                          readInPhoto(l) && (
+                            <p className="mt-1 text-[15px] leading-6 text-ink-2">
+                              {readInPhoto(l)} <span className="text-[12px] font-bold whitespace-nowrap text-ink-3">· seen by Muse Spark</span>
+                            </p>
+                          )
+                        )}
+                        {l.media.length > 0 && <LogMediaRow media={l.media} words={l.note || readInPhoto(l)} date={l.logged_for} />}
                         <div className="mt-2 flex items-center gap-2">
                           {isOwner ? (
                             (l.cheers ?? 0) > 0 && (
@@ -331,6 +348,20 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
       {!isOwner && <Virgil signedIn={!!viewer} look={virgilUrl(c)} />}
     </div>
   );
+}
+
+/** "5 photos", or "4 photos · 1 video". */
+function wallCount(wall: { kind: string }[]) {
+  const n = (kind: string, word: string) => {
+    const k = wall.filter((m) => m.kind === kind).length;
+    return k ? `${k} ${word}${k === 1 ? "" : "s"}` : null;
+  };
+  return [n("photo", "photo"), n("video", "video")].filter(Boolean).join(" · ");
+}
+
+/** What Muse Spark saw in the log's photo, for a log with no words of its own. */
+function readInPhoto(l: { media: { caption: string | null }[] }) {
+  return l.media.find((m) => m.caption)?.caption ?? null;
 }
 
 function sourceLabel(source: string, agentName: string | null) {

@@ -22,7 +22,7 @@ const MAX_STEPS = 8;
 const HISTORY_TURNS = 24;
 
 // Virgil doesn't need these (the web UI handles them).
-const HIDDEN = new Set(["get_sign_in_link"]);
+const HIDDEN = new Set(["get_sign_in_link", "get_upload_link"]);
 
 function toolDefs() {
   return TOOLS.filter((t) => !HIDDEN.has(t.name)).map((t) => {

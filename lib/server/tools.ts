@@ -21,6 +21,7 @@ import { listActivity } from "./domain/feed";
 import { addQuests, completeMilestone, logProgress, memberFacts, removeLog, setPlan, skipQuest } from "./domain/progress";
 import { getUser, publicUser, touchAgent, updatePreferences } from "./domain/users";
 import { queueCover } from "./covers";
+import { MEDIA_PER_LOG, uploadLink } from "./log-media";
 import { ownerKeyFor, queueChallengeApp, requestSpace, spaceStatus, undoSpace } from "./spaces";
 import { queueVirgil } from "./virgils";
 import { AppError } from "./util";
@@ -219,7 +220,7 @@ export const TOOLS = [
     label: "Logging progress",
     writes: true,
     description:
-      "Record what the person actually did. `value` is a number in the metric's unit (needed for sum/latest metrics; leave it out only for a practice check-in that doesn't change the number, and then add a note). `label` names the thing for distinct metrics (e.g. a state). Backdate with `date`. Pass quest_id to complete a quest. Returns updated facts.",
+      "Record what the person actually did. `value` is a number in the metric's unit (needed for sum/latest metrics; leave it out only for a practice check-in that doesn't change the number, and then add a note or a photo). `label` names the thing for distinct metrics (e.g. a state). Backdate with `date`. Pass quest_id to complete a quest, and `media` for photos or videos sent to get_upload_link's link. Returns updated facts.",
     input: z.object({
       challenge: challengeArg,
       value: z.number().nullable().optional(),
@@ -228,6 +229,7 @@ export const TOOLS = [
       date: date.optional().describe("Day it happened, in their time zone. Defaults to today."),
       evidence_url: z.string().optional().describe("Link to proof, like a Strava activity"),
       quest_id: z.string().optional(),
+      media: z.array(z.string()).max(MEDIA_PER_LOG).optional().describe(`media_id values from uploads to get_upload_link's link, up to ${MEDIA_PER_LOG}`),
     }),
     handler: (ctx, a) => {
       const { challenge, ...input } = a;
@@ -249,6 +251,17 @@ export const TOOLS = [
         },
       };
     },
+  }),
+  tool({
+    name: "get_upload_link",
+    label: "Getting an upload link",
+    writes: true,
+    description:
+      "Put a photo or a short video on a log. Get a link, send the file's bytes to it with an HTTP PUT " +
+      "(`curl -X PUT --data-binary @meal.jpg <upload_url>`), then pass the media_id it answers with in log_progress's `media`. " +
+      "The link takes several files for 30 minutes. Logs show on the person's public climb page, photos included: the first time, tell them so.",
+    input: z.object({ challenge: challengeArg }),
+    handler: (ctx, a) => uploadLink(ctx.origin, ctx.user, a.challenge),
   }),
   tool({
     name: "remove_log",

@@ -3,6 +3,7 @@
 import type { UserRow } from "./auth";
 import { getChallenge, metricOf, requireMember, standings } from "./domain/challenges";
 import { currentPlan, listLogs, listQuests, memberFacts } from "./domain/progress";
+import { withOrigin } from "./log-media";
 import { PLAYBOOK } from "./playbook";
 import { ownerKeyFor, spaceStatus } from "./spaces";
 
@@ -62,6 +63,7 @@ export function agentContext(user: UserRow, slug: string, origin: string, includ
       note: l.note,
       quest: l.quest_title,
       cheers: l.cheers,
+      media: l.media.map((m) => withOrigin(m, origin)),
     })),
     leaderboard: nearby.map((s) => ({
       rank: s.rank,

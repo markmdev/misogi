@@ -221,4 +221,11 @@ export const migrations: string[] = [
     PRIMARY KEY (challenge_id, owner_key, user_id)
   );
   `,
+  /* 5: photos and videos on logs, kept in S3; media.path is the object key's folder */ `
+  ALTER TABLE media ADD COLUMN log_id TEXT REFERENCES logs(id) ON DELETE CASCADE;
+  ALTER TABLE media ADD COLUMN width INTEGER;
+  ALTER TABLE media ADD COLUMN height INTEGER;
+  ALTER TABLE media ADD COLUMN caption TEXT;
+  CREATE INDEX media_log ON media(log_id);
+  `,
 ];

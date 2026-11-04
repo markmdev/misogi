@@ -14,6 +14,7 @@ import {
 } from "./challenges";
 import { recordActivity } from "./feed";
 import { queueBadge } from "../badges";
+import { attachMedia, dropLogMedia, mediaForLogs, queueCaption } from "../log-media";
 import { getUser, publicUser } from "./users";
 
 // ---------- Plans (the curriculum) ----------
@@ -228,6 +229,7 @@ export type LogInput = {
   date?: string;
   evidence_url?: string | null;
   quest_id?: string | null;
+  media?: string[];
 };
 
 const LOG_XP = 10;
@@ -247,14 +249,15 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
   const value = input.value ?? null;
   if (value != null && !Number.isFinite(value)) throw new AppError("invalid", "value must be a number.");
   const note = (input.note ?? "").trim().slice(0, 2000);
+  const media = input.media ?? [];
   // Practice that doesn't move the number (tone drills toward a conversation goal) still counts as a
-  // check-in: it keeps the streak and earns XP. It needs a note or a quest so it says what happened.
+  // check-in: it keeps the streak and earns XP. It needs a note, a quest or a photo so it says what happened.
   const checkin = (agg === "sum" || agg === "latest") && value == null;
-  if (checkin && !note && !input.quest_id)
+  if (checkin && !note && !input.quest_id && !media.length)
     throw new AppError(
       "invalid",
       `This challenge counts ${c.metric_name}, so include a number in "value" (in ${c.metric_unit || "units"}).`,
-      "For practice that doesn't change the number, leave value out and add a note saying what was done.",
+      "For practice that doesn't change the number, leave value out and add a note or a photo saying what was done.",
     );
   if (agg === "sum" && value != null && value < 0) throw new AppError("invalid", "value can't be negative.");
   const label = (input.label ?? "").trim().slice(0, 80) || null;
@@ -274,7 +277,7 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
     const camps = (currentPlan(c.id, user.id)?.milestones ?? []).filter((x) => x.done_at).length;
     return logXp + camps * MILESTONE_XP;
   };
-  return tx(() => {
+  const result = tx(() => {
     const before = levelFor(totalXp()).level;
     const xp = LOG_XP + (note.length >= 30 ? NOTE_BONUS_XP : 0) + (quest?.xp ?? 0);
     const logId = id("log");
@@ -294,6 +297,7 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
       source,
       nowIso(),
     );
+    if (media.length) attachMedia(user.id, c.id, logId, media);
     if (quest) {
       run("UPDATE quests SET status = 'done', completed_at = ?, log_id = ? WHERE id = ?", nowIso(), logId, quest.id);
       recordActivity(c.id, user.id, "quest_done", { quest_id: quest.id, title: quest.title, log_id: logId, xp });
@@ -307,6 +311,7 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
         note: note.slice(0, 140),
         xp,
         ...(checkin ? { checkin: true } : {}),
+        ...(media.length ? { media: media.length } : {}),
       });
     }
     const reached = autoReachMilestones(c, user.id);
@@ -314,6 +319,8 @@ export function logProgress(user: UserRow, slug: string, input: LogInput, source
     if (after > before) recordActivity(c.id, user.id, "level", { level: after });
     return { log_id: logId, xp, milestones_reached: reached.map((r) => ({ id: r.id, title: r.title })) };
   });
+  if (media.length && !note) queueCaption(result.log_id);
+  return result;
 }
 
 export function removeLog(user: UserRow, slug: string, logId: string) {
@@ -330,6 +337,7 @@ export function removeLog(user: UserRow, slug: string, logId: string) {
     run("UPDATE logs SET deleted_at = ? WHERE id = ?", nowIso(), logId);
     if (row.quest_id) run("UPDATE quests SET status = 'open', completed_at = NULL, log_id = NULL WHERE id = ?", row.quest_id);
   });
+  dropLogMedia(logId);
 }
 
 type LogRow = LogEntry & {
@@ -352,14 +360,16 @@ export function listLogs(challengeId: string, opts: { userId?: string; limit?: n
     params.push(opts.userId);
   }
   params.push(Math.min(opts.limit ?? 30, 200));
-  return all<LogRow>(
+  const rows = all<LogRow>(
     `SELECT l.id, l.logged_for, l.value, l.label, l.note, l.evidence_url, l.xp, l.source, l.created_at, l.user_id,
             q.title AS quest_title, (SELECT COUNT(*) FROM cheers ch WHERE ch.log_id = l.id) AS cheers,
             u.handle, u.display_name, u.avatar, u.agent_name, u.agent_kind, u.agent_seen_at
      FROM logs l JOIN users u ON u.id = l.user_id LEFT JOIN quests q ON q.id = l.quest_id
      WHERE ${where} ORDER BY l.logged_for DESC, l.created_at DESC LIMIT ?`,
     ...params,
-  ).map((r) => ({
+  );
+  const media = mediaForLogs(rows.map((r) => r.id));
+  return rows.map((r) => ({
     id: r.id,
     logged_for: r.logged_for,
     value: r.value,
@@ -372,6 +382,7 @@ export function listLogs(challengeId: string, opts: { userId?: string; limit?: n
     quest_title: r.quest_title,
     cheers: r.cheers,
     user: publicUser(r),
+    media: media.get(r.id) ?? [],
   }));
 }
 

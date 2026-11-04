@@ -7,6 +7,7 @@ import { shortDate } from "@/lib/shared/format";
 import type { Metric, Quest } from "@/lib/shared/types";
 import { cx, Icon, IconTile } from "../ui";
 import { Fresh } from "./live";
+import { MediaPicker } from "./media";
 import { Sheet } from "./sheet";
 import { Spinner } from "./space-frame";
 
@@ -92,6 +93,7 @@ export function QuickLog({
   const [note, setNote] = useState("");
   const [day, setDay] = useState<"today" | "yesterday">("today");
   const [quest, setQuest] = useState<string>(questId ?? "");
+  const [media, setMedia] = useState<{ ids: string[]; busy: boolean }>({ ids: [], busy: false });
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string[] | null>(null);
   const [pending, start] = useTransition();
@@ -105,6 +107,7 @@ export function QuickLog({
     setValue("");
     setLabel("");
     setNote("");
+    setMedia({ ids: [], busy: false });
     onClose();
   }
 
@@ -134,6 +137,7 @@ export function QuickLog({
                 note: note.trim() || undefined,
                 quest_id: quest || undefined,
                 date: day === "today" ? today : yesterday.toISOString().slice(0, 10),
+                media: media.ids.length ? media.ids : undefined,
               });
               if (!r.ok) return setError(r.error);
               setDone(r.data?.milestones ?? []);
@@ -156,10 +160,10 @@ export function QuickLog({
                 min={0}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                required={needsValue(metric) && !note.trim() && !quest}
+                required={needsValue(metric) && !note.trim() && !quest && !media.ids.length}
                 placeholder={metric.aggregation === "count" ? "1" : "How much?"}
               />
-              {needsValue(metric) && <p className="mt-1.5 text-[13px] font-bold text-ink-3">Practiced without a number? Leave it empty and add a note.</p>}
+              {needsValue(metric) && <p className="mt-1.5 text-[13px] font-bold text-ink-3">Practiced without a number? Leave it empty and add a note or a photo.</p>}
             </div>
           )}
           {metric.aggregation === "distinct" && (
@@ -216,10 +220,11 @@ export function QuickLog({
               placeholder="How did it go?"
             />
           </div>
+          <MediaPicker slug={slug} onChange={(ids, busy) => setMedia({ ids, busy })} disabled={pending} />
           {error && <p className="text-[14px] font-bold text-coral-deep">{error}</p>}
-          <button className="btn btn-moss" disabled={pending}>
-            {pending && <Spinner />}
-            Log it
+          <button className="btn btn-moss" disabled={pending || media.busy}>
+            {(pending || media.busy) && <Spinner />}
+            {media.busy ? "Uploading…" : "Log it"}
           </button>
         </form>
       )}

@@ -22,7 +22,7 @@ const DATA_CONTRACT = `type SpaceData = {
   };
   facts: null | (same object as member.facts);   // convenience copy; null on the shared page
   members: { handle; name; total; progress: number|null; rank; streak; level }[];   // leaderboard, best first
-  logs: { who; date; value: number|null; label: string|null; note }[];               // newest first (max 400)
+  logs: { who; date; value: number|null; label: string|null; note; photos: { url; caption: string|null }[] }[];  // newest first (max 400); a photo's url is a Misogi path an <img> can show
   generated_at: string;
   saved: unknown | null;                   // what this viewer last kept with misogiSave on this page; null until they have
   can_save: boolean;                       // false when the viewer isn't signed in

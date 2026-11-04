@@ -6,6 +6,7 @@ import { findChallenge, getMembership, metricOf, standings, summarize, type Chal
 import { listActivity } from "./domain/feed";
 import { currentPlan, listLogs, listQuests, memberFacts, planHistory } from "./domain/progress";
 import { getUserByHandle, publicUser } from "./domain/users";
+import { climbMedia } from "./log-media";
 import { ownerKeyFor, spaceHistory, spaceStatus } from "./spaces";
 import { one } from "./db";
 
@@ -61,6 +62,7 @@ export function memberView(slug: string, handle: string, viewer: UserRow | null)
     plans: planHistory(c.id, user.id).slice(0, 8),
     quests: listQuests(c.id, user.id),
     logs: listLogs(c.id, { userId: user.id, limit: 60 }),
+    wall: climbMedia(c.id, user.id),
     space: spaceStatus(c.id, ownerKeyFor("me", user.id)),
     spaceVersions: spaceHistory(c.id, ownerKeyFor("me", user.id)),
     board: standings(c),
