@@ -14,9 +14,10 @@ import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, SectionT
 import { currentUser, publicOrigin } from "@/lib/server/auth";
 import { findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { getUserByHandle } from "@/lib/server/domain/users";
+import { modelFor } from "@/lib/server/ai/client";
 import { connectCode } from "@/lib/server/oauth";
 import { memberView, pulse } from "@/lib/server/views";
-import { agentLabel, firstName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
+import { agentLabel, firstName, museName, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,13 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const completed = membership.status === "completed";
   // Right after a web join, a starter plan is being drafted (lib/server/starter.ts); the live pulse refreshes when it lands.
   const drafting = isOwner && !plan && v.justJoined;
+  // Until someone asks for a page of their own, their climb shows the one built for the whole challenge.
+  const page = space.current || space.pending || space.last_failure ? space : v.challengeSpace;
+  // A challenge started just now gets that page without asking; its brief takes a few seconds before the build is queued (queueChallengeApp).
+  const imagining = isOwner && v.justJoined && c.creator_id === v.userId;
+  const imaginer = museName(modelFor("draft"));
+  const builder = museName(modelFor("codegen"));
+  const askWho = user.agent_kind === "virgil" ? "Virgil" : user.agent_kind === "mcp" || user.agent_kind === "agent" ? "your AI" : "your Muse";
 
   return (
     <div style={{ background: pal.tint, ["--accent" as string]: pal.accent }} className="min-h-dvh">
@@ -207,26 +215,37 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
         {/* Personal page */}
         <section id="page" className="scroll-mt-20">
           <SectionTitle
-            title={isOwner ? "Your page" : `${name}'s page`}
+            title={page === space ? (isOwner ? "Your page" : `${name}'s page`) : "The challenge page"}
             icon="paintbrush"
-            action={space.current ? <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">{space.current.built_by ? `Built by ${space.current.built_by}` : "Made by AI"} · {timeAgo(space.current.created_at)}</span> : null}
+            action={page.current ? <span className="text-[13px] font-bold whitespace-nowrap text-ink-3">{page.current.built_by ? `Built by ${page.current.built_by}` : "Made by AI"} · {timeAgo(page.current.created_at)}</span> : null}
           />
           <SpaceFrame
-            space={space}
-            title={`${user.display_name}'s page for ${c.title}`}
+            space={page}
+            title={page === space ? `${user.display_name}'s page for ${c.title}` : `${c.title}: shared page`}
             reloadKey={stamp}
             empty={
-              <EmptyState
-                pose="flag"
-                title={isOwner ? "Your page is empty" : "Nothing here yet"}
-                body={
-                  isOwner
-                    ? "Tell your AI what this page should be. Try: “A cozy study notebook with this week's words and my streak.”"
-                    : `${guideDoes} hasn't built a page yet.`
-                }
-              />
+              imagining ? (
+                <EmptyState
+                  pose="think"
+                  title={imaginer ? `${imaginer} is imagining this page…` : "Imagining this challenge's page…"}
+                  body={builder ? `${builder} starts building it in a few seconds.` : "It starts building in a few seconds."}
+                />
+              ) : (
+                <EmptyState
+                  pose="flag"
+                  title={isOwner ? "Your page is empty" : "Nothing here yet"}
+                  body={
+                    isOwner
+                      ? "Tell your AI what this page should be. Try: “A cozy study notebook with this week's words and my streak.”"
+                      : `${guideDoes} hasn't built a page yet.`
+                  }
+                />
+              )
             }
           />
+          {isOwner && page !== space && page.current && (
+            <p className="mt-2 text-[13px] text-ink-3">Everyone on this climb shares this page. Ask {askWho} for one of your own.</p>
+          )}
         </section>
 
         {wall.length > 0 && (

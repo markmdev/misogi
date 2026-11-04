@@ -65,6 +65,7 @@ export function memberView(slug: string, handle: string, viewer: UserRow | null)
     wall: climbMedia(c.id, user.id),
     space: spaceStatus(c.id, ownerKeyFor("me", user.id)),
     spaceVersions: spaceHistory(c.id, ownerKeyFor("me", user.id)),
+    challengeSpace: spaceStatus(c.id, ""),
     board: standings(c),
     isOwner,
     viewerIsMember: viewer ? !!getMembership(c.id, viewer.id) : false,

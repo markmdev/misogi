@@ -8,6 +8,7 @@ import type { SpaceStatus } from "@/lib/shared/types";
 import type { UserRow } from "./auth";
 import { all, one, run, tx } from "./db";
 import { writeAppBrief } from "./ai/app-brief";
+import { modelFor } from "./ai/client";
 import { buildSpaceHtml } from "./ai/codegen";
 import { getChallenge, requireCreator, requireMember, type ChallengeRow } from "./domain/challenges";
 import { recordActivity } from "./domain/feed";
@@ -63,7 +64,11 @@ export function spaceStatus(challengeId: string, ownerKey: string): SpaceStatus 
   return {
     current: cur ? { id: cur.id, version: cur.version, url: `/s/${cur.id}`, request: cur.request, created_at: cur.created_at, built_by: museName(cur.model) } : null,
     pending: pending
-      ? { id: pending.id, version: pending.version, status: pending.status as "queued" | "building", request: pending.request, created_at: pending.created_at }
+      ? { id: pending.id, version: pending.version, status: pending.status as "queued" | "building", request: pending.request, created_at: pending.created_at,
+          built_by: museName(modelFor("codegen")),
+          // A page nobody asked for is built from Muse Spark's brief (queueChallengeApp), not from words someone wrote.
+          imagined_by: pending.author === "system" ? museName(modelFor("draft")) : null,
+        }
       : null,
     last_failure:
       lastFail && (!cur || lastFail.version > cur.version)

@@ -84,7 +84,7 @@ export function SpaceFrame({ space, title, reloadKey, empty }: { space: SpaceSta
   if (!current) {
     return (
       <div className="relative">
-        {space.pending ? <Building request={space.pending.request} /> : space.last_failure ? <Failed request={space.last_failure.request} /> : empty}
+        {space.pending ? <Building request={space.pending.request} builder={space.pending.built_by} imaginedBy={space.pending.imagined_by} /> : space.last_failure ? <Failed request={space.last_failure.request} /> : empty}
       </div>
     );
   }
@@ -135,12 +135,19 @@ function Failed({ request }: { request: string }) {
   );
 }
 
-function Building({ request }: { request: string }) {
+function Building({ request, builder, imaginedBy }: { request: string; builder: string | null; imaginedBy: string | null }) {
   return (
     <div className="card flex flex-col items-center px-6 py-10 text-center">
       <Mascot pose="think" size={100} alt="" />
-      <h3 className="mt-3 text-[19px] text-ink">Building this space…</h3>
-      <p className="mt-1 max-w-md text-[14px] leading-6 text-ink-2">“{request}”</p>
+      <h3 className="mt-3 text-[19px] text-ink">{builder ? `${builder} is building this page…` : "Building this page…"}</h3>
+      {imaginedBy ? (
+        <div className="mt-1 max-w-md">
+          <p className="text-[13px] font-bold text-ink-3">{imaginedBy} imagined:</p>
+          <p className="line-clamp-3 text-[14px] leading-6 text-ink-2">{request}</p>
+        </div>
+      ) : (
+        <p className="mt-1 line-clamp-3 max-w-md text-[14px] leading-6 text-ink-2">“{request}”</p>
+      )}
       <p className="mt-3 flex items-center gap-2 text-[13px] font-bold text-ink-3">
         <Spinner /> Usually about a minute
       </p>
