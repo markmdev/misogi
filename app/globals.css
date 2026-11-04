@@ -304,15 +304,18 @@
   }
 }
 
-/* The word misogi: a stitched underline, and the felt tag that hangs from it on a thread (components/client/misogi-word.tsx). */
+/* The word misogi: a soft coral highlight, and the felt tag that hangs from it on a thread (components/client/misogi-word.tsx).
+   The highlight reaches past the word with a shadow, so the sentence keeps its spacing. */
 .misogi-word {
-  text-decoration: underline dashed color-mix(in srgb, var(--color-coral) 70%, transparent);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.22em;
+  --wash: color-mix(in srgb, var(--color-coral) 16%, transparent);
+  background: var(--wash);
+  box-shadow: 0 0 0 0.13em var(--wash);
+  border-radius: 0.3em;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .misogi-word:hover,
 .misogi-word[aria-expanded="true"] {
-  text-decoration-color: var(--color-coral);
+  --wash: color-mix(in srgb, var(--color-coral) 30%, transparent);
 }
 @keyframes misogi-hang {
   0% { transform: translateY(-10px) rotate(-11deg); opacity: 0; }

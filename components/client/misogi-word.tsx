@@ -9,7 +9,7 @@ const EDGE = 12;
 type Spot = { left: number; top?: number; bottom?: number; thread: number; side: "below" | "above" };
 
 /**
- * The word misogi, marked with a stitched underline. A mouse resting on it, or a tap, hangs a felt tag from it on a
+ * The word misogi, marked with a soft coral highlight. A mouse resting on it, or a tap, hangs a felt tag from it on a
  * thread that explains the word. `side` is where the tag prefers to hang; it flips when there isn't room. The tag has
  * nothing to press, so every tap and click goes through it to what's underneath, such as the box or its buttons.
  */
