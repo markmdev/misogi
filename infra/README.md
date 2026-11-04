@@ -71,9 +71,10 @@ Installed: Node.js 24 (NodeSource apt repo), bun (version pinned to `packageMana
 build-essential, python3. Unattended security upgrades are on, and there's a 2 GB swapfile.
 
 `/etc/misogi/env` holds `NODE_ENV`, `PORT`, `HOSTNAME`, `DATABASE_PATH`, `DATA_DIR`,
-`PUBLIC_URL`, `SESSION_SECRET` and `ADMIN_KEY`, plus anything added by hand (the Meta key,
-`AI_MODEL_*`). `SESSION_SECRET` and `ADMIN_KEY` are generated on the server once and kept on
-re-runs. None of these values are in git. To read one, SSH in and run `sudo cat /etc/misogi/env`.
+`PUBLIC_URL`, `SESSION_SECRET`, `ADMIN_KEY` and `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`, plus anything
+added by hand (the Meta key, `AI_MODEL_*`). The three secrets are generated on the server once and kept
+on re-runs. The build reads the last one, so server action ids stay the same across deploys and a page
+opened before a deploy can still log, tick and cheer after it. None of these values are in git. To read one, SSH in and run `sudo cat /etc/misogi/env`.
 
 ## Deploying
 

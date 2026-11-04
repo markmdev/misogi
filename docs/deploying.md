@@ -86,6 +86,7 @@ They live in `/etc/misogi/env` (`root:misogi`, mode 640). After any change, run 
 | `AI_MODEL_<JOB>` | Optional model overrides |
 | `ADMIN_KEY` | Protects `/api/admin/*`. Generated once. |
 | `SESSION_SECRET` | Signs login cookies. Generated once; changing it logs everyone out. |
+| `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Keeps server action ids the same across deploys, so a page opened before a deploy still works after it. Generated once; the build reads it. |
 | `PUBLIC_URL` | Public origin used in links and the agent guide. It comes from `MISOGI_DOMAIN` in `infra/provision.sh`. |
 | `NODE_ENV`, `PORT`, `HOSTNAME`, `DATABASE_PATH`, `DATA_DIR` | Fixed by `infra/provision.sh` |
 
