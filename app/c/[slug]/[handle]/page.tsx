@@ -6,7 +6,7 @@ import { LiveScene } from "@/components/client/alive";
 import { CheerButton, LogButton, QuestList, ShareButton, ShareWeekButton } from "@/components/client/actions";
 import { ConnectPanel } from "@/components/client/connect";
 import { Fresh, LivePulse } from "@/components/client/live";
-import { LogMediaRow, PhotoWall } from "@/components/client/media";
+import { LogMediaRow, PhotoWall, StickerBoard } from "@/components/client/media";
 import { SpaceFrame } from "@/components/client/space-frame";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
@@ -174,6 +174,15 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               ) : null}
             </div>
           </section>
+        )}
+
+        {wall.some((m) => m.sticker) && (
+          <Fresh arrive="animate-rise">
+            <section>
+              <SectionTitle title="Stickers" icon="sparkles" action={<span className="text-[13px] font-bold text-ink-3">Cut out by SAM 3.1</span>} />
+              <StickerBoard items={wall} />
+            </section>
+          </Fresh>
         )}
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">

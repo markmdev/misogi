@@ -333,3 +333,46 @@
 @media (prefers-reduced-motion: reduce) {
   .misogi-tag-hang, .misogi-tag-float { animation: none; }
 }
+
+/* The felt stickers SAM cuts out of photos (StickerBoard in components/client/media.tsx), stuck on the page. */
+.sticker-board { --cell: 104px; }
+@media (min-width: 640px) {
+  .sticker-board { --cell: 148px; }
+}
+.sticker-art {
+  --rest: drop-shadow(0 1px 1px rgb(70 45 25 / 0.22)) drop-shadow(0 7px 9px rgb(70 45 25 / 0.16));
+  transform: rotate(var(--tilt));
+  filter: var(--rest);
+  transition: transform 0.3s cubic-bezier(0.2, 1.4, 0.4, 1), filter 0.3s ease;
+}
+@media (hover: hover) {
+  .group:hover .sticker-art {
+    transform: translateY(-3px) scale(1.05);
+    filter: drop-shadow(0 2px 2px rgb(70 45 25 / 0.2)) drop-shadow(0 14px 14px rgb(70 45 25 / 0.2));
+  }
+}
+.sticker-photo { display: none; opacity: 0; }
+/* Landing while the page is open: the photo, SAM's cut lighting up over it as the rest dims, the sticker lifting off. */
+.sticker-arrive .sticker-photo { display: block; animation: sticker-photo 3s ease backwards; }
+.sticker-arrive .sticker-photo > span { background-image: var(--photo); background-size: 100% 100%; }
+.sticker-arrive .sticker-art {
+  --glow: var(--accent, var(--color-coral));
+  animation: sticker-lift 3s cubic-bezier(0.3, 0.7, 0.3, 1) backwards;
+}
+@keyframes sticker-photo {
+  0% { opacity: 0; transform: scale(0.94); filter: brightness(1) saturate(1); }
+  12% { opacity: 1; transform: none; filter: brightness(1) saturate(1); }
+  32% { filter: brightness(1) saturate(1); }
+  46% { opacity: 1; filter: brightness(0.6) saturate(0.5); }
+  78%, 100% { opacity: 0; filter: brightness(0.6) saturate(0.5); }
+}
+@keyframes sticker-lift {
+  0%, 32% { opacity: 0; transform: none; filter: drop-shadow(0 0 0 transparent) drop-shadow(0 0 0 transparent); }
+  44% { opacity: 1; transform: none; filter: drop-shadow(0 0 3px var(--glow)) drop-shadow(0 0 14px var(--glow)); }
+  54% { transform: none; filter: drop-shadow(0 0 3px var(--glow)) drop-shadow(0 0 14px var(--glow)); }
+  72% {
+    transform: translateY(-9px) scale(1.07) rotate(calc(var(--tilt) * 0.4));
+    filter: drop-shadow(0 4px 4px rgb(70 45 25 / 0.2)) drop-shadow(0 24px 20px rgb(70 45 25 / 0.26));
+  }
+  100% { opacity: 1; transform: rotate(var(--tilt)); filter: var(--rest); }
+}

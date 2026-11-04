@@ -13,6 +13,7 @@ import { modelFor, outputText, respond } from "./ai/client";
 import { rateLimit } from "./http";
 import { deleteObject, getObject, putObject } from "./storage";
 import { AppError, id, nowIso } from "./util";
+import type { StickerMeta } from "./stickers";
 import { finishBeforeExit } from "./unfinished";
 
 const MB = 1024 * 1024;
@@ -22,7 +23,7 @@ export const MEDIA_PER_LOG = 4;
 const LINK_MINUTES = 30;
 const UNUSED_HOURS = 24;
 
-type MediaRow = {
+export type MediaRow = {
   id: string;
   kind: string;
   challenge_id: string;
@@ -33,6 +34,8 @@ type MediaRow = {
   width: number | null;
   height: number | null;
   caption: string | null;
+  /** The sticker cut from this photo (StickerMeta as JSON), when there is one. */
+  sticker: string | null;
 };
 
 // ---------- Upload links ----------
@@ -224,12 +227,21 @@ const EXT: Record<string, string> = { "video/mp4": "mp4", "video/quicktime": "mo
 function toLogMedia(m: MediaRow): LogMedia {
   const base = `/media/${m.path}`;
   return m.kind === "photo"
-    ? { id: m.id, kind: "photo", url: `${base}/full.webp`, thumb_url: `${base}/thumb.webp`, width: m.width, height: m.height, caption: m.caption }
-    : { id: m.id, kind: "video", url: `${base}/video.${EXT[m.mime]}`, thumb_url: null, width: null, height: null, caption: null };
+    ? {
+        id: m.id,
+        kind: "photo",
+        url: `${base}/full.webp`,
+        thumb_url: `${base}/thumb.webp`,
+        width: m.width,
+        height: m.height,
+        caption: m.caption,
+        sticker: m.sticker ? { ...(JSON.parse(m.sticker) as StickerMeta), url: `${base}/sticker.webp` } : null,
+      }
+    : { id: m.id, kind: "video", url: `${base}/video.${EXT[m.mime]}`, thumb_url: null, width: null, height: null, caption: null, sticker: null };
 }
 
 export function withOrigin(m: LogMedia, origin: string): LogMedia {
-  return { ...m, url: origin + m.url, thumb_url: m.thumb_url && origin + m.thumb_url };
+  return { ...m, url: origin + m.url, thumb_url: m.thumb_url && origin + m.thumb_url, sticker: m.sticker && { ...m.sticker, url: origin + m.sticker.url } };
 }
 
 /** Each log's photos and videos, in the order they were added. */
@@ -246,14 +258,14 @@ export function mediaForLogs(logIds: string[]): Map<string, LogMedia[]> {
 
 /** Everything one climber added to one climb, newest first: the wall on their page. */
 export function climbMedia(challengeId: string, userId: string, limit = 60) {
-  return all<MediaRow & { logged_for: string; note: string }>(
-    `SELECT m.*, l.logged_for, l.note FROM media m JOIN logs l ON l.id = m.log_id
+  return all<MediaRow & { logged_for: string; note: string; label: string | null }>(
+    `SELECT m.*, l.logged_for, l.note, l.label FROM media m JOIN logs l ON l.id = m.log_id
      WHERE m.challenge_id = ? AND m.user_id = ? AND l.deleted_at IS NULL
      ORDER BY l.logged_for DESC, l.created_at DESC, m.created_at LIMIT ?`,
     challengeId,
     userId,
     limit,
-  ).map((r) => ({ ...toLogMedia(r), date: r.logged_for, note: r.note }));
+  ).map((r) => ({ ...toLogMedia(r), date: r.logged_for, note: r.note, label: r.label }));
 }
 
 /** The stored file behind /media/logs/<id>/<file>, with a browser's Range passed through. */
@@ -262,8 +274,7 @@ export async function serveLogMedia(mediaId: string, file: string, range: string
   // Only what's on a log is public: an upload no log took is nobody's to fetch.
   const m = one<MediaRow>("SELECT * FROM media WHERE id = ? AND kind IN ('photo', 'video') AND log_id IS NOT NULL", mediaId);
   if (!m) return notFound();
-  const files = m.kind === "photo" ? ["full.webp", "thumb.webp"] : [`video.${EXT[m.mime]}`];
-  if (!files.includes(file)) return notFound();
+  if (!filesOf(m).includes(file)) return notFound();
   const res = await getObject(`${m.path}/${file}`, range);
   if (res.status === 404 || res.status === 403) return notFound();
   if (res.status === 416) return new Response(null, { status: 416, headers: { "Content-Range": res.headers.get("content-range") ?? "bytes */0" } });
@@ -340,7 +351,10 @@ async function dropUnused() {
   }
 }
 
+function filesOf(m: MediaRow) {
+  return m.kind === "photo" ? ["full.webp", "thumb.webp", ...(m.sticker ? ["sticker.webp"] : [])] : [`video.${EXT[m.mime]}`];
+}
+
 function deleteFiles(m: MediaRow) {
-  const files = m.kind === "photo" ? ["full.webp", "thumb.webp"] : [`video.${EXT[m.mime]}`];
-  return Promise.all(files.map((f) => deleteObject(`${m.path}/${f}`)));
+  return Promise.all(filesOf(m).map((f) => deleteObject(`${m.path}/${f}`)));
 }
