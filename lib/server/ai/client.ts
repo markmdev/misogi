@@ -68,7 +68,7 @@ export type CallOptions = {
 
 const TIMEOUTS: Record<Job, number> = { agent: 90_000, draft: 90_000, codegen: 300_000, fast: 45_000, image: 120_000 };
 
-async function post(pathname: string, body: unknown, job: Job, opts: CallOptions): Promise<Response> {
+async function post(pathname: string, body: unknown, job: Job, opts: CallOptions, attempt = 0): Promise<Response> {
   const res = await fetch(`${baseUrl()}${pathname}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await authHeaders(opts)) },
@@ -85,6 +85,11 @@ async function post(pathname: string, body: unknown, job: Job, opts: CallOptions
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+    // An overloaded backend turns the call away before running it, so asking once more costs nothing.
+    if (res.status === 503 && text.includes("service_overloaded") && attempt === 0) {
+      await new Promise((r) => setTimeout(r, 2_000));
+      return post(pathname, body, job, opts, 1);
+    }
     console.error(`[ai] ${pathname} ${res.status}: ${text.slice(0, 500)}`);
     if (res.status >= 500) throw new AppError("resting", "The model had a problem. Try again.");
     throw new AppError("internal", `Model request failed (${res.status}).`);
