@@ -57,8 +57,9 @@ export default async function Home() {
       <Recede>
         <main>
           {/* Hero: an illustrated scene with a rounded sheet rising over it. */}
-          <section className="relative">
-            <div className="relative h-[230px] overflow-hidden sm:h-[340px]">
+          {/* The whole first screen, the sky taking whatever height is spare, so the film starts just below it. */}
+          <section className="relative flex min-h-[calc(100svh-4rem)] flex-col pb-6">
+            <div className="relative min-h-[230px] flex-1 overflow-hidden sm:min-h-[340px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={hero.src}
