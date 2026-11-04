@@ -137,6 +137,10 @@ describe("photos and videos on a log", () => {
     const notVideo = await fetch(link, { method: "PUT", headers: { "content-type": "video/mp4" }, body: fake });
     expect(notVideo.status).toBe(415);
 
+    // 17 KB that opens as 144 million pixels: the server must refuse it rather than unpack it.
+    const bomb = await fetch(link, { method: "PUT", headers: { "content-type": "image/png" }, body: fixture("huge-blank.png") });
+    expect(bomb.status).toBe(415);
+
     const huge = new Uint8Array(26 * 1024 * 1024);
     huge.set(fixture("photo-with-gps.jpg"));
     const big = await fetch(link, { method: "PUT", headers: { "content-type": "image/jpeg" }, body: huge });

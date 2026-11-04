@@ -181,7 +181,7 @@ export async function receiveUpload(token: string, req: Request, origin: string)
     let row: { mime: string; width: number | null; height: number | null };
     if (what.kind === "photo") {
       if (data.length > PHOTO_MAX) throw new AppError("too_large", "That photo is over 25 MB.");
-      const upright = sharp(data, { failOn: "error" }).rotate();
+      const upright = sharp(data, { failOn: "error", limitInputPixels: 100_000_000 }).rotate();
       let full: { data: Buffer; info: OutputInfo };
       let thumb: Buffer;
       try {
