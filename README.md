@@ -2,7 +2,7 @@
 
 **Misogi turns your Muse into the world's best coach, tutor, mentor.**
 
-![Misogi: one hard thing this year. Say it in a line, and your AI plans the year](docs/images/cover.jpg)
+![Misogi: one hard thing this year. Say it in a line, and Muse plans the year](docs/images/cover.jpg)
 
 **Try it:** [getmisogi.com](https://getmisogi.com) · **Watch:** the 3-minute demo (link coming with the submission)
 
@@ -25,7 +25,7 @@ Built for the Meta Global AI Developer Hackathon, Indie track.
 | **SAM 3.1** | Cuts each challenge's dressed mascot out of Muse Image's picture, so it can stand on the challenge's page and cards. | [`lib/server/virgils.ts`](lib/server/virgils.ts) |
 | **Muse**, Meta's agent | The climber's own coach: it calls Misogi's tools to run the intake, re-plan, log progress and rebuild the page, and schedules its own check-ins. | [`lib/server/agent-guide.ts`](lib/server/agent-guide.ts), [`lib/server/tools.ts`](lib/server/tools.ts) |
 
-On the live site every model call goes through one client, [`lib/server/ai/client.ts`](lib/server/ai/client.ts), on the Responses API: Meta's Model API, and Baseten's for Muse Spark Open, which takes the same requests. Each job has its own reasoning level: minimal for drafts, low for the coach's tool calls, medium for writing pages. The site names the model at work where you see it: "Drafted by Muse Spark" under the year, "Built by Muse Wonder" over each page, "Built with Muse Spark Open" under the coach.
+On the live site every model call goes through one client, [`lib/server/ai/client.ts`](lib/server/ai/client.ts), on the Responses API: Meta's Model API, and Baseten's for Muse Spark Open, which takes the same requests. Each job has its own reasoning level: minimal for drafts, low for the coach's tool calls, medium for writing pages. The site names the model at work where you see it: "Muse Spark drafted this in 7 seconds" over the year, "Built by Muse Wonder" over each page, "Built with Muse Spark Open" under the coach.
 
 | Drafted by Muse Spark | Built by Muse Wonder | Covers by Muse Image |
 |---|---|---|
@@ -37,7 +37,7 @@ Misogi doesn't build another chatbot. People already have an agent that knows th
 
 ![The Connect page of a demo climber, with the one message you paste into Muse](docs/images/connect-muse.jpg)
 
-On the Connect step you paste one message into Muse. Its link opens the agent guide written for you ([`/hi/<code>`](app/hi/[code]/route.ts)), and Muse connects through Misogi's own OAuth sign-in ([`lib/server/oauth.ts`](lib/server/oauth.ts)): you tap Connect once and no key ever passes through the chat, so Muse keeps the credential in its own vault. Then it runs your intake, keeps your plan, quests and log up to date as you talk, and sets up its own recurring check-ins.
+On the Connect step you paste one message into Muse. Its link opens the agent guide written for you ([`/hi/<code>`](app/hi/[code]/route.ts)), and Muse connects through Misogi's own OAuth sign-in ([`lib/server/oauth.ts`](lib/server/oauth.ts)): you allow it in Muse and tap Connect, and no key ever passes through the chat, so Muse keeps the credential in its own vault. Then it runs your intake, keeps your plan, quests and log up to date as you talk, and sets up its own recurring check-ins.
 
 The 21 tools live in one registry, [`lib/server/tools.ts`](lib/server/tools.ts). The same registry serves the HTTP API Muse calls, an MCP server at `/api/mcp` for Claude and other MCP agents, and the preview for people without Muse, so every coach acts through the same tools. The agent guide is generated from it, so it can't drift from the API. Misogi hands agents facts rather than advice ([`lib/server/facts.ts`](lib/server/facts.ts): pace, streak, gaps, rank), plus a short coaching playbook.
 
