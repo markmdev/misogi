@@ -314,11 +314,12 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
               </div>
             </div>
           </div>
-          <div className="mx-auto mt-6 flex max-w-[24rem] flex-col gap-2.5">
-            <button className="btn" onClick={() => choose(true)}>
+          {/* On a phone the answer is pinned to the screen's bottom edge, so it shows however short the screen is. */}
+          <div className="sticky bottom-0 -mx-4 mt-4 flex flex-row-reverse gap-2.5 bg-cream/95 px-4 pt-3 pb-3 backdrop-blur-sm sm:static sm:mx-auto sm:mt-6 sm:max-w-[24rem] sm:flex-col sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+            <button className="btn max-sm:flex-1" onClick={() => choose(true)}>
               Join them
             </button>
-            <button className="btn btn-ghost" onClick={() => choose(false)}>
+            <button className="btn btn-ghost max-sm:flex-1" onClick={() => choose(false)}>
               Start my own
             </button>
           </div>
