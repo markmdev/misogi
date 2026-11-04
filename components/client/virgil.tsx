@@ -74,6 +74,7 @@ export function Virgil({
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [tucked, setTucked] = useState(false);
+  const [folded, setFolded] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   const t = challenge ? `c:${challenge}` : thread;
@@ -86,17 +87,27 @@ export function Virgil({
     el.style.height = `${Math.min(el.scrollHeight + 2, 128)}px`;
   }, [input, open]);
 
-  // On phones it covers the right edge of the page, so it steps aside while they read down.
+  // While they read down the page it gets out of the way: on a phone it folds to the mascot and opens again once
+  // scrolling stops or turns back up; on wider screens, with room beside the column, it steps aside.
   useEffect(() => {
     let last = window.scrollY;
+    let rest: ReturnType<typeof setTimeout> | undefined;
+    const phone = window.matchMedia("(max-width: 639px)");
     const onScroll = () => {
       const y = window.scrollY;
+      clearTimeout(rest);
+      rest = setTimeout(() => setFolded(false), 1000);
       if (Math.abs(y - last) < 8) return;
-      setTucked(y > last && y > 120);
+      const down = y > last && y > 120;
+      if (phone.matches) setFolded(down);
+      else setTucked(down);
       last = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(rest);
+    };
   }, []);
 
   useEffect(() => {
@@ -172,7 +183,7 @@ export function Virgil({
       <button
         onClick={() => setOpen(true)}
         className={cx(
-          "fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center gap-2 rounded-full bg-white p-1.5 pr-4 shadow-[var(--shadow-float)] ring-1 ring-line transition duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
+          "fixed right-4 bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex items-center rounded-full bg-white p-1.5 shadow-[var(--shadow-float)] ring-1 ring-line transition duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
           tucked ? "pointer-events-none translate-y-24 opacity-0" : "hover:-translate-y-0.5",
         )}
         aria-label="Try it without Muse"
@@ -180,7 +191,14 @@ export function Virgil({
         <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-cream-2">
           <Mascot pose="idle" src={look} size={40} alt="" />
         </span>
-        <span className="font-display text-[16px] font-semibold text-ink">Try it without Muse</span>
+        <span
+          className={cx(
+            "overflow-hidden transition-[max-width,opacity] duration-200 ease-out motion-reduce:transition-none",
+            folded ? "max-w-0 opacity-0" : "max-w-56 opacity-100",
+          )}
+        >
+          <span className="block pr-2.5 pl-2 font-display text-[16px] font-semibold whitespace-nowrap text-ink">Try it without Muse</span>
+        </span>
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Try it without Muse" wide>
         {!signedIn ? (
