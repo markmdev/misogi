@@ -184,3 +184,11 @@ export function EmptyState({ pose = "think", title, body, action }: { pose?: str
     </div>
   );
 }
+
+/** Mark Zuckerberg as a felt doll, our own caricature, beside his yearly challenges. */
+export function ZuckAvatar({ size = 48 }: { size?: number }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/art/zuck.webp" alt="" width={size} height={size} className="shrink-0 rounded-full bg-cream-2 shadow-sm ring-2 ring-white" draggable={false} />
+  );
+}

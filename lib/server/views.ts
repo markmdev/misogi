@@ -90,7 +90,7 @@ export function pulse(c: Pick<ChallengeRow, "id" | "updated_at">): string {
 }
 
 /** The climber's page the home page shows as proof of what Muse builds: Helen's wedding scrapbook. */
-const SHOWCASE = { slug: "mandarin-conversation", handle: "helennovak" };
+const SHOWCASE = { slug: "read-25-books", handle: "amara" };
 
 export function showcaseView() {
   const c = findChallenge(SHOWCASE.slug);

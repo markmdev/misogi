@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChallengeCard } from "@/components/challenge";
 import { Footer, Recede, TopBar } from "@/components/nav";
-import { cx, EmptyState, Icon } from "@/components/ui";
+import { cx, EmptyState, Icon, ZuckAvatar } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
 
@@ -78,7 +78,10 @@ export default async function Explore(props: PageProps<"/explore">) {
 
           {templates.length > 0 && (
             <section className="mt-12">
-              <h2 className="text-[22px] text-ink">Zuckerberg&apos;s yearly challenges</h2>
+              <h2 className="flex items-center gap-2.5 text-[22px] text-ink">
+                <ZuckAvatar size={40} />
+                Zuckerberg&apos;s yearly challenges
+              </h2>
               <p className="mt-1 mb-4 text-[15px] text-ink-2">One hard thing a year, 2009 to 2019. Make one yours.</p>
               <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                 {templates.map((c) => (

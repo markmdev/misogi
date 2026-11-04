@@ -4,7 +4,7 @@ import { LiveScene } from "@/components/client/alive";
 import { Film } from "@/components/client/film";
 import { StartBox } from "@/components/client/start-box";
 import { Footer, Recede, TopBar } from "@/components/nav";
-import { cx, Icon, Mascot } from "@/components/ui";
+import { cx, Icon, Mascot, ZuckAvatar } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { listChallenges } from "@/lib/server/domain/challenges";
 import { siteFeed } from "@/lib/server/domain/feed";
@@ -201,7 +201,10 @@ export default async function Home() {
           {templates.length > 0 && (
             <section className="mt-16">
               <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                <h2 className="text-[26px] leading-8 text-ink">Ten years of Zuckerberg&apos;s challenges</h2>
+                <h2 className="flex items-center gap-3 text-[26px] leading-8 text-ink">
+                  <ZuckAvatar />
+                  Ten years of Zuckerberg&apos;s challenges
+                </h2>
                 <p className="mt-1 max-w-2xl text-[15px] leading-6 text-ink-2">
                   From 2009 to 2019, Mark Zuckerberg picked one hard thing each year. Start from one of his, or make your own.
                 </p>
