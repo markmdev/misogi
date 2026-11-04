@@ -87,7 +87,7 @@ export function findChallenge(slug: string): ChallengeRow | null {
   return one<ChallengeRow>("SELECT * FROM challenges WHERE slug = ?", slug.toLowerCase().trim()) ?? null;
 }
 
-export type LiveTwin = Pick<ChallengeRow, "slug" | "title" | "tagline" | "emoji" | "theme"> & { members: number };
+export type LiveTwin = ChallengeSummary & { faces: { name: string; avatar: string }[] };
 
 /** The titles of the live challenges, the most climbed first. */
 export function liveTitles(limit = 80): string[] {
@@ -98,16 +98,15 @@ export function liveTitles(limit = 80): string[] {
   ).map((c) => c.title);
 }
 
-/** The live challenge a new one with this title would copy, the one most people climb when there are several. */
+/** The live challenge a new one with this title would copy, the one most people climb when there are several, with its leaders' faces. */
 export function liveTwin(title: string): LiveTwin | null {
   const goal = sameGoal(title);
-  if (!goal) return null;
-  return (
-    all<LiveTwin>(
-      `SELECT slug, title, tagline, emoji, theme, (SELECT COUNT(*) FROM memberships m WHERE m.challenge_id = c.id AND m.status != 'left') AS members
-       FROM challenges c WHERE status = 'active' ORDER BY members DESC`,
-    ).find((c) => sameGoal(c.title) === goal) ?? null
-  );
+  const row = all<ChallengeRow>(
+    `SELECT c.* FROM challenges c WHERE status = 'active'
+     ORDER BY (SELECT COUNT(*) FROM memberships m WHERE m.challenge_id = c.id AND m.status != 'left') DESC`,
+  ).find((c) => sameGoal(c.title) === goal);
+  if (!row) return null;
+  return { ...summarize(row), faces: standings(row).slice(0, 5).map((s) => ({ name: s.display_name, avatar: s.avatar })) };
 }
 
 export function getMembership(challengeId: string, userId: string): MembershipRow | null {
