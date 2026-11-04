@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ActivityRow, ChallengeCard } from "@/components/challenge";
 import { LiveScene } from "@/components/client/alive";
+import { Film } from "@/components/client/film";
 import { StartBox } from "@/components/client/start-box";
 import { Footer, TopBar } from "@/components/nav";
 import { cx, Icon, Mascot } from "@/components/ui";
@@ -81,6 +82,10 @@ export default async function Home() {
               <StartBox />
             </div>
           </div>
+        </section>
+
+        <section className="mx-auto mt-12 max-w-4xl px-4 sm:mt-16 sm:px-6">
+          <Film src="/film/misogi.mp4" poster="/film/misogi.webp" length="2:24" />
         </section>
 
         {/* How it works */}
