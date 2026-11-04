@@ -475,12 +475,13 @@ function GhostClimb({ active, className }: { active: boolean; className?: string
                   <svg viewBox="0 0 68 68" className="absolute inset-0 h-full w-full overflow-visible">
                     <circle cx="34" cy="34" r="32" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="1 8" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
                   </svg>
-                  {k === 0 && <Icon name="summit" size={40} className="opacity-25 grayscale" />}
+                  {k === 0 && <Icon name="summit" size={40} eager className="opacity-25 grayscale" />}
                 </div>
                 {base && (
                   <Mascot
                     pose="think"
                     size={72}
+                    eager
                     alt=""
                     className="absolute top-1/2 -translate-y-1/2 lg:[view-transition-name:guide]"
                     style={x > 0 ? { right: "100%", marginRight: 4 } : { left: "100%", marginLeft: 4 }}

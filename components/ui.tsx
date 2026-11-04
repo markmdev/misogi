@@ -1,15 +1,26 @@
 import type { CSSProperties, ReactNode } from "react";
-import { ICONS, MASCOT, virgilLoop } from "@/lib/shared/art";
+import { ICONS, MASCOT, sizedSet, virgilLoop } from "@/lib/shared/art";
 import { LiveMascot } from "./client/alive";
 
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-export function Icon({ name, size = 40, className, alt = "" }: { name: string; size?: number; className?: string; alt?: string }) {
+/**
+ * Pictures load as they near the screen, at the size they're drawn. `eager` is for the few a visitor sees
+ * on arriving or on their first scroll, so those never show a gap.
+ */
+function Picture({ src, size, eager, alt, className, style }: { src: string; size: number; eager?: boolean; alt: string; className?: string; style?: CSSProperties }) {
+  const set = sizedSet(src);
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} srcSet={set} sizes={set && `${size}px`} width={size} height={size} loading={eager ? undefined : "lazy"} alt={alt} className={className} style={style} draggable={false} />
+  );
+}
+
+export function Icon({ name, size = 40, className, alt = "", eager }: { name: string; size?: number; className?: string; alt?: string; eager?: boolean }) {
   const src = (ICONS as Record<string, string>)[name] ?? ICONS.summit;
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} width={size} height={size} className={cx("select-none object-contain", className)} draggable={false} />;
+  return <Picture src={src} size={size} eager={eager} alt={alt} className={cx("select-none object-contain", className)} />;
 }
 
 export function Mascot({
@@ -19,6 +30,7 @@ export function Mascot({
   alt = "Virgil, the Misogi mountain spirit",
   style,
   src,
+  eager,
 }: {
   pose?: string;
   /** A picture of him to show instead of the pose, such as Virgil dressed for a challenge. */
@@ -27,6 +39,7 @@ export function Mascot({
   className?: string;
   alt?: string;
   style?: CSSProperties;
+  eager?: boolean;
 }) {
   const known = pose in MASCOT ? pose : "idle";
   const still = src ?? (MASCOT as Record<string, string>)[known];
@@ -35,17 +48,16 @@ export function Mascot({
   // Small Virgils (the chat button, avatars beside each chat message) stay still, so a list never twitches,
   // and so does a dressed Virgil until his loop is made.
   if (size < 48 || !loop) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={still} alt={alt} width={size} height={size} style={style} className={cx("select-none object-contain", className)} draggable={false} />;
+    return <Picture src={still} size={size} eager={eager} alt={alt} style={style} className={cx("select-none object-contain", className)} />;
   }
-  return <LiveMascot loop={loop} still={still} size={size} alt={alt} className={className} style={style} />;
+  return <LiveMascot loop={loop} still={still} size={size} alt={alt} eager={eager} className={className} style={style} />;
 }
 
 /** Icon on a soft rounded tile, like an app's settings row. */
-export function IconTile({ name, size = 44, bg = "var(--color-cream-2)", className }: { name: string; size?: number; bg?: string; className?: string }) {
+export function IconTile({ name, size = 44, bg = "var(--color-cream-2)", className, eager }: { name: string; size?: number; bg?: string; className?: string; eager?: boolean }) {
   return (
     <span className={cx("tile shrink-0", className)} style={{ width: size, height: size, background: bg }}>
-      <Icon name={name} size={Math.round(size * 0.72)} />
+      <Icon name={name} size={Math.round(size * 0.72)} eager={eager} />
     </span>
   );
 }
@@ -187,8 +199,5 @@ export function EmptyState({ pose = "think", title, body, action }: { pose?: str
 
 /** Mark Zuckerberg as a felt doll, our own caricature, beside his yearly challenges. */
 export function ZuckAvatar({ size = 48 }: { size?: number }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src="/art/zuck.webp" alt="" width={size} height={size} className="shrink-0 rounded-full bg-cream-2 shadow-sm ring-2 ring-white" draggable={false} />
-  );
+  return <Picture src="/art/zuck.webp" size={size} alt="" className="shrink-0 rounded-full bg-cream-2 shadow-sm ring-2 ring-white" />;
 }

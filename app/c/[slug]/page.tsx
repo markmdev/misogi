@@ -108,7 +108,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
       <section className="relative">
         <div className="relative h-[230px] overflow-hidden sm:h-[300px]" style={{ background: pal.sky }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={sceneFor(c.theme, false)} alt="" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
+          <img src={sceneFor(c.theme, false)} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
           <LiveScene name={sceneName(c.theme)} className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
           <div className="absolute inset-x-0 bottom-0 h-28 sm:h-36" style={{ background: `linear-gradient(to bottom, transparent, ${pal.tint} 92%)` }} />
         </div>
@@ -116,7 +116,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
           {c.virgil_path && (
             <div className="pointer-events-none absolute right-8 bottom-full z-10 -mb-2 flex items-end gap-1 sm:right-14">
               <span className="mb-4 rounded-full bg-white/85 px-2.5 py-1 text-[12px] font-bold text-ink-2 shadow-sm">Dressed by Muse Image</span>
-              <Mascot src={virgilUrl(c)} size={112} className="drop-shadow-[0_6px_6px_rgb(46_42_38/0.18)]" alt={`Virgil, dressed for ${c.title}`} />
+              <Mascot src={virgilUrl(c)} size={112} eager className="drop-shadow-[0_6px_6px_rgb(46_42_38/0.18)]" alt={`Virgil, dressed for ${c.title}`} />
             </div>
           )}
           {cover ? (
@@ -127,7 +127,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
                   <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover" />}
                   <div className="absolute bottom-3 left-3">
-                    <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
+                    <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" eager />
                   </div>
                 </div>
               </ViewTransition>
@@ -139,7 +139,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
           ) : (
             <div className="card flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-7">
               <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 sm:flex sm:items-start">
-                <IconTile name={c.emoji} size={76} bg={pal.tint} className="shadow-[0_4px_0_rgb(0_0_0/0.06)]" />
+                <IconTile name={c.emoji} size={76} bg={pal.tint} className="shadow-[0_4px_0_rgb(0_0_0/0.06)]" eager />
                 <div className="contents sm:block sm:min-w-0">{details}</div>
               </div>
               {actions}

@@ -60,6 +60,7 @@ export default async function Home() {
                 src={hero.src}
                 srcSet={`${hero.sm} 800w, ${hero.src} 1600w`}
                 sizes="100vw"
+                fetchPriority="high"
                 alt="A calm mountain at sunrise with a trail of camps leading to the summit"
                 className="absolute inset-0 h-full w-full object-cover object-[50%_35%]"
               />
@@ -72,7 +73,7 @@ export default async function Home() {
                 <p className="mx-auto mt-3 max-w-lg text-center font-display text-[19px] leading-[26px] font-semibold text-ink sm:text-[21px] sm:leading-7">
                   Misogi turns your{" "}
                   <span className="whitespace-nowrap">
-                    <Icon name="orb" size={36} className="-my-2 -mr-1 -ml-1.5 inline-block align-middle" />
+                    <Icon name="orb" size={36} eager className="-my-2 -mr-1 -ml-1.5 inline-block align-middle" />
                     Muse
                   </span>{" "}
                   into the world&apos;s best coach, tutor, mentor.
@@ -120,7 +121,7 @@ export default async function Home() {
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_300px]">
                 <div className="scrollbar-none -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 xl:grid-cols-3">
                   {live.map((c) => (
-                    <ChallengeCard key={c.slug} c={c} className="w-[280px] shrink-0 snap-start sm:w-auto" />
+                    <ChallengeCard key={c.slug} c={c} eager className="w-[280px] shrink-0 snap-start sm:w-auto" />
                   ))}
                 </div>
                 {feed.length > 0 && (

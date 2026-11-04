@@ -40,3 +40,7 @@ next-env.d.ts
 
 # local data (sqlite, generated media)
 /data/
+
+# small copies of icons and Virgil's poses, made by scripts/art-sizes.ts
+/public/art/icons/*-sm.webp
+/public/art/mascot/*-sm.webp

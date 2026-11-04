@@ -1,9 +1,35 @@
 // Art manifest for Misogi. Every path is served from /public/art.
 // Icons: 512x512 transparent webp (clay style). Mascot "Virgil": 768x768 transparent webp, same scale and
 // baseline across poses. Scenes: 1600x900 webp plus an 800x450 "-sm" variant.
+// Icons and Virgil's poses also get a "-sm" copy (160 and 336 px) at build time, from scripts/art-sizes.ts.
 
 export const ICON_SIZE = 512;
 export const MASCOT_SIZE = 768;
+export const ICON_SM = 160;
+export const MASCOT_SM = 336;
+export const COVER_SM = 640;
+
+/**
+ * The widths of a picture's small "-sm" copy and of the picture itself, for those that have one: a card's cover at
+ * its loop's 640, Virgil at his loops' 336. Covers and dressed Virgils get theirs from /media the first time it's asked for.
+ */
+const SIZED: [RegExp, number, number][] = [
+  [/^\/art\/icons\/[\w-]+\.webp$/, ICON_SM, ICON_SIZE],
+  [/^\/art\/mascot\/[\w-]+\.webp$/, MASCOT_SM, MASCOT_SIZE],
+  [/^\/media\/virgils\/[\w-]+\.webp$/, MASCOT_SM, 512],
+  [/^\/media\/covers\/[\w-]+\.webp$/, COVER_SM, 1200],
+];
+
+/** A picture's small copy, or the picture itself when it has none. */
+export function smallCopy(src: string): string {
+  return SIZED.some(([re]) => re.test(src)) ? src.replace(/\.webp$/, "-sm.webp") : src;
+}
+
+/** `srcSet` for a picture drawn `size` px wide, so the browser takes its small copy unless it's drawn bigger than that. */
+export function sizedSet(src: string): string | undefined {
+  const s = SIZED.find(([re]) => re.test(src));
+  return s && `${smallCopy(src)} ${s[1]}w, ${src} ${s[2]}w`;
+}
 
 export const ICONS = {
   streak: "/art/icons/streak.webp",

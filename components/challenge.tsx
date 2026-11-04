@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ViewTransition } from "react";
-import { coverLoop, SCENES } from "@/lib/shared/art";
+import { coverLoop, SCENES, smallCopy } from "@/lib/shared/art";
 import { activityText, firstName, metricLine, shortDate, timeAgo, withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { ActivityItem, ChallengeSummary, Metric, Milestone, Standing } from "@/lib/shared/types";
@@ -19,7 +19,7 @@ export function sceneFor(theme: string, small = true): string {
   return small ? s.sm : s.src;
 }
 
-export function ChallengeCard({ c, className, dense }: { c: ChallengeSummary; className?: string; dense?: boolean }) {
+export function ChallengeCard({ c, className, dense, eager }: { c: ChallengeSummary; className?: string; dense?: boolean; eager?: boolean }) {
   const pal = palette(c.theme);
   const isTemplate = c.status === "template";
   const loop = coverLoop(c.cover_url);
@@ -32,15 +32,21 @@ export function ChallengeCard({ c, className, dense }: { c: ChallengeSummary; cl
       <ViewTransition name={`cover-${c.slug}`} share={{ open: "morph", default: "none" }} default="none">
         <div className="relative aspect-[3/2] overflow-hidden" style={{ background: pal.sky }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={c.cover_url ?? sceneFor(c.theme)} alt="" className={cx("absolute inset-0 h-full w-full object-cover", !c.cover_url && "object-[70%_center]")} />
+          <img
+            src={c.cover_url ? smallCopy(c.cover_url) : sceneFor(c.theme)}
+            alt=""
+            loading={eager ? undefined : "lazy"}
+            className={cx("absolute inset-0 h-full w-full object-cover", !c.cover_url && "object-[70%_center]")}
+          />
           {loop && <LiveCover stem={loop} className="absolute inset-0 h-full w-full object-cover" />}
           <div className={cx("absolute bottom-3 left-3", dense && "max-sm:bottom-2 max-sm:left-2 max-sm:origin-bottom-left max-sm:scale-[0.7]")}>
-            <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" />
+            <IconTile name={c.emoji} size={52} bg="rgb(255 255 255 / 0.92)" className="shadow-sm" eager={eager} />
           </div>
           {c.virgil_url && (
             <Mascot
               src={c.virgil_url}
               size={96}
+              eager={eager}
               alt=""
               className={cx("absolute right-2 -bottom-1 drop-shadow-[0_4px_4px_rgb(46_42_38/0.2)] transition duration-500 group-hover:-translate-y-1", dense && "max-sm:right-1 max-sm:origin-bottom-right max-sm:scale-[0.67]")}
             />

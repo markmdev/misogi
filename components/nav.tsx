@@ -6,7 +6,7 @@ import { Avatar, cx, Icon } from "./ui";
 export function Logo({ className }: { className?: string }) {
   return (
     <Link href="/" className={cx("flex shrink-0 items-center gap-2", className)} aria-label="Misogi home">
-      <Icon name="summit" size={34} />
+      <Icon name="summit" size={34} eager />
       <span className="font-display text-[22px] font-semibold tracking-tight text-ink max-[299px]:hidden">misogi</span>
     </Link>
   );

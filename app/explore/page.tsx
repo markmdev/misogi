@@ -57,7 +57,7 @@ export default async function Explore(props: PageProps<"/explore">) {
                 href={f.id ? `/explore?cat=${f.id}` : "/explore"}
                 className={cx("chip shrink-0", (cat === f.id && !q) && "!bg-ink !text-white !shadow-none")}
               >
-                <Icon name={f.icon} size={22} />
+                <Icon name={f.icon} size={22} eager />
                 {f.label}
               </Link>
             ))}
@@ -67,8 +67,8 @@ export default async function Explore(props: PageProps<"/explore">) {
             <h2 className="mb-4 text-[22px] text-ink">Live now</h2>
             {live.length ? (
               <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
-                {live.map((c) => (
-                  <ChallengeCard key={c.slug} c={c} dense />
+                {live.map((c, i) => (
+                  <ChallengeCard key={c.slug} c={c} dense eager={i < 4} />
                 ))}
               </div>
             ) : (

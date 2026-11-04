@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "bun scripts/art-sizes.ts",
     "dev": "next dev",
+    "prebuild": "bun scripts/art-sizes.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

@@ -71,6 +71,7 @@ export function StartBox() {
         key={pose}
         pose={pose}
         size={112}
+        eager
         className={cx("absolute -top-[70px] left-1/2 -translate-x-1/2", from && "lg:[view-transition-name:guide]", phase !== "idle" && "animate-pop")}
       />
       <form
@@ -122,7 +123,7 @@ export function StartBox() {
               style={travels(e.text)}
               className="chip"
             >
-              <Icon name={e.icon} size={24} />
+              <Icon name={e.icon} size={24} eager />
               {e.text}
             </IntentLink>
           ))}

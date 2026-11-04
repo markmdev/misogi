@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
       },
+      {
+        // Art and the film keep their names when they're redrawn, so a browser keeps them an hour, then shows its copy
+        // while it checks for a new one in the background.
+        source: "/:dir(art|film)/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=31536000" }],
+      },
     ];
   },
 };

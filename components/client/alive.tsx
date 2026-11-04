@@ -1,6 +1,7 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { sizedSet } from "@/lib/shared/art";
 
 const cx = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).join(" ");
 
@@ -13,13 +14,18 @@ function seeThroughType() {
 
 const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+function onPageLoad(changed: () => void) {
+  window.addEventListener("load", changed);
+  return () => window.removeEventListener("load", changed);
+}
+
 /** Fetches a pose's loop ahead of time, so it starts at once when that pose appears. */
 export function warmMascot(pose: string) {
   void fetch(`/art/motion/virgil/${pose}.${seeThroughType()}`).catch(() => {});
 }
 
 /**
- * A muted loop over its still. It loads as its spot nears the screen, so it's playing by the time it arrives, plays while it stays near, fades in over
+ * A muted loop over its still. It loads as its spot nears the screen, once the page's pictures are in, so it's playing by the time it arrives, plays while it stays near, fades in over
  * the still and never starts under reduced motion. Once it shows it stays, only pausing off screen, so the still never
  * comes back over a frame that has moved. `onShown` says when it starts fading in.
  */
@@ -29,6 +35,7 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
   const [url, setUrl] = useState<string | null>(null);
   const [seen, setSeen] = useState(false);
   const [shown, setShown] = useState(false);
+  const pageLoaded = useSyncExternalStore(onPageLoad, () => document.readyState === "complete", () => false);
 
   useEffect(() => {
     if (calm()) return;
@@ -38,7 +45,7 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
     return () => io.disconnect();
   }, []);
 
-  if (seen && !url) setUrl(src());
+  if (seen && pageLoaded && !url) setUrl(src());
 
   useEffect(() => {
     const v = ref.current;
@@ -72,25 +79,29 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
  * Virgil: his still until his loop has faded in over it, then only the loop, so he never shows twice.
  * `loop` is the loop's address without its ending: a pose's, or a dressed Virgil's own.
  */
-export function LiveMascot({ loop, still, size, alt, className, style }: { loop: string; still: string; size: number; alt: string; className?: string; style?: CSSProperties }) {
+export function LiveMascot({ loop, still, size, alt, eager, className, style }: { loop: string; still: string; size: number; alt: string; eager?: boolean; className?: string; style?: CSSProperties }) {
   const [liveLoop, setLiveLoop] = useState<string | null>(null);
+  const set = sizedSet(still);
   return (
     <span className={cx("inline-block shrink-0 select-none", className)} style={{ width: size, height: size, ...style }}>
       <span className="relative block h-full w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={still} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-opacity duration-0", liveLoop === loop ? "opacity-0 delay-500" : "delay-0")} draggable={false} />
+        <img src={still} srcSet={set} sizes={set && `${size}px`} loading={eager ? undefined : "lazy"} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-opacity duration-0", liveLoop === loop ? "opacity-0 delay-500" : "delay-0")} draggable={false} />
         <Loop key={loop} src={() => `${loop}.${seeThroughType()}`} onShown={() => setLiveLoop(loop)} className="absolute inset-0 h-full w-full object-contain" />
       </span>
     </span>
   );
 }
 
+/** The clouds' width for a scene this many device pixels wide: 1200 on a phone, 1600 on a laptop. */
+const sceneWidth = (px: number) => (px > 1400 ? 1600 : px > 1000 ? 1200 : 800);
+
 /** A mountain scene's drifting clouds over its still; `className` places the video exactly as the still is placed. */
 export function LiveScene({ name, className }: { name: string; className?: string }) {
   const box = useRef<HTMLSpanElement>(null);
   return (
     <span ref={box} className="pointer-events-none absolute inset-0">
-      <Loop src={() => `/art/motion/scenes/${name}-${(box.current?.offsetWidth ?? 0) * devicePixelRatio > 1000 ? 1600 : 800}.mp4`} className={className} />
+      <Loop src={() => `/art/motion/scenes/${name}-${sceneWidth((box.current?.offsetWidth ?? 0) * devicePixelRatio)}.mp4`} className={className} />
     </span>
   );
 }

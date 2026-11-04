@@ -63,7 +63,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
       <section className="relative">
         <div className="relative h-[180px] overflow-hidden sm:h-[230px]" style={{ background: pal.sky }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={sceneFor(c.theme, false)} alt="" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
+          <img src={sceneFor(c.theme, false)} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
           <LiveScene name={sceneName(c.theme)} className="absolute inset-0 h-full w-full object-cover object-[65%_center]" />
           <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32" style={{ background: `linear-gradient(to bottom, transparent, ${pal.tint} 92%)` }} />
         </div>
@@ -73,7 +73,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               <Avatar name={user.display_name} color={user.avatar} size={68} ring />
               <div className="min-w-0">
                 <Link href={`/c/${c.slug}`} className="inline-flex items-center gap-1.5 text-[14px] font-extrabold hover:underline" style={{ color: pal.deep }}>
-                  <Icon name={c.emoji} size={20} />
+                  <Icon name={c.emoji} size={20} eager />
                   {c.title}
                 </Link>
                 <h1 className="mt-0.5 text-[26px] leading-8 text-ink sm:text-[30px] sm:leading-9">{isOwner ? "Your climb" : `${name}'s climb`}</h1>
