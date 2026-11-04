@@ -3971,6 +3971,54 @@ const FRIENDS: HistorySpec[] = [
     ],
     doneQuest: (log) => q(`Try ${log.label} food`, "The dish people from there love most.", "weekly", 25),
   },
+  {
+    key: "friend-ben",
+    slug: "run-a-100-mile-trail-run",
+    title: "Run a 100-mile trail run",
+    practice: ["Easy 6 miles, zone 2 the whole way.", "Strength: step-ups, single-leg deadlifts, calf raises.", "Hill repeats, 6 x 3 minutes.", "Easy 8 on the fire road.", "Recovery run, 5 miles, legs heavy.", "Rest day: foam roller and a walk."],
+    metric: { name: "longest trail run", unit: "mi", target: 100, aggregation: "latest" },
+    camps: [
+      { title: "First 13 mile trail run", detail: "You can finish a trail half marathon distance without breaking down.", target: 13, week: 4, emoji: "flag" },
+      { title: "Complete a 26 mile trail run", detail: "Your legs and fueling hold for a full trail marathon.", target: 26, week: 17, emoji: "camp" },
+      { title: "Finish a 50 mile ultra", detail: "You have the night running and pacing dialed for ultras.", target: 50, week: 33, emoji: "hiking" },
+      { title: "Finish a 75 mile mountain run", detail: "You are ready for distance, vert, and sleep loss.", target: 75, week: 42, emoji: "camp" },
+      { title: "Finish your 100 mile trail run", detail: "You covered 100 miles on trail in one push.", target: 100, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "ben",
+        daysAgo: 205,
+        pace: 0,
+        beats: [
+          { daysAgo: 205, value: 8, note: "First long one: 8 miles in Griffith Park. Walked every climb, which the plan says is allowed." },
+          { daysAgo: 190, value: 11, note: "Eleven on the Backbone Trail. Ate a gel at mile 6 before I wanted one, and it worked." },
+          { daysAgo: 176, value: 13.1, note: "Trail half done at Point Mugu, and my legs were fine the next day." },
+          { daysAgo: 160, value: 16, note: "Sixteen miles and 3,000 ft of climbing. First time my quads complained on a downhill." },
+          { daysAgo: 142, value: 20, note: "Twenty. Ate every 40 minutes: two gels, a PB&J and a lot of water." },
+          { daysAgo: 127, value: 22, note: "Back-to-back weekend: 22 on Saturday, then 10 on tired legs on Sunday." },
+          { daysAgo: 110, value: 26.2, note: "A full marathon on trail, up Mt. Wilson and back. Sat in a creek afterwards." },
+          { daysAgo: 94, value: 31, note: "First 50K race. Finished in 6:48 and smiled at every aid station." },
+          { daysAgo: 70, value: 35, note: "35 miles, my first run past dark. Headlamp on at mile 28, and it felt like a different trail." },
+          { daysAgo: 52, value: 40, note: "Forty on the Backbone Trail with a friend crewing. Learned I need more salt." },
+          { daysAgo: 33, value: 42, note: "Night run: started at 6pm, finished at sunrise. Slept twelve hours." },
+          { daysAgo: 12, value: 50, note: "My first 50-miler, in 11:52. Mile 42 was the dark place; by mile 49 I was flying." },
+        ],
+        plan: {
+          summary:
+            "Ben builds from steady trail miles to a 100-mile race. Most weeks are easy zone 2 miles, one hilly long run and one strength session for feet, hips and back. The later camps add night running, back-to-back long days, crewing and race-day fueling, then a taper into the race.",
+          cadence: "5 runs a week with one long trail day, check-in on Sundays.",
+        },
+      },
+    ],
+    openQuests: [
+      q("A long run with a night finish", "Start late afternoon, headlamp on for the last hour.", "weekly", 30),
+      q("Practice the aid-station routine", "In and out in under three minutes: bottles, food, go.", "weekly", 15),
+      q("Strength for feet, hips and back", "Step-ups, single-leg deadlifts, calf raises.", "weekly", 15),
+      q("Back-to-back long days", "Long on Saturday, then half of it again on Sunday.", "weekly", 30),
+      q("Sign up for a 75-mile mountain race", "The next camp, with its date on the calendar.", "boss", 60),
+    ],
+    doneQuest: (log) => q(`Run ${log.value ?? 20} miles on trail`, "Eat every 40 minutes, walk the steep climbs.", "weekly", 30),
+  },
 ];
 
 // ---------- Small helpers ----------
