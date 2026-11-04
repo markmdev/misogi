@@ -87,16 +87,13 @@ export function Virgil({
     el.style.height = `${Math.min(el.scrollHeight + 2, 128)}px`;
   }, [input, open]);
 
-  // While they read down the page it gets out of the way: on a phone it folds to the mascot and opens again once
-  // scrolling stops or turns back up; on wider screens, with room beside the column, it steps aside.
+  // While they read down the page it gets out of the way: on a phone it folds to the mascot until they scroll back up
+  // or reach the top; on wider screens, with room beside the column, it steps aside.
   useEffect(() => {
     let last = window.scrollY;
-    let rest: ReturnType<typeof setTimeout> | undefined;
     const phone = window.matchMedia("(max-width: 639px)");
     const onScroll = () => {
       const y = window.scrollY;
-      clearTimeout(rest);
-      rest = setTimeout(() => setFolded(false), 1000);
       if (Math.abs(y - last) < 8) return;
       const down = y > last && y > 120;
       if (phone.matches) setFolded(down);
@@ -104,10 +101,7 @@ export function Virgil({
       last = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      clearTimeout(rest);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
