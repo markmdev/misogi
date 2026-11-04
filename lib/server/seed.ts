@@ -6,8 +6,8 @@
 import type BetterSqlite3 from "better-sqlite3";
 import type { Milestone, Theme } from "@/lib/shared/types";
 import { all, db, one, tx } from "./db";
-import { levelFor, MILESTONE_XP } from "./facts";
-import { addDays, addYear, dateIn, id, randomToken, sha256 } from "./util";
+import { aggregate, expectedByNow, levelFor, MILESTONE_XP } from "./facts";
+import { addDays, addYear, dateIn, daysBetween, id, randomToken, sha256 } from "./util";
 import { findCity } from "./cities";
 
 // ---------- Spec types ----------
@@ -4419,6 +4419,36 @@ function keepCheers(cheers: RealCheer[]) {
   }
 }
 
+/**
+ * The camps moved later in the year, by as little as makes the climber read 10% ahead of their plan today, the margin
+ * a day without a refresh needs. No camp moves past the year's end.
+ */
+function onPace(ms: Milestone[], logs: LogRec[], metric: HistorySpec["metric"], today: string, startsOn: string, endsOn: string): Milestone[] {
+  const def = { target: metric.target, aggregation: metric.aggregation, direction: "up" as const };
+  const total = aggregate(logs.map((l) => ({ logged_for: l.date, value: l.value, label: l.label, xp: 0, created_at: "" })), def);
+  const pace = (list: Milestone[]) => {
+    const expected = expectedByNow(today, startsOn, endsOn, def, list);
+    return expected ? total / expected : Infinity;
+  };
+  let out = ms;
+  for (let stretch = 1.05; pace(out) < 1.1 && out.some((m) => m.due_on && m.due_on < endsOn); stretch += 0.05) {
+    out = ms.map((m) => {
+      if (!m.due_on) return m;
+      const due = addDays(startsOn, Math.round(daysBetween(startsOn, m.due_on) * stretch));
+      return { ...m, due_on: due > endsOn ? endsOn : due };
+    });
+  }
+  // Camps the stretch pushed to the year's end spread out before the summit instead, when that keeps the pace.
+  const atEnd = out.map((m, i) => (m.due_on === endsOn && i < out.length - 1 ? i : -1)).filter((i) => i >= 0);
+  if (atEnd.length) {
+    const from = atEnd[0] > 0 && out[atEnd[0] - 1].due_on ? out[atEnd[0] - 1].due_on! : startsOn;
+    const gap = daysBetween(from, endsOn) / (atEnd.length + 1);
+    const spread = out.map((m, i) => (atEnd.includes(i) ? { ...m, due_on: addDays(from, Math.round(gap * (atEnd.indexOf(i) + 1))) } : m));
+    if (pace(spread) >= 1.1) out = spread;
+  }
+  return out;
+}
+
 type Raw = { d: number; value: number | null; label: string | null; note: string | null; hour?: number; long?: boolean };
 
 function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
@@ -4648,6 +4678,13 @@ function simulateMember(
       reason: m.replan.reason,
       ms: milestones(2, Number.POSITIVE_INFINITY),
     });
+  }
+
+  // Their current plan fits the pace they actually kept, as their Muse would have moved it, so their page reads ahead.
+  // A plan with a fixed date (race day) keeps its dates.
+  if (!spec.camps.some((c) => "on" in c)) {
+    const latest = planRows[planRows.length - 1];
+    latest.ms = onPace(latest.ms, logs, spec.metric, today, startsOn, endsOn);
   }
 
   // 5. This week's open quests, plus a couple skipped from earlier weeks.
