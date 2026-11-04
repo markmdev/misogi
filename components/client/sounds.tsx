@@ -118,8 +118,9 @@ export function Sounds() {
       const now = performance.now();
       if (now - scrolled < 250 || now - lastTick < 45) return;
       lastTick = now;
-      if (!woke) wake();
-      play(tick, false);
+      const first = !woke;
+      if (first) wake();
+      play(tick, first);
     };
     const onScroll = () => {
       scrolled = performance.now();
