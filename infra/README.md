@@ -64,6 +64,7 @@ certificate) followed by `scripts/deploy.sh`. Also run `ssh-keygen -R 35.171.183
 | `/etc/systemd/system/misogi.service` | copy of [`misogi.service`](misogi.service) | root |
 | `/etc/caddy/Caddyfile` | copy of [`Caddyfile`](Caddyfile) | root |
 | `/etc/cron.d/misogi-backup`, `/usr/local/sbin/misogi-backup` | backup job (03:30 UTC, as misogi) | root |
+| `/etc/cron.d/misogi-demo-refresh`, `/usr/local/sbin/misogi-demo-refresh` | demo climbers' stories brought up to today (15:55 UTC, as misogi) | root |
 
 Installed: Node.js 24 (NodeSource apt repo), bun (version pinned to `packageManager` in
 `package.json`, at `/usr/local/bin/bun`), Caddy (official apt repo), sqlite3, git, rsync,

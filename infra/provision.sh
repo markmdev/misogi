@@ -236,6 +236,27 @@ remote() {
 	EOF
 	chmod 644 /etc/cron.d/misogi-backup
 
+	step "Daily demo refresh (cron)"
+	cat >/usr/local/sbin/misogi-demo-refresh <<-'EOF'
+		#!/bin/sh
+		# Brings the demo climbers' stories up to today; real people's data is kept.
+		# Managed by infra/provision.sh. Runs from /etc/cron.d/misogi-demo-refresh as misogi.
+		set -eu
+		key=$(sed -n 's/^ADMIN_KEY=//p' /etc/misogi/env | tail -n 1)
+		port=$(sed -n 's/^PORT=//p' /etc/misogi/env | tail -n 1)
+		printf 'x-admin-key: %s\n' "$key" |
+			curl -fsS -o /dev/null -X POST "http://127.0.0.1:$port/api/admin/seed" -H @- -d '{"force":true}' 2>&1 |
+			logger -t misogi-demo-refresh
+	EOF
+	chmod 755 /usr/local/sbin/misogi-demo-refresh
+	cat >/etc/cron.d/misogi-demo-refresh <<-'EOF'
+		# Daily refresh of the demo climbers' stories. Managed by infra/provision.sh.
+		SHELL=/bin/sh
+		PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+		55 15 * * * misogi /usr/local/sbin/misogi-demo-refresh
+	EOF
+	chmod 644 /etc/cron.d/misogi-demo-refresh
+
 	step "Installed"
 	printf '  %-9s %s\n' \
 		ubuntu "$(lsb_release -ds)" \
