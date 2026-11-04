@@ -54,7 +54,7 @@ scripts/deploy.sh <sha>
 export BASE_URL=https://getmisogi.com
 export ADMIN_KEY=$(ssh -i ~/.ssh/misogi-hackathon.pem ubuntu@35.171.183.237 'sudo sed -n "s/^ADMIN_KEY=//p" /etc/misogi/env')
 
-bun run ai-check --image       # checks every model job with the live provider
+bun run ai-check --image       # checks every model job on the live key
 bun run seed --force           # dates the demo history to today; real accounts, pages and covers stay
 ```
 
