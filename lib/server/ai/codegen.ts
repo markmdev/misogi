@@ -91,7 +91,8 @@ Design (unless the request asks for a different feel):
   right: "1 day", "2 days", never "1 days". challenge.metric.unit is a plural word ("meals", "books"): next to 1 write its singular
   ("1 meal", "1 book"), while units like km or min stay as they are. A zero streak reads "no streak yet" only for someone with no logs at all, and "no streak right now" once they've logged; never "0 day streak". A count its label already names is a bare number ("9" over "Reading days"),
   never with a unit letter or a stray "s". Dates come as "YYYY-MM-DD": write them as people do, "Nov 28", with the year only
-  when it isn't this year ("Feb 4, 2027"), never "2026-11-28".
+  when it isn't this year ("Feb 4, 2027"), never "2026-11-28". A "YYYY-MM-DD" is a calendar day: make it a local date,
+  new Date(s + "T00:00"), never new Date(s), which reads it as midnight in London and shows the day before in America.
 - Accessible: semantic HTML, alt text, contrast at least 4.5:1 for text.
 - Small delightful details beat many features: one great visualization of their progress, then the details that make it theirs.`;
 }
