@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MyCity } from "@/components/client/city-picker";
 import { Footer, TopBar } from "@/components/nav";
-import { Avatar, Icon, IconTile, Pill, ProgressBar } from "@/components/ui";
+import { Avatar, GuideIcon, Icon, IconTile, Pill, ProgressBar } from "@/components/ui";
 import { currentUser } from "@/lib/server/auth";
 import { getChallenge, getMembership, myChallenges } from "@/lib/server/domain/challenges";
 import { memberFacts } from "@/lib/server/domain/progress";
@@ -44,7 +44,7 @@ export default async function Profile(props: PageProps<"/u/[handle]">) {
           <p className="text-[15px] text-ink-3">@{u.handle}</p>
           {guide && (
             <Pill tone="white" className="mt-3">
-              <Icon name="orb" size={18} /> Guided by {guide}
+              <GuideIcon kind={u.agent_kind} size={18} /> Guided by {guide}
             </Pill>
           )}
         </div>

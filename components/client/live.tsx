@@ -2,12 +2,12 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Icon } from "../ui";
+import { GuideIcon, Icon } from "../ui";
 
 // True once a live page has been checked for changes, so what mounts after that arrived with a refresh.
 let settled = false;
 
-type Latest = { id: string; text: string; via: string | null; at: string } | null;
+type Latest = { id: string; text: string; via: string | null; kind: string | null; at: string } | null;
 
 /**
  * Keeps a challenge page live: refreshes when anything changes (an agent logged, a space finished)
@@ -63,7 +63,7 @@ export function LivePulse({ slug, stamp, interval = 6000 }: { slug: string; stam
   return (
     <div className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center px-4" role="status" aria-live="polite">
       <div className="pointer-events-auto flex max-w-md animate-rise items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-[var(--shadow-float)]">
-        <Icon name={toast.via ? "orb" : "sparkles"} size={30} />
+        {toast.via ? <GuideIcon kind={toast.kind} size={30} /> : <Icon name="sparkles" size={30} />}
         <div className="min-w-0">
           <div className="truncate text-[15px] font-extrabold">{toast.text}</div>
           {toast.via && <div className="text-[12px] font-bold text-white/70">via {toast.via}</div>}

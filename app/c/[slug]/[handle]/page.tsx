@@ -10,7 +10,7 @@ import { LogMediaRow, PhotoWall, StickerBoard } from "@/components/client/media"
 import { SpaceFrame } from "@/components/client/space-frame";
 import { Virgil } from "@/components/client/virgil";
 import { Footer, TopBar } from "@/components/nav";
-import { Avatar, EmptyState, Icon, IconTile, Mascot, Pill, ProgressBar, SectionTitle, Stat } from "@/components/ui";
+import { Avatar, EmptyState, GuideIcon, Icon, IconTile, Mascot, Pill, ProgressBar, SectionTitle, Stat } from "@/components/ui";
 import { currentUser, publicOrigin } from "@/lib/server/auth";
 import { findChallenge, virgilUrl } from "@/lib/server/domain/challenges";
 import { getUserByHandle } from "@/lib/server/domain/users";
@@ -83,7 +83,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                   </span>
                   {guide && (
                     <Pill tone="white" className="!min-h-6 !py-0.5 !text-[12px]">
-                      <Icon name={user.agent_kind === "virgil" ? "camp" : "orb"} size={16} />
+                      <GuideIcon kind={user.agent_kind} size={16} />
                       Guided by {guide}
                       {user.agent_seen_at && <span className="font-bold text-ink-3 max-sm:hidden">· {timeAgo(user.agent_seen_at)}</span>}
                     </Pill>
