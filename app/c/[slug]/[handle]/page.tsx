@@ -39,6 +39,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
   const stamp = pulse(c);
   const name = firstName(user.display_name);
   const guide = agentLabel(user.agent_kind, user.agent_name, isOwner ? "your" : `${firstName(user.display_name)}'s`);
+  const guideDoes = guide ? (guide.includes(", ") ? `${guide},` : guide) : `${name}'s AI`;
   const welcome = isOwner && sp.welcome === "1";
   const origin = await publicOrigin();
   const completed = membership.status === "completed";
@@ -176,7 +177,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
               <EmptyState
                 pose="read"
                 title={drafting ? "Picking your first quests…" : "No quests yet"}
-                body={drafting ? "They show up here in a few seconds." : isOwner ? "Ask your AI or Virgil for this week's quests." : `${name}'s AI hasn't set quests yet.`}
+                body={drafting ? "They show up here in a few seconds." : isOwner ? "Ask your AI or Virgil for this week's quests." : `${guideDoes} hasn't set quests yet.`}
               />
             )}
           </section>
@@ -220,7 +221,7 @@ export default async function MemberPage(props: PageProps<"/c/[slug]/[handle]">)
                 body={
                   isOwner
                     ? "Tell your AI what this page should be. Try: “A cozy study notebook with this week's words and my streak.”"
-                    : `${name}'s AI hasn't built a page yet.`
+                    : `${guideDoes} hasn't built a page yet.`
                 }
               />
             }

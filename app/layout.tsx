@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.PUBLIC_URL || "http://localhost:3000"),
   title: { default: "Misogi · One hard thing this year", template: "%s · Misogi" },
   description:
-    "Pick one hard thing to do this year. Your AI plans it, checks in, and builds your page. Friends can climb with you.",
+    "Pick one hard thing to do this year. Your Muse plans it, checks in, and builds your page. Friends can climb with you.",
   openGraph: { siteName: "Misogi", type: "website" },
   twitter: { card: "summary_large_image" },
   icons: { icon: "/icon.png" },
