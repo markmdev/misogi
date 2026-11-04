@@ -5885,8 +5885,8 @@ function simulateMember(
     const win = raw.hour != null ? ([raw.hour, raw.hour] as [number, number]) : rng.pick(m.hours ?? user.hours);
     const hour = rng.int(win[0], win[1]);
     const minute = rng.int(0, 59);
-    // Items and story beats matter, so if their time hasn't come yet today, they happened yesterday.
-    const keep = raw.label != null || raw.note != null;
+    // Items and story beats matter, so if their time hasn't come yet today, they happened yesterday; a check-in just hasn't.
+    const keep = !raw.checkin && (raw.label != null || raw.note != null);
     let date = addDays(today, -raw.d);
     let at = localTime(date, hour, minute, tz);
     for (let back = 1; keep && at > now - 3 * MIN && back <= 2; back++) {
