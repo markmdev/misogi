@@ -116,7 +116,7 @@ export default async function ChallengePage(props: PageProps<"/c/[slug]">) {
           {c.virgil_path && (
             <div className="pointer-events-none absolute right-8 bottom-full z-10 -mb-2 flex items-end gap-1 sm:right-14">
               <span className="mb-4 rounded-full bg-white/85 px-2.5 py-1 text-[12px] font-bold text-ink-2 shadow-sm">Dressed by Muse Image</span>
-              <Mascot src={virgilUrl(c)} size={112} className="animate-bob drop-shadow-[0_6px_6px_rgb(46_42_38/0.18)]" alt={`Virgil, dressed for ${c.title}`} />
+              <Mascot src={virgilUrl(c)} size={112} className="drop-shadow-[0_6px_6px_rgb(46_42_38/0.18)]" alt={`Virgil, dressed for ${c.title}`} />
             </div>
           )}
           {cover ? (
