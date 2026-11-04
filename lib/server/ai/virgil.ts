@@ -8,7 +8,7 @@ import { myChallenges } from "../domain/challenges";
 import { PLAYBOOK, VIRGIL_PERSONA } from "../playbook";
 import { runTool, TOOLS, type ToolCtx } from "../tools";
 import { AppError, dateIn, id, nowIso } from "../util";
-import { functionCalls, outputText, provider, respond, type ResponseItem } from "./client";
+import { functionCalls, outputText, respond, type ResponseItem } from "./client";
 
 export type VirgilEvent =
   | { type: "tool"; name: string; label: string }
@@ -28,7 +28,7 @@ function toolDefs() {
   return TOOLS.filter((t) => !HIDDEN.has(t.name)).map((t) => {
     const parameters = z.toJSONSchema(t.input) as Record<string, unknown>;
     delete parameters.$schema;
-    return { type: "function", name: t.name, description: t.description, parameters, ...(provider() === "meta" ? { strict: false } : {}) };
+    return { type: "function", name: t.name, description: t.description, parameters, strict: false };
   });
 }
 

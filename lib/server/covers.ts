@@ -1,5 +1,5 @@
 // Cover images for challenges: a small clay diorama per challenge, generated in the
-// background with whichever image model the AI provider offers. Never blocks a request.
+// background with Muse Image. Never blocks a request.
 
 import fs from "node:fs/promises";
 import path from "node:path";

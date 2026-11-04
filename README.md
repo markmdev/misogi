@@ -24,7 +24,7 @@ Built for the Meta Global AI Developer Hackathon, Indie track.
 | **SAM 3.1** | Cuts each challenge's Virgil out of Muse Image's picture, so he can stand on the challenge's page and cards. | [`lib/server/virgils.ts`](lib/server/virgils.ts) |
 | **Muse**, Meta's agent | The climber's own guide: it calls Misogi's tools to run the intake, re-plan, log progress and rebuild the page, and schedules its own check-ins. | [`lib/server/agent-guide.ts`](lib/server/agent-guide.ts), [`lib/server/tools.ts`](lib/server/tools.ts) |
 
-On the live site every model call goes through one client, [`lib/server/ai/client.ts`](lib/server/ai/client.ts), on Meta's Responses API (`AI_PROVIDER=meta`), with a reasoning level per job: minimal for drafts, low for Virgil's tool calls, medium for writing pages. The same client keeps an xAI path for local runs without a Meta key. The site names the model at work where you see it: "Drafted by Muse Spark" under the year, "Built by Muse Wonder" over each page.
+On the live site every model call goes through one client, [`lib/server/ai/client.ts`](lib/server/ai/client.ts), on Meta's Responses API, with a reasoning level per job: minimal for drafts, low for Virgil's tool calls, medium for writing pages. The site names the model at work where you see it: "Drafted by Muse Spark" under the year, "Built by Muse Wonder" over each page.
 
 | Drafted by Muse Spark | Built by Muse Wonder | Covers by Muse Image |
 |---|---|---|
@@ -73,7 +73,7 @@ The repository was created before the kickoff with a note on how the team would 
 
 ```sh
 bun install
-cp .env.example .env.local   # set AI_PROVIDER=meta and META_API_KEY
+cp .env.example .env.local   # add your META_API_KEY
 bun dev                      # http://localhost:3000, data in ./data/misogi.db
 bun run seed                 # demo challenges and climbers (in a second terminal)
 bun run ai-check --image     # one small call per model job

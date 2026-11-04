@@ -3,13 +3,13 @@
 Production is one EC2 instance running `next start` behind Caddy, which handles HTTPS, with SQLite on the instance's disk. One script builds and ships a commit, and rolls back on its own if the new release is unhealthy.
 
 - **Live:** https://getmisogi.com (the earlier https://misogi.35-171-183-237.sslip.io still serves, for agents that saved it)
-- **Health:** `/api/health` returns `{"ok":true,"challenges":…,"ai":"xai"}`. `ai` shows which provider is live.
+- **Health:** `/api/health` returns `{"ok":true,"challenges":…}`.
 - **Resource IDs, costs, server layout, teardown:** [`infra/README.md`](../infra/README.md)
 
 ## Before your first deploy
 
-1. **The SSH key.** Ask Java for `misogi-hackathon.pem` and save it as `~/.ssh/misogi-hackathon.pem` with `chmod 600`. It never goes in git, chat logs or an agent transcript you share.
-2. **Your IP on the allowlist.** Port 22 only accepts listed IPs. Send Java your IP (`curl -4 ifconfig.me`). Java adds it with the command under "SSH from a new network" in `infra/README.md`.
+1. **The SSH key.** See `infra/README.md` for which key to use; save it as `~/.ssh/misogi-hackathon.pem` with `chmod 600`. It never goes in git, chat logs or an agent transcript you share.
+2. **Your IP on the allowlist.** Port 22 only accepts listed IPs. Find yours with `curl -4 ifconfig.me`; the command to add it is under "SSH from a new network" in `infra/README.md`.
 3. **Check access:**
    ```sh
    ssh -i ~/.ssh/misogi-hackathon.pem ubuntu@35.171.183.237 'cat /srv/misogi/app/REVISION'
@@ -60,21 +60,20 @@ bun run seed --force           # dates the demo history to today; real accounts,
 
 Run both before recording the demo or sending the link to judges. Never run `bun test` against production: it creates accounts. It refuses unless you force it.
 
-## Switching to Meta models
+## Models
 
-The submission must run on Meta models.
+Every model call goes to Meta. The key lives in `/etc/misogi/env`:
 
 1. SSH in and edit the environment:
    ```sh
    ssh -i ~/.ssh/misogi-hackathon.pem ubuntu@35.171.183.237
    sudo nano /etc/misogi/env
    ```
-   Change `AI_PROVIDER=xai` to `AI_PROVIDER=meta`. Add one key line: `META_API_KEY=…` (calls `api.meta.ai` directly) or `GATEWAY_KEY=…` (Mark's gateway). Write values without quotes.
+   Add `META_API_KEY=…` (calls `api.meta.ai` directly). Add `META_BASE_URL=…` too only if you run a proxy that speaks the same API. Write values without quotes.
 2. `sudo systemctl restart misogi`
-3. Check that `/api/health` now says `"ai":"meta"`.
-4. Run `bun run ai-check --image` (see above). Every check should be ok. If a model name was wrong, add `AI_MODEL_<JOB>=<model>` to the env file (jobs: `AGENT`, `DRAFT`, `CODEGEN`, `FAST`, `IMAGE`) and restart.
+3. Run `bun run ai-check --image` (see above). Every check should be ok. If a model name was wrong, add `AI_MODEL_<JOB>=<model>` to the env file (jobs: `AGENT`, `DRAFT`, `CODEGEN`, `FAST`, `IMAGE`) and restart.
 
-To go back, set `AI_PROVIDER=xai` and restart. Lines you add by hand survive `infra/provision.sh` re-runs.
+Lines you add by hand survive `infra/provision.sh` re-runs.
 
 ## Production settings
 
@@ -82,9 +81,8 @@ They live in `/etc/misogi/env` (`root:misogi`, mode 640). After any change, run 
 
 | Variable | What |
 |---|---|
-| `AI_PROVIDER` | `xai` or `meta` |
-| `GROK_KEY_API_URL`, `GROK_KEY_API_PASSWORD` | Team xAI key API. Written by `infra/provision.sh`. |
-| `META_API_KEY` or `GATEWAY_KEY` (+ `GATEWAY_JUDGES_KEY`) | Meta access, added by hand |
+| `META_API_KEY` | Meta Model API key, added by hand |
+| `META_BASE_URL` | Optional proxy that speaks the same API, added by hand |
 | `AI_MODEL_<JOB>` | Optional model overrides |
 | `ADMIN_KEY` | Protects `/api/admin/*`. Generated once. |
 | `SESSION_SECRET` | Signs login cookies. Generated once; changing it logs everyone out. |
@@ -107,7 +105,7 @@ This is how the site moved from its `sslip.io` name to getmisogi.com. The old na
    }
    ```
 3. In `infra/provision.sh` and `scripts/deploy.sh`, change the default after `DOMAIN=${MISOGI_DOMAIN:-` to `misogi.example.com`. Otherwise the next plain run puts the old address back in `PUBLIC_URL`. Commit and merge.
-4. Run `MISOGI_REBOOT=never infra/provision.sh`. Caddy gets the new certificate, `PUBLIC_URL` is updated and the app restarts. The script needs the Grok key API values in `~/.config/grok-key-api/` (`url` and `password` files, or point `GROK_KEY_API_DIR` at another folder).
+4. Run `MISOGI_REBOOT=never infra/provision.sh`. Caddy gets the new certificate, `PUBLIC_URL` is updated and the app restarts.
 5. In Muse, send the connect message from the "Your AI" section again so Muse saves the new address, then choose "Always allow this site".
 
 ## Running your own copy
@@ -119,8 +117,9 @@ Any Ubuntu 24.04 server with ports 80 and 443 open, a DNS name pointing at it, a
    ```sh
    MISOGI_HOST=<ip> MISOGI_DOMAIN=<name> MISOGI_SSH_KEY=<key> MISOGI_SSH_USER=<user> infra/provision.sh
    ```
-3. Deploy with the same variables: `MISOGI_HOST=… MISOGI_DOMAIN=… MISOGI_SSH_KEY=… scripts/deploy.sh`
-4. Seed it: `BASE_URL=https://<name> ADMIN_KEY=<from its /etc/misogi/env> bun run seed`
+3. Add your Meta key to `/etc/misogi/env` on the server (see "Models" above) and restart: `sudo systemctl restart misogi`.
+4. Deploy with the same variables: `MISOGI_HOST=… MISOGI_DOMAIN=… MISOGI_SSH_KEY=… scripts/deploy.sh`
+5. Seed it: `BASE_URL=https://<name> ADMIN_KEY=<from its /etc/misogi/env> bun run seed`
 
 ## When something's wrong
 
@@ -133,6 +132,6 @@ journalctl -u caddy                          # HTTPS or proxy problems
 ```
 
 - **The site is down after a deploy:** the script should already have rolled back. If not, run `scripts/deploy.sh <last good sha>`.
-- **Model calls fail:** run `bun run ai-check` against production. A 401 from xAI fixes itself: the app fetches the key again. On a real usage limit, the app asks the key API to switch accounts, at most once an hour. If calls keep failing, tell Java.
+- **Model calls fail:** run `bun run ai-check --image` against production (see above). If a check keeps failing, check `META_API_KEY` in `/etc/misogi/env`.
 - **Restore the database:** the server keeps a backup every day at 03:30 UTC, 14 days back. The steps are in `infra/README.md`, under "Restore a backup".
 - **Don't stop the instance.** It has no fixed IP, so a stop and start changes the address and the hostname. Rebooting is fine.

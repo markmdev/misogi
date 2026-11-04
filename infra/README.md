@@ -70,11 +70,9 @@ Installed: Node.js 24 (NodeSource apt repo), bun (version pinned to `packageMana
 build-essential, python3. Unattended security upgrades are on, and there's a 2 GB swapfile.
 
 `/etc/misogi/env` holds `NODE_ENV`, `PORT`, `HOSTNAME`, `DATABASE_PATH`, `DATA_DIR`,
-`PUBLIC_URL`, `SESSION_SECRET`, `ADMIN_KEY`, `AI_PROVIDER`, `GROK_KEY_API_URL` and
-`GROK_KEY_API_PASSWORD`, plus anything added by hand (Meta keys, `AI_MODEL_*`). `provision.sh`
-streams the Grok values from `~/.config/grok-key-api/` on the operator's Mac over SSH stdin.
-`SESSION_SECRET` and `ADMIN_KEY` are generated on the server once and kept on re-runs. None of
-these values are in git. To read one, SSH in and run `sudo cat /etc/misogi/env`.
+`PUBLIC_URL`, `SESSION_SECRET` and `ADMIN_KEY`, plus anything added by hand (the Meta key,
+`AI_MODEL_*`). `SESSION_SECRET` and `ADMIN_KEY` are generated on the server once and kept on
+re-runs. None of these values are in git. To read one, SSH in and run `sudo cat /etc/misogi/env`.
 
 ## Deploying
 
@@ -108,7 +106,7 @@ journalctl -u caddy                          # TLS / proxy problems
 
 - **Change or add an env var:** edit `/etc/misogi/env` (keep values unquoted), then
   `sudo systemctl restart misogi`. `provision.sh` rewrites its own lines on every run (keeping
-  `SESSION_SECRET`, `ADMIN_KEY` and `AI_PROVIDER`) and carries every other line over unchanged.
+  `SESSION_SECRET` and `ADMIN_KEY`) and carries every other line over unchanged.
   `PUBLIC_URL` comes from `MISOGI_DOMAIN`, so change that in the script, not in the file.
 - **Re-provision** (safe at any time; restarts the app only if the unit or env changed):
   `infra/provision.sh`.
