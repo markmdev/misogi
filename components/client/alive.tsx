@@ -68,20 +68,18 @@ function Loop({ src, className, onShown }: { src: () => string; className?: stri
   );
 }
 
-/** Virgil: his still until his loop for that pose has faded in over it, then only the loop, so he never shows twice. */
-export function LiveMascot({ pose, still, size, alt, className, style }: { pose: string; still: string; size: number; alt: string; className?: string; style?: CSSProperties }) {
-  const [livePose, setLivePose] = useState<string | null>(null);
+/**
+ * Virgil: his still until his loop has faded in over it, then only the loop, so he never shows twice.
+ * `loop` is the loop's address without its ending: a pose's, or a dressed Virgil's own.
+ */
+export function LiveMascot({ loop, still, size, alt, className, style }: { loop: string; still: string; size: number; alt: string; className?: string; style?: CSSProperties }) {
+  const [liveLoop, setLiveLoop] = useState<string | null>(null);
   return (
     <span className={cx("inline-block shrink-0 select-none", className)} style={{ width: size, height: size, ...style }}>
       <span className="relative block h-full w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={still} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-opacity duration-0", livePose === pose ? "opacity-0 delay-500" : "delay-0")} draggable={false} />
-        <Loop
-          key={pose}
-          src={() => `/art/motion/virgil/${pose}.${seeThroughType()}`}
-          onShown={() => setLivePose(pose)}
-          className="absolute inset-0 h-full w-full object-contain"
-        />
+        <img src={still} alt={alt} width={size} height={size} className={cx("h-full w-full object-contain transition-opacity duration-0", liveLoop === loop ? "opacity-0 delay-500" : "delay-0")} draggable={false} />
+        <Loop key={loop} src={() => `${loop}.${seeThroughType()}`} onShown={() => setLiveLoop(loop)} className="absolute inset-0 h-full w-full object-contain" />
       </span>
     </span>
   );

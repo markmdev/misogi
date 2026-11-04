@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { ICONS, MASCOT } from "@/lib/shared/art";
+import { ICONS, MASCOT, virgilLoop } from "@/lib/shared/art";
 import { LiveMascot } from "./client/alive";
 
 export function cx(...parts: (string | false | null | undefined)[]) {
@@ -30,13 +30,15 @@ export function Mascot({
 }) {
   const known = pose in MASCOT ? pose : "idle";
   const still = src ?? (MASCOT as Record<string, string>)[known];
+  const dressed = src ? virgilLoop(src) : null;
+  const loop = src ? dressed && `/art/motion/virgils/${dressed}` : `/art/motion/virgil/${known}`;
   // Small Virgils (the chat button, avatars beside each chat message) stay still, so a list never twitches,
-  // and so does a dressed Virgil, who has no loops of his own.
-  if (size < 48 || src) {
+  // and so does a dressed Virgil until his loop is made.
+  if (size < 48 || !loop) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={still} alt={alt} width={size} height={size} style={style} className={cx("select-none object-contain", className)} draggable={false} />;
   }
-  return <LiveMascot pose={known} still={still} size={size} alt={alt} className={className} style={style} />;
+  return <LiveMascot loop={loop} still={still} size={size} alt={alt} className={className} style={style} />;
 }
 
 /** Icon on a soft rounded tile, like an app's settings row. */

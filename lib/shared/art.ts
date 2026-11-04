@@ -115,14 +115,33 @@ export const CATEGORY_ICON: Record<string, IconName> = {
 
 /** Covers of the challenges that ship with the site that have a Grok Imagine loop, by picture name: /art/motion/covers/<name>.mp4. */
 const COVER_LOOPS = new Set([
-  "chl_1jllmx23s0mw-oml4vhkg", "chl_demo21wztq3o-pb45d8dr", "chl_demo2sgdvwyp-jxujyjr2", "chl_demo6pz9hi23-y8cmc3xs", "chl_demo868st571-kre1hfi2",
-  "chl_demo9918eizb-6wekgtr2", "chl_demo9m966gr6-whrdiniz", "chl_demobnlfdz36-eo93kjrw", "chl_demobxw1dw1x-t60imbo2", "chl_demobz5307og-tkbmbjb9",
-  "chl_demod8j2fvyu-dz108edw", "chl_demok0n7ppto-b3gy94p3", "chl_demol4evv73u-bhhgpy92", "chl_demolx5lj3n1-ndlyxh5m", "chl_demoo1vcw5o3-pn3t6kb4",
-  "chl_demorn0urysa-f37pkdnq", "chl_demosali7j3c-iin07otc", "chl_demowew4z4h3-kto6in9l", "chl_demoy30vwjcp-vzbzvhsr",
+  "chl_1jllmx23s0mw-oml4vhkg", "chl_demo21mu0jqs-lnzrgr7l", "chl_demo21wztq3o-pb45d8dr", "chl_demo2sgdvwyp-jxujyjr2", "chl_demo3v8son77-gdw49kz4",
+  "chl_demo4za7toba-0m6ll424", "chl_demo6ebl35f3-vhkpvu7y", "chl_demo6pz9hi23-y8cmc3xs", "chl_demo868st571-kre1hfi2", "chl_demo9918eizb-6wekgtr2",
+  "chl_demo9m966gr6-whrdiniz", "chl_demobnlfdz36-eo93kjrw", "chl_demobxw1dw1x-t60imbo2", "chl_demobz5307og-tkbmbjb9", "chl_demod8j2fvyu-dz108edw",
+  "chl_demodocj0gjv-w3ye3g5r", "chl_demogvedtcsv-4q74v95e", "chl_demok0n7ppto-b3gy94p3", "chl_demol4evv73u-bhhgpy92", "chl_demolnjh0p4m-wuzvc3aj",
+  "chl_demolx5lj3n1-ndlyxh5m", "chl_demoo1vcw5o3-pn3t6kb4", "chl_demopivi7ux9-q0namgza", "chl_demorn0urysa-f37pkdnq", "chl_demosali7j3c-iin07otc",
+  "chl_demov6s9qc4o-rhdkpesv", "chl_demowew4z4h3-kto6in9l", "chl_demoy30vwjcp-vzbzvhsr", "chl_demozlc9srp0-7jh7ij9k",
 ]);
 
 /** The loop for this cover, when it's one of those exact pictures; a redrawn cover has none. */
 export function coverLoop(coverUrl: string | null): string | null {
   const name = coverUrl?.match(/\/media\/covers\/([\w-]+)\.\w+$/)?.[1];
   return name && COVER_LOOPS.has(name) ? name : null;
+}
+
+/** Dressed Virgils that have a Grok Imagine loop, by picture name: /art/motion/virgils/<name>.webm and .mov. */
+const VIRGIL_LOOPS = new Set([
+  "chl_1jllmx23s0mw-7brizp6g", "chl_demo21mu0jqs-i3ljvrh5", "chl_demo21wztq3o-gzgakkbp", "chl_demo2sgdvwyp-aawzpoey", "chl_demo3v8son77-0ruq4emb",
+  "chl_demo4za7toba-lcsj0wi1", "chl_demo6ebl35f3-a23flhli", "chl_demo6pz9hi23-epwurq2z", "chl_demo868st571-1rqtrzu4", "chl_demo9918eizb-r8vhgxcb",
+  "chl_demo9m966gr6-jmfsgqh0", "chl_demobnlfdz36-911nmkqu", "chl_demobxw1dw1x-8av15bax", "chl_demobz5307og-g0q2q3vq", "chl_demod8j2fvyu-fj78vmr3",
+  "chl_demodocj0gjv-ax57e5pp", "chl_demogvedtcsv-76ul880c", "chl_demok0n7ppto-woipkka9", "chl_demol4evv73u-8fxkv1j7", "chl_demolnjh0p4m-n0u1bvlk",
+  "chl_demolx5lj3n1-lijgi41l", "chl_demoo1vcw5o3-dli89hfg", "chl_demopivi7ux9-adharcfb", "chl_demorn0urysa-l55fsstm", "chl_demosali7j3c-9u5e2g6n",
+  "chl_demov6s9qc4o-1htys7xw", "chl_demowew4z4h3-2oma3wa0", "chl_demoy30vwjcp-y3f4f18r", "chl_demozlc9srp0-4eb0lg3p",
+  "chl_jt7xa93js083-ad7tre55",
+]);
+
+/** The loop for this dressed Virgil, when it's one of those exact pictures; a redrawn one has none. */
+export function virgilLoop(url: string): string | null {
+  const name = url.match(/\/media\/virgils\/([\w-]+)\.\w+$/)?.[1];
+  return name && VIRGIL_LOOPS.has(name) ? name : null;
 }
