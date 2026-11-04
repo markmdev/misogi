@@ -22,7 +22,9 @@ const DATA_CONTRACT = `type SpaceData = {
   };
   facts: null | (same object as member.facts);   // convenience copy; null on the shared page
   members: { handle; name; total; progress: number|null; rank; streak; level }[];   // leaderboard, best first
-  logs: { who; date; value: number|null; label: string|null; note; photos: { url; caption: string|null }[] }[];  // newest first (max 400); a photo's url is a Misogi path an <img> can show
+  logs: { who; date; value: number|null; label: string|null; note;
+          photos: { url; full; width: number|null; height: number|null; caption: string|null }[] }[];  // newest first (max 400)
+          // a photo's url is a small copy (up to 640 px), full the whole photo (up to 1600 px); both are Misogi paths an <img> can show
   generated_at: string;
   saved: unknown | null;                   // what this viewer last kept with misogiSave on this page; null until they have
   can_save: boolean;                       // false when the viewer isn't signed in
@@ -62,8 +64,13 @@ Hard rules:
   viewBox and width: 100%, or CSS bars sized in %, never a fixed pixel width. Text that doesn't fit wraps between words onto
   another line: never overflow-wrap: anywhere or word-break: break-all. white-space: nowrap only together with overflow: hidden and
   text-overflow: ellipsis, so a one-line name or a single word too wide for its box ends in "…" instead of sticking out.
-- A photo in a small cell (a calendar day, a grid tile) fills the cell edge to edge with object-fit: cover; its label sits over or
-  under it on one line, ending in an ellipsis if it doesn't fit, and a day number over a photo stays readable on a soft backing.
+- A person's photo (logs[].photos) always shows whole, at its own shape, never cropped: never object-fit: cover on it, and never a
+  box of another shape (a banner, a fixed height, an aspect-ratio of your own). Size it by its width or height and let the other side
+  follow from photo.width and photo.height (aspect-ratio: width / height), with max-height 420px on a card so a tall photo stays a
+  sensible size, centered. In a small fixed cell (a calendar day, a grid tile) it sits whole with object-fit: contain, centered on a
+  soft backing; its label sits under it on one line, ending in an ellipsis if it doesn't fit, and a day number over a photo stays
+  readable on a soft backing. Use photo.url only in small cells (up to about 200 px on its longer side) and photo.full anywhere
+  bigger, so it stays sharp on a phone's screen.
 - It's embedded below Misogi's own header (title, join button, leaderboard already shown). Don't add site navigation or repeat the title as a giant banner; lead with the content that's special to this person.
 - Under 60 KB. Respect prefers-reduced-motion.
 - Under 3,000 px tall at 390 px wide; the frame cuts a page off at 6,000 and grows to fit the page, so size nothing with vh. Summarize long collections (what's done, then a count of what's left) instead of drawing a tile for every unit of the target.
@@ -75,7 +82,8 @@ Design (unless the request asks for a different feel):
 - Type: "Fredoka" (600) for headings and big numbers, "Nunito" (400/700/800) for text. Clear hierarchy: one hero number, small uppercase labels (11px, letter-spacing .08em) above values.
 - Use the clay icons as friendly accents (40–64 px), not as decoration everywhere.
 - Copy: short, plain and specific. Use the person's first name. No filler, no lorem ipsum, no motivational clichés. Counts read
-  right: "1 day", "2 days", never "1 days"; a zero streak reads "no streak yet", never "0 day streak". A count its label already names is a bare number ("9" over "Reading days"),
+  right: "1 day", "2 days", never "1 days". challenge.metric.unit is a plural word ("meals", "books"): next to 1 write its singular
+  ("1 meal", "1 book"), while units like km or min stay as they are. A zero streak reads "no streak yet", never "0 day streak". A count its label already names is a bare number ("9" over "Reading days"),
   never with a unit letter or a stray "s".
 - Accessible: semantic HTML, alt text, contrast at least 4.5:1 for text.
 - Small delightful details beat many features: one great visualization of their progress, then the details that make it theirs.`;

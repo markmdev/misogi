@@ -34,7 +34,14 @@ export type SpaceData = {
   facts: Facts | null;
   members: { handle: string; name: string; total: number; progress: number | null; rank: number; streak: number; level: number }[];
   /** Newest first. On a member space, only that member's entries. Photo urls are Misogi paths, loaded like its art. */
-  logs: { who: string; date: string; value: number | null; label: string | null; note: string; photos: { url: string; caption: string | null }[] }[];
+  logs: {
+    who: string;
+    date: string;
+    value: number | null;
+    label: string | null;
+    note: string;
+    photos: { url: string; full: string; width: number | null; height: number | null; caption: string | null }[];
+  }[];
   generated_at: string;
 };
 
@@ -102,7 +109,9 @@ export function spaceData(c: ChallengeRow, ownerUserId: string | null): SpaceDat
       value: l.value,
       label: clean(l.label),
       note: clean(l.note),
-      photos: (media.get(l.id) ?? []).filter((m) => m.kind === "photo").map((m) => ({ url: m.thumb_url!, caption: clean(m.caption) })),
+      photos: (media.get(l.id) ?? [])
+        .filter((m) => m.kind === "photo")
+        .map((m) => ({ url: m.thumb_url!, full: m.url, width: m.width, height: m.height, caption: clean(m.caption) })),
     })),
     generated_at: new Date().toISOString(),
   };
