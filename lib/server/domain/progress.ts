@@ -125,12 +125,13 @@ function autoReachMilestones(c: ChallengeRow, userId: string): Milestone[] {
   const metric = metricOf(c);
   if (metric.direction === "down") return [];
   const total = aggregate(memberLogs(c.id, userId), metric);
+  // Camps are reached in order: one the number can't reach yet holds back the ones after it.
   const reached: Milestone[] = [];
   for (const m of milestones) {
-    if (!m.done_at && m.target != null && total >= m.target) {
-      m.done_at = nowIso();
-      reached.push(m);
-    }
+    if (m.done_at) continue;
+    if (m.target == null || total < m.target) break;
+    m.done_at = nowIso();
+    reached.push(m);
   }
   if (reached.length) {
     run("UPDATE plans SET milestones_json = ? WHERE id = ?", JSON.stringify(milestones), plan.id);
