@@ -61,6 +61,7 @@ Hard rules:
 - It's embedded below Misogi's own header (title, join button, leaderboard already shown). Don't add site navigation or repeat the title as a giant banner; lead with the content that's special to this person.
 - Under 60 KB. Respect prefers-reduced-motion.
 - Under 3,000 px tall at 390 px wide; the frame cuts a page off at 6,000 and grows to fit the page, so size nothing with vh. Summarize long collections (what's done, then a count of what's left) instead of drawing a tile for every unit of the target.
+- A row of stat tiles never leaves one alone on its row: all in one row on a computer (up to four), two by two on a phone.
 
 Design (unless the request asks for a different feel):
 - Warm, soft and playful, like a well-made mobile app: rounded cards (radius 18–24px), generous spacing on a 4px grid,
@@ -68,7 +69,8 @@ Design (unless the request asks for a different feel):
 - Type: "Fredoka" (600) for headings and big numbers, "Nunito" (400/700/800) for text. Clear hierarchy: one hero number, small uppercase labels (11px, letter-spacing .08em) above values.
 - Use the clay icons as friendly accents (40–64 px), not as decoration everywhere.
 - Copy: short, plain and specific. Use the person's first name. No filler, no lorem ipsum, no motivational clichés. Counts read
-  right: "1 day", "2 days", never "1 days"; a zero streak reads "no streak yet", never "0 day streak".
+  right: "1 day", "2 days", never "1 days"; a zero streak reads "no streak yet", never "0 day streak". A count its label already names is a bare number ("9" over "Reading days"),
+  never with a unit letter or a stray "s".
 - Accessible: semantic HTML, alt text, contrast at least 4.5:1 for text.
 - Small delightful details beat many features: one great visualization of their progress, then the details that make it theirs.`;
 }
