@@ -52,6 +52,7 @@ export function withUnit(n: number | null | undefined, unit: string): string {
   if (unit === "V") return `V${num(n)}`;
   if (/^[$€£¥₹]/.test(unit)) return `${unit[0]}${num(n)}${unit.slice(1)}`;
   if (/^(s|sec|secs|seconds)$/i.test(unit) && n >= 60 && n < 3600) return withUnit(n / 60, "min");
+  if (/^(h|hr|hrs|hours)$/i.test(unit) && n > 0 && n < 1) return withUnit(Math.round(n * 60), "min");
   if (/^(min|mins|minutes)$/i.test(unit) && !Number.isInteger(n) && n < 1000) {
     const secs = Math.round(n * 60);
     if (secs < 60) return `${secs} sec`;
