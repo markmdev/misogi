@@ -37,7 +37,7 @@ const STEPS = [
 const MODELS = [
   { name: "Muse Spark", does: "drafts your year from one line.", icon: "sparkles" },
   { name: "Muse Wonder", does: "builds your page from one message.", icon: "paintbrush" },
-  { name: "Muse Image", does: "draws each challenge's cover and its Virgil.", icon: "art" },
+  { name: "Muse Image", does: "draws each challenge's cover and its dressed Muse.", icon: "art" },
 ];
 
 export default async function Home() {
