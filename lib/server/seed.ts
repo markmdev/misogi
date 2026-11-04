@@ -64,15 +64,11 @@ type MemberSpec = {
 
 type NoteCtx = { m: MemberSpec; value: number; hour: number; long: boolean; rng: Rng };
 
-type ChallengeSpec = {
+/** What the seed needs to write a challenge's history: its people, their logs, plans, camps and quests. */
+type HistorySpec = {
   key: string;
   slug: string;
   title: string;
-  tagline: string;
-  description: string;
-  emoji: string;
-  theme: Theme;
-  category: string;
   metric: { name: string; unit: string; target: number; aggregation: Aggregation };
   step?: number;
   camps: Camp[];
@@ -82,6 +78,14 @@ type ChallengeSpec = {
   notes?: string[];
   shortNotes?: string[];
   noteFor?: (ctx: NoteCtx) => string;
+};
+
+type ChallengeSpec = HistorySpec & {
+  tagline: string;
+  description: string;
+  emoji: string;
+  theme: Theme;
+  category: string;
   /** What to ask the codegen model for when building this challenge's page. */
   space: string;
 };
@@ -121,6 +125,8 @@ const DEMO_CITIES: Record<string, [name: string, country: string]> = {
   lucasf: ["Porto", "PT"],
   yukitanaka: ["Tokyo", "JP"],
   graceoc: ["Dublin", "IE"],
+  tobyreid: ["London", "GB"],
+  marisol: ["Los Angeles", "US"],
   raviiyer: ["Bengaluru", "IN"],
   emmal: ["Stockholm", "SE"],
   samwhit: ["Portland", "US"],
@@ -197,6 +203,8 @@ const USERS: DemoUser[] = [
   { handle: "joannareyes", name: "Joanna Reyes", tz: "America/Chicago", avatar: "peach", agent: "virgil", style: "Warm, but keep me organized. Two teenagers, four calendars.", hours: [[6, 7], [20, 22]] },
   { handle: "paolosantos", name: "Paolo Santos", tz: "Asia/Dubai", avatar: "sky", agent: "muse", agentName: "Tala", style: "Warm. I miss home, so help me keep the calls going.", hours: [[21, 23]] },
   { handle: "debcollins", name: "Deb Collins", tz: "America/New_York", avatar: "rose", agent: "virgil", style: "Straightforward. I'm 52 and stubborn, use it.", hours: [[6, 7], [18, 20]] },
+  { handle: "tobyreid", name: "Toby Reid", tz: "Europe/London", avatar: "sky", agent: "muse", agentName: "Pip", style: "Correct my French, don't flatter it.", hours: [[7, 8], [20, 22]] },
+  { handle: "marisol", name: "Marisol Vega", tz: "America/Los_Angeles", avatar: "peach", agent: "muse", agentName: "Saffron", style: "Hype me up, then tell me what to cook next.", hours: [[18, 21]] },
 ];
 
 // ---------- Templates (Zuckerberg's yearly challenges) ----------
@@ -1693,16 +1701,27 @@ const CHALLENGES: ChallengeSpec[] = [
     members: [
       {
         handle: "olliegrant",
-        daysAgo: 24,
+        daysAgo: 228,
         items: [
           { label: "Wonderwall", note: "Of course it was Wonderwall. Capo 2. My flatmate has asked me to stop." },
           { label: "Horse with No Name", note: "Two chords. Felt like cheating, counts anyway." },
           { label: "Riptide", note: "The F chord still buzzes. Playing it anyway." },
           { label: "Stand by Me", note: "Played it for my nan on a video call. She sang along." },
+          { label: "Free Fallin'" },
+          { label: "Brown Eyed Girl", note: "Six songs, and the F barre rings clean now. Mostly." },
+          { label: "Bad Moon Rising" },
+          { label: "Creep", note: "The B to C change. Two weeks of it. Worth it." },
+          { label: "Zombie" },
+          { label: "Here Comes the Sun", note: "Capo 7. Played it at the pub's open mic. Ten songs, and real people clapped." },
+          { label: "Ring of Fire" },
+          { label: "Wonderful Tonight", note: "Played it at my sister's engagement party. Dad filmed it." },
+          { label: "Hey There Delilah" },
+          { label: "Something" },
+          { label: "Blackbird", note: "Fifteen. Fingerpicking, three months on and off. My fingers finally know where to go." },
         ],
         plan: {
           summary:
-            "Ollie had a guitar under his bed for six years. Fifteen minutes a night, a new song every two weeks, starting with four-chord songs and working up to barre chords by spring.",
+            "Ollie had a guitar under his bed for six years. Fifteen minutes a night, a new song every two weeks, starting with four-chord songs and working up to barre chords by the autumn.",
           cadence: "Nightly, 15 min.",
         },
       },
@@ -1953,7 +1972,7 @@ const CHALLENGES: ChallengeSpec[] = [
     members: [
       {
         handle: "tylerb",
-        daysAgo: 70,
+        daysAgo: 200,
         weekdays: [0.04, 0.02, 0.02, 0.02, 0.02, 0.03, 0.08],
         amount: [20, 75],
         ritual: {
@@ -1971,13 +1990,13 @@ const CHALLENGES: ChallengeSpec[] = [
           ],
         },
         beats: [
-          { daysAgo: 70, value: 250, note: "The transmission went in March and lived on a credit card until August. Never again. Opened a separate account today." },
+          { daysAgo: 200, value: 250, note: "The transmission went in January and lived on a credit card until April. Never again. Opened a separate account today." },
           { daysAgo: 41, value: 180, note: "Sold the old mountain bike on Marketplace." },
           { daysAgo: 17, value: 120, note: "Refereed two youth games on the weekend. That money comes here now." },
         ],
         plan: {
           summary:
-            "Tyler's car died in March and the repair sat on a credit card for five months. Every other Friday, when he's paid, whatever is left after rent and bills (usually about $300) moves to a separate account, and anything extra goes in too: refereeing money, things he sells. Road trips come out of a different pot.",
+            "Tyler's car died in January and the repair sat on a credit card for three months. Every other Friday, when he's paid, whatever is left after rent and bills (usually about $300) moves to a separate account, and anything extra goes in too: refereeing money, things he sells. Road trips come out of a different pot.",
           cadence: "Every other Friday, on payday. Extras when they come.",
         },
       },
@@ -3216,6 +3235,641 @@ const CHALLENGES: ChallengeSpec[] = [
     space:
       "A topographic trail map in snowy sky blue and white: contour lines, small peaks, dotted routes. Every summit anyone has logged is a peak marker with its name, who climbed it and when. Lead with how many different summits the group has climbed together. Give each member a ridge line of twelve peaks that fill in as they climb, and show the newest notes as trail-register entries.",
   },
+
+  // ----- French -----
+  {
+    key: "french",
+    slug: "learn-french",
+    title: "Learn French",
+    tagline: "From ordering a croissant to a real conversation, one evening at a time.",
+    description:
+      "Get to a real conversation in French: B1, where you can follow people talking at a normal pace and say what you mean, even with mistakes.\n\n" +
+      "Log the hours you practise: lessons, homework, podcasts, a conversation, a film without subtitles.",
+    emoji: "chat",
+    theme: "sky",
+    category: "language",
+    metric: { name: "hours practised", unit: "hours", target: 300, aggregation: "sum" },
+    step: 0.25,
+    camps: [
+      { title: "Bonjour, for real", detail: "Ten hours in. Greetings, numbers, ordering.", target: 10, week: 3, emoji: "chat" },
+      { title: "A1: the present tense", detail: "Talk about your day without English.", target: 50, week: 10, emoji: "seedling" },
+      { title: "A2: the past and the future", detail: "Tell a story about last weekend.", target: 120, week: 22, emoji: "books" },
+      { title: "First conversation", detail: "Twenty minutes with a native speaker, no switching.", target: 180, week: 32, emoji: "microphone" },
+      { title: "A film without subtitles", detail: "Follow the plot of a French film on your own.", target: 240, week: 42, emoji: "target" },
+      { title: "B1", detail: "Pass a B1 practice exam.", target: 300, week: 52, emoji: "summit" },
+    ],
+    notes: [
+      "Podcast on the walk to work. Understood maybe half. Last month it was a quarter.",
+      "Thirty Anki cards and two grammar exercises. My brain is soup.",
+      "Watched Dix pour cent with French subtitles. Caught three jokes on my own.",
+      "Wrote a paragraph about my weekend. Eleven mistakes, all gender. Le, la, le, la.",
+      "Shadowed a news clip ten times. My r is still a disaster.",
+      "Read a whole page of Le Petit Prince without the dictionary.",
+      "Fifty new words this week, mostly kitchen. Can now name everything in my fridge.",
+      "Conversation club at the library. Talked about football for twenty minutes.",
+      "Dictation: 14 mistakes. It used to be over twenty.",
+      "Listened to a podcast at normal speed and only rewound twice.",
+      "Watched the news at 9pm. Understood the weather and most of the sport.",
+    ],
+    shortNotes: ["Anki", "Tutor", "Podcast", "Homework", "Shadowing", "Grammar drills", "Conversation club", "Reading"],
+    members: [
+      {
+        handle: "tobyreid",
+        daysAgo: 214,
+        pace: 0.82,
+        amount: [0.5, 1.25],
+        long: { weekday: 6, chance: 0.6, amount: [1.5, 2.5] },
+        noteRate: 0.05,
+        beats: [
+          { daysAgo: 214, value: 0.75, note: "Starting today. We move to Lyon next summer and I can say merci and that's it." },
+          { daysAgo: 211, value: 1, note: "First lesson with a tutor. Forty minutes of me apologising in two languages." },
+          { daysAgo: 190, value: 0.5, note: "Ordered at the bakery without switching to English. She didn't switch either." },
+          { daysAgo: 170, value: 1, note: "Passé composé with être. Finally clicked: the house of être, all the verbs that move." },
+          { daysAgo: 150, value: 1, note: "First lesson with my tutor where I didn't check the time once." },
+          { daysAgo: 125, value: 1, note: "Imparfait or passé composé. The rule is simple until you try to use it." },
+          { daysAgo: 110, value: 0.5, note: "Called the post office in French. Hung up shaking, but the parcel is coming." },
+          { daysAgo: 94, value: 2, note: "Weekend in Lyon to look at flats. Did the whole viewing in French. Slowly, but in French." },
+          { daysAgo: 80, value: 1, note: "Tutor says my accent is getting 'moins anglais'. Taking it." },
+          { daysAgo: 60, value: 0.5, note: "Texted our future landlord in French. He replied in French. A real exchange." },
+          { daysAgo: 45, value: 1, note: "Subjunctive after il faut que. Drilled it until it felt boring, which is the point." },
+          { daysAgo: 41, value: 1.5, note: "Twenty minutes with my tutor and we never switched to English." },
+          { daysAgo: 20, value: 0.75, note: "Wrote my first work email in French. A colleague in Lyon fixed two words." },
+          { daysAgo: 3, value: 1.25, note: "Watched a French film without subtitles for the first time. Lost the plot twice and found it again." },
+        ],
+        plan: {
+          summary:
+            "Toby moves to Lyon next summer and wants to get through daily life and work conversations in French by then. Short sessions every evening (Anki, one grammar point, a podcast on the walk home), a tutor on Tuesdays, and a longer session on Saturday mornings.",
+          cadence: "Every evening 30–60 min, tutor on Tuesdays, Saturday mornings longer.",
+        },
+      },
+      {
+        handle: "kwame",
+        daysAgo: 120,
+        pace: 0.6,
+        amount: [0.25, 0.75],
+        gaps: [[70, 58]],
+        beats: [
+          { daysAgo: 120, value: 0.5, note: "My daughter does French at school and corrects me. Not for much longer." },
+          { daysAgo: 57, value: 0.5, note: "Back after two weeks of overtime. Ten minutes of Anki, just to restart." },
+        ],
+        plan: {
+          summary: "Kwame learns alongside his daughter's school French: an app on the bus, her homework together on Sundays, and a podcast for beginners.",
+          cadence: "Most days 15–30 min, Sundays with Ama.",
+        },
+      },
+      {
+        handle: "lucasf",
+        daysAgo: 160,
+        pace: 0.55,
+        amount: [0.5, 1],
+        beats: [{ daysAgo: 160, value: 1, note: "Português helps more than I expected. The spelling does not." }],
+        plan: {
+          summary: "Lucas speaks Portuguese and Spanish, so the plan skips the basics: a podcast a day, a French novel with a dictionary, and a conversation exchange online on Thursdays.",
+          cadence: "Daily podcast, Thursday exchange.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Thirty Anki cards before bed", "New words first, then the ones you missed yesterday.", "daily", 10),
+      q("Shadow one minute of a podcast", "Repeat it out loud until it sounds like them.", "daily", 10),
+      q("Write five sentences about your day", "In the past tense. Send them to your tutor or your Muse to correct.", "daily", 15),
+      q("Order something in French", "A coffee, a bus ticket, a phone call. No switching.", "weekly", 20),
+      q("One episode without subtitles", "Note three phrases you heard and look them up after.", "weekly", 20),
+      q("Twenty minutes of conversation", "With a tutor, an exchange partner or a neighbour.", "weekly", 25),
+      q("A B1 practice listening test", "Mark it honestly. Note what tripped you up.", "boss", 60),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Twenty minutes of conversation", "With a tutor, an exchange partner or a neighbour.", "weekly", 25),
+        q("One episode without subtitles", "Note three phrases you heard and look them up after.", "weekly", 20),
+        q("Write five sentences about your day", "In the past tense, then fix them.", "daily", 15),
+        q("Drill the passé composé with être", "Twenty sentences, out loud.", "weekly", 20),
+        q("Read two pages of a French book", "Underline words, look up only five.", "weekly", 20),
+      ]),
+    space:
+      "A Paris café chalkboard and a French exercise notebook (cahier with blue grid lines and a red margin). Lead with each learner's hours toward B1 drawn as a path through the CEFR levels A1, A2, B1. Show the newest notes as lines written in the notebook, and a 'mot du jour' corner. Chalk white, cream paper, French blue and a touch of red.",
+  },
+
+  // ----- 100 different dishes -----
+  {
+    key: "dishes",
+    slug: "cook-100-different-dishes",
+    title: "Cook 100 different dishes",
+    tagline: "A hundred dishes you've never cooked before, from your own kitchen.",
+    description:
+      "Cook 100 dishes you've never made before, one at a time, from scratch. Breakfasts, soups, breads and desserts all count.\n\n" +
+      "Log each new dish when it's on the table.",
+    emoji: "cooking",
+    theme: "peach",
+    category: "cooking",
+    metric: { name: "different dishes cooked", unit: "dishes", target: 100, aggregation: "distinct" },
+    camps: [
+      { title: "First five dishes", detail: "Five things you'd never cooked before.", target: 5, week: 3, emoji: "cooking" },
+      { title: "A dozen, and one bread", detail: "Twelve dishes, one of them a bread.", target: 12, week: 8, emoji: "seedling" },
+      { title: "Quarter century", detail: "Twenty-five dishes, and a dinner for friends.", target: 25, week: 16, emoji: "flag" },
+      { title: "Halfway: fifty dishes", detail: "Fifty dishes, from at least ten countries.", target: 50, week: 28, emoji: "camp" },
+      { title: "Seventy-five", detail: "A hard one: a laminated dough or a whole fish.", target: 75, week: 40, emoji: "target" },
+      { title: "A hundred dishes", detail: "Cook your favourite three for the people who ate the rest.", target: 100, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "marisol",
+        daysAgo: 238,
+        items: [
+          { label: "Shakshuka", note: "The first new one. Eggs a bit too set, but I'm already making it again." },
+          { label: "Pan con tomate" },
+          { label: "French omelette", note: "Third try. Pale, rolled, no colour. Felt like a magic trick." },
+          { label: "Miso soup" },
+          { label: "Focaccia", note: "Dimpled it with my whole hand. Gone in an hour." },
+          { label: "Pad kra pao" },
+          { label: "Chicken adobo", note: "My grandmother's recipe, over the phone, in two languages." },
+          { label: "Gazpacho" },
+          { label: "Dal tadka" },
+          { label: "Tortilla de patatas", note: "The flip. Over the sink. It held." },
+          { label: "Banana bread" },
+          { label: "Sourdough loaf", note: "Named the starter Gloria. Gloria is a beast." },
+          { label: "Bibimbap" },
+          { label: "Pozole rojo", note: "Took all day. Worth every minute." },
+          { label: "Caesar salad from scratch" },
+          { label: "Chicken katsu" },
+          { label: "Ratatouille" },
+          { label: "Pierogi", note: "Made 60, froze 40. Future me says thanks." },
+          { label: "Pho bo", note: "Charred the onion and ginger on the gas flame. The whole flat smells of star anise." },
+          { label: "Tiramisu" },
+          { label: "Falafel" },
+          { label: "Hummus" },
+          { label: "Carbonara", note: "No cream. An Italian friend watched me like a hawk." },
+          { label: "Kimchi fried rice" },
+          { label: "Fish tacos", note: "Friends over, twelve tacos, zero leftovers. Camp three!" },
+          { label: "Butter chicken" },
+          { label: "Gnocchi" },
+          { label: "Lemon tart" },
+          { label: "Arepas" },
+          { label: "Massaman curry" },
+          { label: "Bao buns", note: "Pleats are hard. Taste is easy." },
+          { label: "Paella", note: "Got the socarrat. Heard it crackle and didn't stir." },
+          { label: "Ceviche" },
+          { label: "Moussaka" },
+          { label: "Laksa" },
+          { label: "Churros" },
+          { label: "Jollof rice", note: "A Nigerian friend says it's good. A Ghanaian friend says it's wrong. Both had seconds." },
+          { label: "Spanakopita" },
+          { label: "Ramen with tonkotsu broth", note: "Twelve hours of broth. The neighbours asked what I was doing." },
+          { label: "Okonomiyaki" },
+          { label: "Chiles rellenos" },
+          { label: "Beef bourguignon" },
+          { label: "Pavlova" },
+          { label: "Gyoza" },
+          { label: "Tom kha gai" },
+          { label: "Pastel de nata" },
+          { label: "Bánh xèo" },
+          { label: "Risotto alla milanese" },
+          { label: "Khachapuri", note: "An egg in a boat of bread. The best thing I've made all year." },
+          { label: "Lamb tagine", note: "Halfway. Fifty dishes. Celebrated with the tagine and too much couscous." },
+          { label: "Empanadas" },
+          { label: "Fesenjan" },
+          { label: "Chocolate soufflé", note: "It rose! Took a photo before it fell." },
+          { label: "Char siu" },
+          { label: "Mapo tofu" },
+          { label: "Pasta e fagioli" },
+          { label: "Green curry" },
+          { label: "Cornbread" },
+          { label: "Biryani", note: "Layered, sealed with dough, and opened at the table. Applause." },
+          { label: "Croissants", note: "Three days, 27 layers, one tiny kitchen covered in flour." },
+          { label: "Whole roast fish" },
+          { label: "Pupusas" },
+          { label: "Pad thai" },
+          { label: "Borscht" },
+          { label: "Crème brûlée" },
+          { label: "Tteokbokki" },
+          { label: "Mole poblano", note: "Twenty-two ingredients. My blender will never be the same." },
+          { label: "Bouillabaisse" },
+          { label: "Injera with misir wot", note: "Fermented the batter for three days. Ate with my hands." },
+          { label: "Peking-style duck" },
+          { label: "Baklava" },
+          { label: "Eggs Benedict", note: "Number 72. Hollandaise on the second try." },
+        ],
+        plan: {
+          summary:
+            "Marisol cooks the same eight dinners on rotation and wants out. Two new dishes a week: an easy one on a weeknight and a project on Sunday, a bread every month, and a dinner for friends at each camp.",
+          cadence: "Two new dishes a week: one weeknight, one Sunday project.",
+        },
+      },
+      {
+        handle: "rachelkim",
+        daysAgo: 140,
+        items: [
+          { label: "Kimchi jjigae", note: "Mum's version. I called her twice." },
+          { label: "Overnight oats" },
+          { label: "Shakshuka" },
+          { label: "Japchae" },
+          { label: "Spaghetti aglio e olio", note: "Hotel kitchenette. A camping stove and one pan. It counts." },
+          { label: "Lentil soup" },
+          { label: "Bulgogi" },
+          { label: "Galette des rois" },
+          { label: "Thai green curry" },
+          { label: "Dakgalbi", note: "Home for a week, finally a real kitchen." },
+          { label: "Banana pancakes" },
+          { label: "Minestrone" },
+          { label: "Cacio e pepe", note: "Clumped twice. Third time silky." },
+          { label: "Gyeranjjim" },
+          { label: "Chocolate chip cookies" },
+          { label: "Salmon teriyaki" },
+          { label: "Pumpkin soup" },
+          { label: "Kimbap", note: "Rolled twelve, sliced them all crooked, ate them anyway." },
+        ],
+        plan: {
+          summary: "Rachel travels three weeks a month, so the plan works with hotel kitchenettes on the road and longer projects when she's home.",
+          cadence: "One new dish a week, wherever the kitchen is.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Pick next week's two dishes", "One easy, one project. Shop on Saturday.", "weekly", 15),
+      q("Cook a dish from a country you've never cooked from", "Look up how people actually make it at home.", "weekly", 25),
+      q("Bake a bread", "Any bread. Knead it by hand.", "weekly", 25),
+      q("Cook without a recipe on the counter", "Read it twice, then put it away.", "weekly", 20),
+      q("A dinner for four", "Three dishes, one of them new.", "boss", 60),
+      q("Make a dough by hand", "Pasta, dumplings or pastry.", "weekly", 20),
+    ],
+    doneQuest: (log) => q(`Cook ${log.label}`, "From scratch, start to finish.", "weekly", 25),
+    space:
+      "A chef's pass at the end of service: a long steel counter with order tickets clipped above it and plates coming out. Lead with the number of different dishes cooked, then each cook's plates as a grid of 100 round plates that fill with the dish's name as they cook them. Show the newest dishes as tickets on the rail. Warm kitchen colours: brushed steel, paper tickets, tomato red and herb green.",
+  },
+
+  // ----- Camino de Santiago -----
+  {
+    key: "camino",
+    slug: "hike-the-camino-de-santiago",
+    title: "Hike the Camino de Santiago",
+    tagline: "772 km across Spain, from the Pyrenees to Santiago, in stages that fit your year.",
+    description:
+      "Walk the Camino Francés from Saint-Jean-Pied-de-Port to Santiago de Compostela, about 772 km, in one go or in stages across the year.\n\n" +
+      "Log each day on the Camino in kilometres, with where you slept.",
+    emoji: "map",
+    theme: "sand",
+    category: "travel",
+    metric: { name: "km walked on the Camino", unit: "km", target: 772, aggregation: "sum" },
+    camps: [
+      { title: "Over the Pyrenees", detail: "Saint-Jean to Roncesvalles, the hardest day.", target: 25, week: 6, emoji: "summit" },
+      { title: "Pamplona", detail: "The first city, 68 km in.", target: 68, week: 6, emoji: "flag" },
+      { title: "Burgos", detail: "The cathedral, and the end of La Rioja.", target: 286, week: 8, emoji: "camp" },
+      { title: "León", detail: "Across the Meseta, the long flat middle.", target: 465, week: 20, emoji: "map" },
+      { title: "Sarria", detail: "Over O Cebreiro into Galicia. 115 km to go.", target: 657, week: 31, emoji: "compass" },
+      { title: "Santiago de Compostela", detail: "The cathedral square, and the Compostela.", target: 772, week: 37, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "graceoc",
+        daysAgo: 236,
+        pace: 0,
+        beats: [
+          { daysAgo: 196, value: 25, note: "Saint-Jean to Roncesvalles. 1,200 m of climb in the rain. Pilgrims' mass at night and I nearly cried." },
+          { daysAgo: 195, value: 22, note: "Roncesvalles to Zubiri. Knees complaining on the way down." },
+          { daysAgo: 194, value: 21, note: "Zubiri to Pamplona. Pintxos with an Australian couple and a Korean student." },
+          { daysAgo: 193, value: 24, note: "Pamplona to Puente la Reina, over the Alto del Perdón." },
+          { daysAgo: 192, value: 22, note: "Puente la Reina to Estella." },
+          { daysAgo: 191, value: 21, note: "Estella to Los Arcos. The wine fountain at Irache is real." },
+          { daysAgo: 190, value: 28, note: "Los Arcos to Logroño. Blisters, plural." },
+          { daysAgo: 189, value: 29, note: "Logroño to Nájera. Vineyards all day." },
+          { daysAgo: 188, value: 21, note: "Nájera to Santo Domingo. There really are live chickens in the cathedral." },
+          { daysAgo: 187, value: 23, note: "Santo Domingo to Belorado." },
+          { daysAgo: 186, value: 24, note: "Belorado to San Juan de Ortega. Garlic soup at the monastery." },
+          { daysAgo: 185, value: 26, note: "Into Burgos. Trip one done: 286 km. Home tomorrow, back in the summer." },
+          { daysAgo: 108, value: 31, note: "Back in Burgos. Onto the Meseta: Burgos to Hontanas, wheat to the horizon." },
+          { daysAgo: 107, value: 28, note: "Hontanas to Boadilla del Camino. Started at 5am to beat the heat." },
+          { daysAgo: 106, value: 25, note: "Boadilla to Carrión de los Condes along the canal." },
+          { daysAgo: 105, value: 27, note: "Carrión to Terradillos. 17 km without a single village. Long day." },
+          { daysAgo: 104, value: 31, note: "Terradillos to El Burgo Ranero. Halfway point in Sahagún, got the certificate." },
+          { daysAgo: 103, value: 19, note: "El Burgo Ranero to Mansilla de las Mulas." },
+          { daysAgo: 102, value: 18, note: "Into León. Trip two done: 465 km. The cathedral windows at sunset." },
+          { daysAgo: 29, value: 25, note: "Last trip. León to San Martín del Camino. Autumn now, cold mornings." },
+          { daysAgo: 28, value: 24, note: "San Martín to Astorga. Chocolate museum. Of course." },
+          { daysAgo: 27, value: 20, note: "Astorga to Rabanal del Camino. Gregorian chant at vespers." },
+          { daysAgo: 26, value: 25, note: "Over the Cruz de Ferro to Molinaseca. Left the stone I carried from Dublin." },
+          { daysAgo: 25, value: 31, note: "Molinaseca to Villafranca del Bierzo, past the Templar castle." },
+          { daysAgo: 24, value: 28, note: "Up to O Cebreiro. Into Galicia, into the fog." },
+          { daysAgo: 23, value: 21, note: "O Cebreiro to Triacastela. Downhill all day, cows on the path." },
+          { daysAgo: 22, value: 18, note: "Triacastela to Sarria. 657 km. 115 to go, and I booked the last week for the end of November." },
+        ],
+        plan: {
+          summary:
+            "Grace can't take five weeks off, so she walks the Camino in three trips: Saint-Jean to Burgos at the end of April, Burgos to León in the summer, León to Sarria in October, and the last 115 km to Santiago in late November. Between trips, long walks at home on Saturdays with the pack.",
+          cadence: "Three trips of a week or two, and a long walk with the pack on Saturdays.",
+        },
+      },
+      {
+        handle: "marcob",
+        daysAgo: 200,
+        pace: 0,
+        beats: [
+          { daysAgo: 196, value: 25, note: "Met Grace at the albergue in Saint-Jean. Walking together as far as Burgos." },
+          { daysAgo: 195, value: 22, note: "Zubiri. My boots are too new. Lesson learned." },
+          { daysAgo: 194, value: 21, note: "Pamplona. Running of the bulls street, no bulls, many pilgrims." },
+          { daysAgo: 193, value: 24, note: "Alto del Perdón. The iron pilgrims on the ridge." },
+          { daysAgo: 192, value: 22, note: "Estella." },
+          { daysAgo: 191, value: 21, note: "Los Arcos." },
+          { daysAgo: 190, value: 28, note: "Logroño. Calle Laurel, one pintxo per bar." },
+          { daysAgo: 189, value: 29, note: "Nájera." },
+          { daysAgo: 188, value: 21, note: "Santo Domingo." },
+          { daysAgo: 187, value: 23, note: "Belorado." },
+          { daysAgo: 186, value: 24, note: "San Juan de Ortega." },
+          { daysAgo: 185, value: 26, note: "Burgos. 286 km. The rest next year, maybe." },
+        ],
+        plan: {
+          summary: "Marco walks the first stretch with friends from Milan, as far as Burgos, and decides on the rest after the summer.",
+          cadence: "One trip at the end of April.",
+        },
+      },
+    ],
+    openQuests: [
+      q("A Saturday walk of 20 km with the pack", "Same boots, same socks as on the Camino.", "weekly", 25),
+      q("Book the albergues for the last week", "Sarria to Santiago fills up early.", "one_off", 15),
+      q("Two back-to-back long walks", "Saturday and Sunday, 15 km each.", "weekly", 30),
+      q("Check the pack weighs under 8 kg", "Weigh it, then take one thing out.", "one_off", 15),
+      q("Walk into Santiago", "The last 115 km and the cathedral square.", "boss", 100),
+    ],
+    doneQuest: (log, rng) =>
+      rng.pick([
+        q("Walk the next stage", "Start before sunrise, stop at the next albergue.", "daily", 20),
+        q("Get the credencial stamped twice", "One at the albergue, one at a café or church.", "daily", 10),
+        q("Look after your feet", "Vaseline in the morning, dry socks at lunch.", "daily", 10),
+      ]),
+    space:
+      "A hand-drawn trail map of the Camino Francés across northern Spain, from Saint-Jean-Pied-de-Port to Santiago de Compostela, with the stage towns as dots along a dotted yellow-arrow path (Pamplona, Logroño, Burgos, León, Astorga, O Cebreiro, Sarria, Santiago). Each pilgrim is a marker at the km they've walked. Lead with the km walked and what's left to Santiago, and show the newest days as stamps in a pilgrim's credencial. Dusty sand, ochre, sky blue and the yellow Camino arrow.",
+  },
+];
+
+// ---------- The film's friends ----------
+
+/**
+ * Challenges the film's friends started on the live site, each from its own account. The seed gives each a lived-in
+ * history like a demo climber's, at its own stage of the year: the slug is the live challenge, the one member its
+ * creator, whose account it labels demo. Their covers, Muses and pages stay as they are.
+ */
+const FRIENDS: HistorySpec[] = [
+  {
+    key: "friend-bek",
+    slug: "send-a-v5-boulder-cleanly",
+    title: "Send a V5 boulder cleanly",
+    metric: { name: "top v-grade sent", unit: "V", target: 5, aggregation: "latest" },
+    camps: [
+      { title: "Lock in clean V2", detail: "Every V2 in the gym, clean.", target: 2, week: 3, emoji: "flag" },
+      { title: "Break into V3", detail: "Your first V3 send.", target: 3, week: 13, emoji: "camp" },
+      { title: "Hold steady at V4", detail: "V4s in a normal session, not just on a good day.", target: 4, week: 26, emoji: "target" },
+      { title: "Project your V5", detail: "One V5, worked move by move.", target: 5, week: 39, emoji: "map" },
+      { title: "Send V5 for real", detail: "Top out clean, no dabs.", target: 5, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "bek",
+        daysAgo: 230,
+        pace: 0,
+        beats: [
+          { daysAgo: 230, value: 1, note: "First session logged. Every V1 clean, close on the V2s, fell off every V3." },
+          { daysAgo: 216, value: 2, note: "Clean V2 circuit: five problems, no falls." },
+          { daysAgo: 198, value: 2, note: "First time on the fingerboard. Humbling." },
+          { daysAgo: 181, value: 3, note: "First V3! The blue one in the cave. I may have yelled." },
+          { daysAgo: 170, value: 3, note: "Two more V3s. The footwork drills are paying off." },
+          { daysAgo: 152, value: 3, note: "Filmed my attempts. My hips are way too far from the wall." },
+          { daysAgo: 131, value: 3, note: "Deload week done. Fingers feel strong again." },
+          { daysAgo: 110, value: 3, note: "Sent the slab V3 everyone avoids." },
+          { daysAgo: 92, value: 4, note: "V4!! The crimpy one on the overhang, after eleven sessions on it." },
+          { daysAgo: 75, value: 4, note: "Second V4, with a heel hook I'd never have tried in spring." },
+          { daysAgo: 58, value: 4, note: "First weekend outside, at Joshua Tree. A V3 and a V4 on real rock." },
+          { daysAgo: 40, value: 4, note: "Three V4s in one session. V4 is my normal now." },
+          { daysAgo: 24, value: 4, note: "Started projecting the V5 in the corner. Got the first three moves." },
+          { daysAgo: 9, value: 4, note: "Linked the V5's crux for the first time. Fell on the last move." },
+          { daysAgo: 2, value: 4, note: "V4 repeats and ten goes on the V5. So close." },
+        ],
+        plan: {
+          summary:
+            "Bek climbs solid V2 and wants a real V5 by next autumn. Two strength sessions and one volume session a week, one project at a time, filmed attempts to fix the beta, and a deload week every month to keep the fingers healthy.",
+          cadence: "3 bouldering sessions a week, check-in on Sundays.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Ten tries on the V5, then rest", "Film the last three. Watch them before the next session.", "weekly", 25),
+      q("Fingerboard: 7 seconds on, 3 off", "Six hangs, three sets. Stop at the first tweak.", "weekly", 20),
+      q("Silent feet on five V3s", "No sound when your foot lands on the hold.", "weekly", 15),
+      q("A rest day you don't skip", "Stretch, walk, sleep.", "weekly", 10),
+      q("Send the V5", "Top out clean, no dabs.", "boss", 100),
+    ],
+    doneQuest: (log) => q(`Send a V${log.value ?? 3} in one session`, "Warm up properly first.", "weekly", 25),
+  },
+  {
+    key: "friend-joshua",
+    slug: "read-the-odyssey-in-ancient-greek",
+    title: "Read the Odyssey in Ancient Greek",
+    metric: { name: "lines of homer read in greek", unit: "lines", target: 12110, aggregation: "sum" },
+    camps: [
+      { title: "First hundred lines", detail: "The proem and Athena at Ithaca.", target: 100, week: 3, emoji: "seedling" },
+      { title: "Through book four", detail: "Telemachus finds out his father might be alive.", target: 2000, week: 15, emoji: "books" },
+      { title: "Past the sirens", detail: "Book twelve: the wanderings, done.", target: 6000, week: 28, emoji: "map" },
+      { title: "Ithaca in sight", detail: "Odysseus home in disguise.", target: 9500, week: 42, emoji: "compass" },
+      { title: "The whole Odyssey", detail: "All 12,110 lines, in Greek.", target: 12110, week: 52, emoji: "summit" },
+    ],
+    shortNotes: ["Reread", "With the audio", "Vocab review", "Morning lines", "Late lines"],
+    members: [
+      {
+        handle: "joshua",
+        daysAgo: 222,
+        pace: 0.75,
+        amount: [28, 54],
+        noteRate: 0.1,
+        beats: [
+          { daysAgo: 222, note: "Andra moi ennepe, Mousa. Read the first line out loud ten times before I could stop." },
+          { daysAgo: 200, note: "Telemachus finally speaks up in the assembly. So did I, to my cat, in Greek." },
+          { daysAgo: 183, note: "Nestor tells the same story three ways. I now know four words for ship." },
+          { daysAgo: 158, note: "Book four is long. Menelaus will not stop talking. Pushing through." },
+          { daysAgo: 137, note: "Calypso's island. The participles are getting easier, the longing isn't." },
+          { daysAgo: 119, note: "Nausicaa and the laundry. My favourite scene so far." },
+          { daysAgo: 105, value: 40, note: "Forty lines with only three dictionary lookups. A record." },
+          { daysAgo: 73, note: "The Cyclops! Outis, Nobody. The pun works so much better in Greek." },
+          { daysAgo: 58, note: "Aeolus and the bag of winds. Of course the crew opened it." },
+          { daysAgo: 48, note: "Circe turns them into pigs. Learned the word for pig: sus. Unforgettable." },
+          { daysAgo: 40, value: 20, note: "Rough week, only twenty lines a night. Twenty lines is still twenty lines." },
+          { daysAgo: 30, note: "The underworld, book eleven. Achilles would rather be a living farmhand. Heavy." },
+          { daysAgo: 12, note: "The Sirens. Read it with the audio and the hexameter finally sounded like music." },
+          { daysAgo: 7, note: "Scylla and Charybdis. Six men gone in four lines." },
+          { daysAgo: 1, note: "Odysseus wakes up on Ithaca and doesn't recognise it. Neither did I: new words everywhere." },
+        ],
+        plan: {
+          summary:
+            "Joshua reads all 12,110 lines with a beginner's Homer reader, its vocabulary and notes. Short sessions most days beat long weekend slogs, with rereading and the audio to hear the hexameter. The year moves in arcs: the Telemachy, the wanderings, then the homecoming.",
+          cadence: "Most days, 25 minutes. Check-in on Sundays.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Read 40 lines with the audio", "Read them first, then listen, then read again.", "daily", 15),
+      q("Learn twenty words from book thirteen", "The ones that come back more than twice.", "weekly", 20),
+      q("Reread last week's lines without notes", "Mark every word you still had to look up.", "weekly", 20),
+      q("Scan five lines of hexameter", "Long, short, short. Out loud.", "weekly", 15),
+      q("Finish book thirteen", "Odysseus back on Ithaca.", "boss", 60),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Read 40 lines with the audio", "Read them first, then listen, then read again.", "daily", 15),
+        q("Reread last week's lines without notes", "Mark every word you still had to look up.", "weekly", 20),
+        q("Learn twenty new words", "The ones that come back more than twice.", "weekly", 20),
+      ]),
+  },
+  {
+    key: "friend-julaiti",
+    slug: "publish-24-videos-in-a-year",
+    title: "Publish 24 videos in a year",
+    metric: { name: "videos published", unit: "videos", target: 24, aggregation: "count" },
+    camps: [
+      { title: "First upload done", detail: "Shot on a phone, published anyway.", target: 1, week: 3, emoji: "flag" },
+      { title: "Find your format", detail: "Six videos and one format you can repeat.", target: 6, week: 13, emoji: "camera" },
+      { title: "Halfway library", detail: "Twelve videos on the channel.", target: 12, week: 26, emoji: "camp" },
+      { title: "Confident creator run", detail: "Eighteen, and filming in batches.", target: 18, week: 39, emoji: "rocket" },
+      { title: "Twenty-four video catalog", detail: "Two a month for a year.", target: 24, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "julaiti",
+        daysAgo: 226,
+        items: [
+          { label: "What I'll make this year", note: "First video. Two minutes, shot on my phone, nine takes. Published." },
+          { label: "My desk setup for $200", note: "The light was terrible. People watched anyway." },
+          { label: "A day of deep work, in 60 seconds" },
+          { label: "Three apps I deleted this month", note: "Most views so far. Short and specific wins." },
+          { label: "How I plan a video in 20 minutes" },
+          { label: "I tried cold showers for 30 days", note: "Found the format: a 30-day try, then what changed. Six videos, camp two." },
+          { label: "I tried waking up at 5am for 30 days" },
+          { label: "My editing workflow, start to finish" },
+          { label: "I tried no social media for 30 days", note: "First video over 10,000 views. Read every comment." },
+          { label: "Filming 4 videos in one Saturday", note: "Batch day worked. Four scripts, one outfit change." },
+          { label: "I tried learning to draw for 30 days" },
+          { label: "Halfway: what 12 videos taught me", note: "Twelve videos. Made one about it, obviously." },
+          { label: "I tried running every day for 30 days" },
+          { label: "The camera I actually use" },
+          { label: "I tried cooking every meal for 30 days" },
+          { label: "Why my first videos were bad", note: "Watched video one again. Cringed. Kept it up." },
+          { label: "I tried a 30-day digital detox with my family", note: "Seventeen. My mum is in this one and she was the star." },
+        ],
+        plan: {
+          summary:
+            "Julaiti publishes two videos a month. Short phone videos first to lower the bar, then one format he can repeat, then filming in batches so busy weeks still ship. The year ends with a small series and one flagship video.",
+          cadence: "One shoot-and-edit block a week, check-in on Sundays.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Write the next two scripts", "One page each. Hook in the first line.", "weekly", 20),
+      q("A batch Saturday: film two videos", "Same setup, one outfit change.", "weekly", 30),
+      q("Edit in one sitting", "Ninety minutes, then export.", "weekly", 20),
+      q("Reply to every comment on the last video", "Note one idea for a future video.", "weekly", 10),
+      q("Plan the flagship video", "The one you'll put at the top of the channel.", "boss", 60),
+    ],
+    doneQuest: (log) => q(`Publish "${log.label}"`, "Thumbnail, title, publish. Don't polish forever.", "weekly", 30),
+  },
+  {
+    key: "friend-guzus",
+    slug: "collect-1-million-in-twelve-months",
+    title: "Collect $1 million in twelve months",
+    metric: { name: "dollars collected", unit: "$", target: 1000000, aggregation: "sum" },
+    camps: [
+      { title: "First ten thousand", detail: "Proof that someone pays for the offer.", target: 10000, week: 3, emoji: "flag" },
+      { title: "Repeatable hundred k", detail: "The same offer, sold again and again.", target: 100000, week: 13, emoji: "chart" },
+      { title: "Scale past yourself", detail: "Contractors and partners, so income grows past your hours.", target: 350000, week: 26, emoji: "rocket" },
+      { title: "Two thirds banked", detail: "$650,000 collected.", target: 650000, week: 39, emoji: "money" },
+      { title: "Million collected", detail: "One million dollars, in twelve months.", target: 1000000, week: 52, emoji: "summit" },
+    ],
+    members: [
+      {
+        handle: "guzus",
+        daysAgo: 228,
+        pace: 0,
+        beats: [
+          { daysAgo: 221, value: 4000, note: "First client, first invoice paid. A two-week AI automation audit." },
+          { daysAgo: 209, value: 6500, note: "Second audit. Ten thousand: the offer works." },
+          { daysAgo: 193, value: 12000, note: "Raised the price. They said yes without blinking." },
+          { daysAgo: 178, value: 15000, note: "Turned the audit into a fixed six-week build." },
+          { daysAgo: 160, value: 18000, note: "Referral from client two." },
+          { daysAgo: 147, value: 22000, note: "Twenty sales calls this month, three closed." },
+          { daysAgo: 133, value: 25000, note: "Repeatable hundred k. Same offer, same deck, every time." },
+          { daysAgo: 118, value: 30000, note: "First contractor hired. I stopped doing the builds myself." },
+          { daysAgo: 104, value: 38000, note: "Biggest deal so far: a logistics company, three teams." },
+          { daysAgo: 89, value: 42000, note: "Partner agency resells the offer now." },
+          { daysAgo: 72, value: 45000, note: "Two contractors, two builds at once." },
+          { daysAgo: 55, value: 48000, note: "Third partner signed. The pipeline is the biggest it has been." },
+          { daysAgo: 38, value: 36000, note: "Slower month. A deal slipped to next quarter." },
+          { daysAgo: 21, value: 33000, note: "Productized the audit, clients book it from the website now. Past $350,000: scale past yourself, done." },
+          { daysAgo: 6, value: 38000, note: "$412,500 collected. Two-thirds is next." },
+        ],
+        plan: {
+          summary:
+            "Guzus won't get there from one job, so the plan is one high-ticket offer sold hard: ten thousand fast to prove demand, a repeatable sales system next, then contractors and partners so income grows past his hours. The last months push volume with the system that works.",
+          cadence: "5 focused sessions a week, 60–90 min. Check-in on Sundays.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Twenty sales conversations this week", "Log every one, even the no's.", "weekly", 25),
+      q("Follow up on every open proposal", "A short note with one new reason to say yes.", "weekly", 15),
+      q("Ask your three best clients for a referral", "By name: who else should hear about this?", "weekly", 20),
+      q("Raise the price on the next proposal", "Ten percent. See what happens.", "one_off", 20),
+      q("Close a deal over $50,000", "The biggest one yet.", "boss", 80),
+    ],
+    doneQuest: (_log, rng) =>
+      rng.pick([
+        q("Twenty sales conversations this week", "Log every one, even the no's.", "weekly", 25),
+        q("Send three proposals", "Same offer, written for each client.", "weekly", 20),
+        q("Follow up on every open proposal", "A short note with one new reason to say yes.", "weekly", 15),
+      ]),
+  },
+  {
+    key: "friend-tasos",
+    slug: "taste-20-different-cuisines-in-a-year",
+    title: "Taste 20 different cuisines in a year",
+    metric: { name: "different cuisines tried", unit: "cuisines", target: 20, aggregation: "distinct" },
+    camps: [
+      { title: "First three tastes", detail: "Three cuisines you'd never eaten.", target: 3, week: 3, emoji: "flag" },
+      { title: "Across eight regions", detail: "Eight cuisines, on at least four continents.", target: 8, week: 13, emoji: "map" },
+      { title: "Baker's dozen plates", detail: "Thirteen cuisines.", target: 13, week: 26, emoji: "compass" },
+      { title: "Down to the last three", detail: "Seventeen down.", target: 17, week: 39, emoji: "camp" },
+      { title: "Twenty cuisine finish", detail: "A final tasting week, and all twenty ranked.", target: 20, week: 52, emoji: "trophy" },
+    ],
+    members: [
+      {
+        handle: "tasos",
+        daysAgo: 210,
+        items: [
+          { label: "Ethiopian", note: "Doro wat and injera, eaten with my hands. 5/5." },
+          { label: "Georgian", note: "Khachapuri adjaruli. Cheese, butter, an egg. 5/5." },
+          { label: "Peruvian", note: "Ceviche with leche de tigre. 4/5." },
+          { label: "Burmese", note: "Tea leaf salad. Crunchy, sour, nothing like I expected. 5/5." },
+          { label: "Lebanese", note: "Cooked it myself: fattoush and toum. 4/5." },
+          { label: "Filipino", note: "Sisig at a food truck. 4/5." },
+          { label: "Uzbek", note: "Plov at a friend's family dinner. They sent me home with a whole container. 5/5." },
+          { label: "Korean", note: "Ganjang gejang, raw crab in soy. Brave. 3/5." },
+          { label: "Sichuan", note: "Mapo tofu that numbed my whole face. 5/5." },
+          { label: "Oaxacan", note: "Mole negro, made at home, all afternoon. 4/5." },
+          { label: "Eritrean", note: "Zigni at the place two blocks from the Ethiopian one. Different, and both great." },
+          { label: "Malaysian", note: "Nasi lemak for breakfast. 5/5." },
+          { label: "Nigerian", note: "Egusi soup and pounded yam. Thirteen cuisines. 4/5." },
+          { label: "Sri Lankan", note: "Hoppers with an egg in the middle. Fourteen. 5/5." },
+        ],
+        plan: {
+          summary:
+            "Tasos works through a list of 20 cuisines, mixing restaurants and his own kitchen: an easy local one, then a harder one that needs planning. Each gets the dish, where he had it and a rating out of 5. The year ends with a tasting week and all twenty ranked.",
+          cadence: "A new cuisine every week or two.",
+        },
+      },
+    ],
+    openQuests: [
+      q("Book the next two tastings", "One restaurant, one dinner at home.", "weekly", 15),
+      q("Cook a cuisine you've only eaten out", "Ask the restaurant what to try first.", "weekly", 25),
+      q("Ask someone from that country where to eat", "Go where they go.", "weekly", 15),
+      q("Rank your top five so far", "With one line on why.", "one_off", 15),
+      q("A tasting week: three cuisines in seven days", "The last three on your list.", "boss", 60),
+    ],
+    doneQuest: (log) => q(`Try ${log.label} food`, "The dish people from there love most.", "weekly", 25),
+  },
 ];
 
 // ---------- Small helpers ----------
@@ -3540,13 +4194,8 @@ type MemberRun = {
   logs: LogRec[];
 };
 
-function seedChallenge(spec: ChallengeSpec, users: Map<string, SeedUser>, now: number, counts: Counts): { slug: string; members: number } {
-  const cid = demoId("chl", spec.key);
-  const crng = new Rng(`challenge:${spec.key}`);
-  const pool = spec.notes ? crng.shuffle(spec.notes) : [];
-  const step = spec.step ?? 1;
-
-  // Join times first: the creator starts the challenge, everyone else joins later.
+/** Join times: the creator starts the challenge, everyone else joins later. */
+function joinRuns(spec: HistorySpec, users: Map<string, SeedUser>, now: number): MemberRun[] {
   const runs: MemberRun[] = [];
   for (const [i, m] of spec.members.entries()) {
     const user = users.get(m.handle);
@@ -3557,8 +4206,12 @@ function seedChallenge(spec: ChallengeSpec, users: Map<string, SeedUser>, now: n
     if (i > 0 && joinAt <= runs[0].joinAt) joinAt = runs[0].joinAt + rng.int(2, 20) * HOUR;
     runs.push({ spec: m, user, today, joinAt, logs: [] });
   }
-  const createdAt = runs[0].joinAt;
+  return runs;
+}
 
+function seedChallenge(spec: ChallengeSpec, users: Map<string, SeedUser>, now: number, counts: Counts): { slug: string; members: number } {
+  const cid = demoId("chl", spec.key);
+  const runs = joinRuns(spec, users, now);
   const slug = upsertChallenge(cid, spec.slug, {
     creatorId: runs[0].user.id,
     title: spec.title,
@@ -3571,16 +4224,24 @@ function seedChallenge(spec: ChallengeSpec, users: Map<string, SeedUser>, now: n
     status: "active",
     year: null,
     label: null,
-    createdAt: isoAt(createdAt),
+    createdAt: isoAt(runs[0].joinAt),
     updatedAt: isoAt(now),
   });
   counts.active_challenges++;
+  seedHistory(spec, cid, runs, now, counts);
+  return { slug, members: runs.length };
+}
 
+/** Each member's history in the challenge, then the cheers between them. */
+function seedHistory(spec: HistorySpec, cid: string, runs: MemberRun[], now: number, counts: Counts) {
+  const crng = new Rng(`challenge:${spec.key}`);
+  const pool = spec.notes ? crng.shuffle(spec.notes) : [];
+  const step = spec.step ?? 1;
   for (const [i, r] of runs.entries()) simulateMember(spec, cid, r, i === 0, pool, step, now, counts);
 
   // Cheers between members.
   const rng = new Rng(`cheers:${spec.key}`);
-  let lastAt = createdAt;
+  let lastAt = runs[0].joinAt;
   for (const r of runs) {
     for (const log of r.logs) {
       lastAt = Math.max(lastAt, log.at);
@@ -3599,12 +4260,52 @@ function seedChallenge(spec: ChallengeSpec, users: Map<string, SeedUser>, now: n
     }
   }
   exec("UPDATE challenges SET updated_at = ? WHERE id = ?", isoAt(lastAt), cid);
-  return { slug, members: runs.length };
+}
+
+/**
+ * One of the film's friends' challenges, given its history afresh: what its creator did in it before is replaced, and
+ * their account is labelled demo and guided by Muse. Anyone else's part in it stays.
+ */
+function seedFriend(spec: HistorySpec, now: number, counts: Counts): string | null {
+  const m = spec.members[0];
+  const row = one<{ cid: string; uid: string; name: string; tz: string; avatar: Avatar; style: string | null }>(
+    `SELECT c.id AS cid, u.id AS uid, u.display_name AS name, u.timezone AS tz, u.avatar, u.motivation_style AS style
+       FROM challenges c JOIN users u ON u.id = c.creator_id WHERE c.slug = ? AND u.handle = ?`,
+    spec.slug,
+    m.handle,
+  );
+  if (!row) return null;
+  exec("DELETE FROM cheers WHERE log_id IN (SELECT id FROM logs WHERE challenge_id = ? AND user_id = ?)", row.cid, row.uid);
+  exec("DELETE FROM activity WHERE challenge_id = ? AND user_id = ? AND kind != 'space'", row.cid, row.uid);
+  for (const table of ["logs", "quests", "plans", "memberships"]) exec(`DELETE FROM ${table} WHERE challenge_id = ? AND user_id = ?`, row.cid, row.uid);
+  const user: SeedUser = {
+    handle: m.handle,
+    name: row.name,
+    tz: row.tz,
+    avatar: row.avatar,
+    style: row.style ?? "",
+    agent: "muse",
+    hours: [[19, 22]],
+    id: row.uid,
+    firstJoin: Number.POSITIVE_INFINITY,
+    lastLog: 0,
+  };
+  const runs = joinRuns(spec, new Map([[m.handle, user]]), now);
+  seedHistory(spec, row.cid, runs, now, counts);
+  const joined = runs[0].joinAt;
+  exec("UPDATE challenges SET created_at = ? WHERE id = ?", isoAt(joined), row.cid);
+  exec(
+    "UPDATE users SET is_demo = 1, agent_kind = 'muse', created_at = ?, agent_seen_at = ? WHERE id = ?",
+    isoAt(joined - 10 * MIN),
+    isoAt(Math.min(user.lastLog, now - MIN)),
+    row.uid,
+  );
+  return spec.slug;
 }
 
 type Raw = { d: number; value: number | null; label: string | null; note: string | null; hour?: number; long?: boolean };
 
-function rawLogs(spec: ChallengeSpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
+function rawLogs(spec: HistorySpec, m: MemberSpec, today: string, step: number, rng: Rng): Raw[] {
   const inGap = (d: number) => (m.gaps ?? []).some(([from, to]) => d <= from && d >= to);
   // A count log is one of something, so like a real one it carries no number.
   const val = (v: number) => (spec.metric.aggregation === "count" ? null : v);
@@ -3664,7 +4365,7 @@ function campDue(startsOn: string, endsOn: string, week: number): string {
 }
 
 function simulateMember(
-  spec: ChallengeSpec,
+  spec: HistorySpec,
   cid: string,
   r: MemberRun,
   isCreator: boolean,
@@ -3992,6 +4693,7 @@ export function seedDemo(opts: { force?: boolean } = {}): SeedSummary {
       const r = seedChallenge(spec, users, now, counts);
       out.push({ slug: r.slug, title: spec.title, status: "active", members: r.members });
     }
+    for (const spec of FRIENDS) if (seedFriend(spec, now, counts)) out.push({ slug: spec.slug, title: spec.title, status: "active", members: 1 });
     finishUsers(users, now, counts);
     placeDemoClimbers();
   });
