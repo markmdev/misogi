@@ -111,15 +111,26 @@ export async function respond(job: Job, body: Record<string, unknown>, opts: Cal
   return json;
 }
 
+type StreamOptions = CallOptions & { idleMs?: number; onDelta?: (chars: number) => void };
+
+/** Meta's stream broke part-way, so the call never finished. */
+class StreamBroke extends AppError {}
+
 /**
  * Streams a response and returns the full text. Used for long generations: Meta answers
  * long non-streaming calls with a 504, and streaming keeps proxies from idling out.
+ * A stream that breaks part-way is asked once more from the start.
  */
-export async function streamText(
-  job: Job,
-  body: Record<string, unknown>,
-  opts: CallOptions & { idleMs?: number; onDelta?: (chars: number) => void } = {},
-): Promise<{ text: string; status: string }> {
+export async function streamText(job: Job, body: Record<string, unknown>, opts: StreamOptions = {}): Promise<{ text: string; status: string }> {
+  try {
+    return await streamOnce(job, body, opts);
+  } catch (e) {
+    if (!(e instanceof StreamBroke)) throw e;
+    return streamOnce(job, body, opts);
+  }
+}
+
+async function streamOnce(job: Job, body: Record<string, unknown>, opts: StreamOptions): Promise<{ text: string; status: string }> {
   const res = await post("/responses", { model: modelFor(job), store: false, ...withEffort(job, body), stream: true }, job, opts);
   if (!res.body) throw new AppError("resting", "The model returned an empty stream.");
   const reader = res.body.getReader();
@@ -139,8 +150,8 @@ export async function streamText(
     for (;;) {
       const { done, value } = await readWithIdle().catch((e: unknown) => {
         if (e instanceof AppError) throw e;
-        const timeout = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
-        throw new AppError("resting", timeout ? "The model took too long to finish." : "The connection to the model dropped.");
+        if (e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError")) throw new AppError("resting", "The model took too long to finish.");
+        throw new StreamBroke("resting", "The connection to the model dropped.");
       });
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
