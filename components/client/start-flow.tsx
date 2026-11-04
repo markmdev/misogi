@@ -8,8 +8,8 @@ import type { LiveTwin } from "@/lib/server/domain/challenges";
 import { withUnit } from "@/lib/shared/format";
 import { palette } from "@/lib/shared/theme";
 import type { Milestone, Theme } from "@/lib/shared/types";
-import { CAMP_STEP_MS, CampPath, sceneFor, trailX } from "../challenge";
-import { cx, Icon, IconTile, Mascot, MuseLogo } from "../ui";
+import { CAMP_STEP_MS, CampPath, ChallengeCover, sceneFor, trailX } from "../challenge";
+import { Avatar, cx, Icon, IconTile, Mascot, MuseLogo } from "../ui";
 import { CITY_HELP, CityPicker, type PickedCity } from "./city-picker";
 import { ConnectPanel } from "./connect";
 import { LINE } from "./start-box";
@@ -299,15 +299,22 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
             </h2>
             <p className="mt-2 text-[15px] text-ink-2">Join them on the same mountain and leaderboard, or start your own.</p>
           </div>
-          <div className="card mt-6 flex items-center gap-4 p-5">
-            <IconTile name={twin.emoji} size={56} />
-            <div className="min-w-0">
-              <p className="font-display text-[20px] leading-7 font-semibold text-ink">{twin.title}</p>
-              {twin.tagline && <p className="mt-0.5 text-[14px] leading-5 text-ink-2">{twin.tagline}</p>}
-              <p className="label mt-1.5">{twin.members === 1 ? "1 climber" : `${twin.members} climbers`}</p>
+          <div className="card mx-auto mt-6 max-w-[24rem] overflow-hidden">
+            <ChallengeCover c={twin} eager />
+            <div className="p-4">
+              <h3 className="text-[18px] leading-6 text-ink">{twin.title}</h3>
+              {twin.tagline && <p className="mt-1 line-clamp-2 text-[14px] leading-5 text-ink-2">{twin.tagline}</p>}
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex -space-x-1">
+                  {twin.faces.map((f, i) => (
+                    <Avatar key={i} name={f.name} color={f.avatar} size={30} ring />
+                  ))}
+                </div>
+                <span className="text-[13px] font-extrabold text-ink-2">{twin.members} climbing</span>
+              </div>
             </div>
           </div>
-          <div className="mt-6 flex flex-col gap-2.5">
+          <div className="mx-auto mt-6 flex max-w-[24rem] flex-col gap-2.5">
             <button className="btn" onClick={() => choose(true)}>
               Join them
             </button>
@@ -370,7 +377,7 @@ export function StartFlow({ initialIdea, signedInName, origin }: { initialIdea: 
         </section>
       )}
 
-      {step !== "connect" && step !== "creating" && (
+      {step !== "connect" && step !== "creating" && step !== "match" && (
         <p className="mt-10 text-center text-[13px] text-ink-3">
           <Link href="/explore" className="underline decoration-line-2 underline-offset-2 hover:text-ink">
             Or join someone else&apos;s challenge
