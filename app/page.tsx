@@ -73,7 +73,7 @@ export default async function Home() {
             </div>
             <div className="relative mx-auto -mt-20 max-w-[44rem] px-3 max-[239px]:px-2 sm:-mt-32 sm:px-4">
               <div className="relative rounded-[32px] bg-cream px-4 pt-11 pb-6 max-[239px]:px-3 shadow-[var(--shadow-float)] ring-1 ring-line sm:px-10 sm:pt-14 sm:pb-9">
-                <h1 className="text-center text-[36px] leading-[40px] text-balance text-ink sm:text-[54px] sm:leading-[58px]">Do one hard thing this year.</h1>
+                <h1 className="text-center text-[36px] leading-[40px] text-ink sm:text-[54px] sm:leading-[58px]">Do one hard thing this year.</h1>
                 <p className="mx-auto mt-3 max-w-[30rem] text-center text-[16px] leading-6 text-ink-2 sm:text-[18px] sm:leading-7">
                   Talk to your{" "}
                   <span className="whitespace-nowrap font-bold text-ink">
