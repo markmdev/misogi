@@ -73,9 +73,8 @@ async function subjectOf(photo: Buffer, c: Pick<ChallengeRow, "title" | "metric_
 
 /**
  * The subject as a sticker, from SAM's answers for each of its words: the first word's biggest match, with what the
- * other words found inside it (the food in the pan) and every hole it encloses, with a soft edge, on a rounded cream
- * felt border with a stitched line in the challenge's colour, cropped to it with room for the border. Null when the cut
- * is too small or fills almost the whole photo, which is when SAM found the wrong thing or the whole scene.
+ * other words found inside it (the food in the pan) and every hole it encloses. Null when the cut is too small or fills
+ * almost the whole photo, which is when SAM found the wrong thing or the whole scene.
  */
 async function stickerFrom(photo: Buffer, sams: string[], stitch: string): Promise<{ image: Buffer; box: Omit<StickerMeta, "what"> } | null> {
   const { data: rgb, info } = await sharp(photo).removeAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -103,7 +102,16 @@ async function stickerFrom(photo: Buffer, sams: string[], stitch: string): Promi
   for (let i = 0; i < W * H; i++) subject[i] = outside[i] ? 0 : 1;
   const share = area(subject) / (W * H);
   if (share < 0.04 || share > 0.9) return null;
+  return feltSticker(photo, subject, stitch);
+}
 
+/**
+ * A cut-out subject (1 inside, 0 outside, at the picture's size) as a die-cut sticker: a soft edge, a rounded cream felt
+ * border with a stitched line in the challenge's colour, cropped to it with room for the border.
+ */
+export async function feltSticker(picture: Buffer, subject: Uint8Array, stitch: string): Promise<{ image: Buffer; box: Omit<StickerMeta, "what"> }> {
+  const { data: rgb, info } = await sharp(picture).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { width: W, height: H } = info;
   const [x0, y0, x1, y1] = boundsOf(subject, W, H);
   const border = Math.max(8, Math.round(Math.max(x1 - x0, y1 - y0) * 0.05));
   const pad = border + 4;
