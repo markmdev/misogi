@@ -32,6 +32,8 @@ export function challengeView(slug: string, viewer: UserRow | null) {
     space: spaceStatus(c.id, ""),
     spaceVersions: spaceHistory(c.id, ""),
     creator: creator ? publicUser(creator) : null,
+    // The creator's own first day, in their time zone, as their climb counts it.
+    startedOn: (c.creator_id && getMembership(c.id, c.creator_id)?.starts_on) || c.created_at.slice(0, 10),
     viewer: viewer ? { ...publicUser(viewer), id: viewer.id } : null,
     membership,
     isMember,
