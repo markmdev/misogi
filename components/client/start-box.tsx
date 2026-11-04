@@ -7,18 +7,19 @@ import { cx, Icon, Mascot } from "../ui";
 import { warmMascot } from "./alive";
 import { IntentLink } from "./intent-link";
 
-/** In the wheel's order, clockwise from the top; `chip` ones also show as examples under the box. */
-const IDEAS = [
-  { text: "Hold a conversation in Mandarin", icon: "language", color: palette("sky").accent, chip: true },
+/** In the wheel's order, clockwise from the top; `chip` ones also show as examples under the box, those with `from` only from that width up, so they stay two rows. */
+const IDEAS: { text: string; icon: string; color: string; chip: boolean; from?: "380" | "lg" }[] = [
+  { text: "Hold a conversation in Mandarin", icon: "language", color: palette("sky").accent, chip: true, from: "lg" },
   { text: "Cook 52 new meals from scratch", icon: "cooking", color: "var(--color-gold)", chip: false },
   { text: "Read 25 books", icon: "books", color: palette("lilac").accent, chip: true },
   { text: "Visit all 50 states", icon: "travel", color: palette("sand").accent, chip: false },
-  { text: "Build a smart home", icon: "smarthome", color: palette("rose").accent, chip: true },
+  { text: "Build a smart home", icon: "smarthome", color: palette("rose").accent, chip: true, from: "380" },
   { text: "Run 365 miles", icon: "running", color: palette("mint").accent, chip: true },
   { text: "Write 52 essays", icon: "writing", color: palette("peach").accent, chip: true },
-  { text: "Learn 20 songs on guitar", icon: "music", color: palette("teal").accent, chip: true },
+  { text: "Learn 20 songs on guitar", icon: "music", color: palette("teal").accent, chip: true, from: "lg" },
 ];
 const N = IDEAS.length;
+const FROM = { "380": "max-[379px]:hidden", lg: "max-lg:hidden" };
 
 const CHIP_WORDS = IDEAS.filter((i) => i.chip).map((i) => i.text.toLowerCase().split(" "));
 /** A title already under the box as a chip, word for word or with words added. */
@@ -184,7 +185,7 @@ export function StartBox({ examples }: { examples: string[] }) {
         </div>
       </form>
       {phase === "idle" ? (
-        <div className="mt-3.5 flex flex-wrap justify-center gap-2">
+        <div className="mt-3.5 flex flex-wrap justify-center gap-1.5 max-sm:text-[15px] sm:gap-2">
           {IDEAS.filter((e) => e.chip).map((e) => (
             <IntentLink
               key={e.text}
@@ -192,9 +193,9 @@ export function StartBox({ examples }: { examples: string[] }) {
               transitionTypes={["open"]}
               onNavigate={() => setFrom(e.text)}
               style={travels(e.text)}
-              className="chip"
+              className={cx("chip", e.from && FROM[e.from])}
             >
-              <Icon name={e.icon} size={24} eager />
+              <Icon name={e.icon} size={24} eager className="max-sm:size-[22px]" />
               {e.text}
             </IntentLink>
           ))}

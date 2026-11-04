@@ -23,6 +23,12 @@ export function Icon({ name, size = 40, className, alt = "", eager }: { name: st
   return <Picture src={src} size={size} eager={eager} alt={alt} className={cx("select-none object-contain", className)} />;
 }
 
+/** Muse's own squiggle, from muse.ai, wherever the words are about Meta's Muse itself. */
+export function MuseLogo({ size = 20, className }: { size?: number; className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/art/brand/muse.svg" alt="" width={size} height={size} className={cx("inline-block shrink-0 select-none", className)} draggable={false} />;
+}
+
 export function Mascot({
   pose = "idle",
   size = 120,
