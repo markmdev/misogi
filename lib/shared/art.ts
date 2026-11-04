@@ -148,6 +148,11 @@ const COVER_LOOPS = new Set([
   "chl_demolx5lj3n1-ndlyxh5m", "chl_demoo1vcw5o3-pn3t6kb4", "chl_demopivi7ux9-q0namgza", "chl_demorn0urysa-f37pkdnq", "chl_demosali7j3c-iin07otc",
   "chl_demov6s9qc4o-rhdkpesv", "chl_demowew4z4h3-kto6in9l", "chl_demoy30vwjcp-vzbzvhsr", "chl_demozlc9srp0-7jh7ij9k", "chl_jt7xa93js083-054r15hh",
   "chl_7x14qeubtz0o-o9a5hucp", "chl_v7arri2lic2a-pggfgrwx", "chl_ybuyf42sxlwv-n0zctrsy", "chl_pe5f3dkvdm86-kqnzsnv8",
+  "chl_3h2a9k56iix9-eog4ye7d", "chl_fepbjeu18atv-fbjr8evb", "chl_lnsz71mhhcde-mznaetkv", "chl_jbvcieees743-iupwj4gi", "chl_bytt9ywtye6c-2z53wmpz",
+  "chl_e6qhhfxo1qvh-b8xpk5hw", "chl_s7xbm4wr2p0o-bcxnlcly", "chl_iij77omiz470-o6n5ph9o", "chl_ycajo3r8d1x6-3ndp1qr6", "chl_hwuqbz5i9hkh-1quqan95",
+  "chl_nne3x9v1f59r-z7slvqpv", "chl_laqqgbxeywac-d6otygyh", "chl_mbq9qjr6zlmd-0eval95m", "chl_4c3nvn0sbn04-xangleiu", "chl_1xlzvc1eskl5-evtlxb84",
+  "chl_47cxii3t3we3-8gj54bqm", "chl_4oshy6hee506-92e1v2s2", "chl_m128c6dojpzn-c2em2hb9", "chl_5u1naa2skvcu-q8dq356i", "chl_6mftr12tc3dz-w6jo1rz4",
+  "chl_o7sdbnuprf6c-vkgb6ruv", "chl_50ck9cv7qxsc-72mmj7sg", "chl_uk5f0m7o82s8-6l8ioewd", "chl_5nzhlkevct8l-op5xhpaq",
 ]);
 
 /** The loop for this cover, when it's one of those exact pictures; a redrawn cover has none. */
@@ -165,6 +170,11 @@ const VIRGIL_LOOPS = new Set([
   "chl_demolx5lj3n1-lijgi41l", "chl_demoo1vcw5o3-dli89hfg", "chl_demopivi7ux9-adharcfb", "chl_demorn0urysa-l55fsstm", "chl_demosali7j3c-9u5e2g6n",
   "chl_demov6s9qc4o-1htys7xw", "chl_demowew4z4h3-2oma3wa0", "chl_demoy30vwjcp-y3f4f18r", "chl_demozlc9srp0-4eb0lg3p",
   "chl_jt7xa93js083-ad7tre55", "chl_7x14qeubtz0o-ztprztb6", "chl_v7arri2lic2a-wzi0wsnr", "chl_ybuyf42sxlwv-zymc7itx", "chl_pe5f3dkvdm86-ngq8s1ra",
+  "chl_3h2a9k56iix9-x26tj0bf", "chl_fepbjeu18atv-2pyn7p6a", "chl_lnsz71mhhcde-f24ihslf", "chl_jbvcieees743-8xkn79y3", "chl_bytt9ywtye6c-1bmfs6g4",
+  "chl_e6qhhfxo1qvh-27buk3iv", "chl_s7xbm4wr2p0o-zq4nikkz", "chl_iij77omiz470-ifbk4zia", "chl_ycajo3r8d1x6-ph7ws747", "chl_hwuqbz5i9hkh-kd29ezd4",
+  "chl_nne3x9v1f59r-r6enujc7", "chl_laqqgbxeywac-g2h3qt9v", "chl_mbq9qjr6zlmd-td06agqo", "chl_4c3nvn0sbn04-as29xbl0", "chl_1xlzvc1eskl5-omjza0dx",
+  "chl_47cxii3t3we3-2k2s6dy8", "chl_4oshy6hee506-y9esd211", "chl_m128c6dojpzn-8ujn3akh", "chl_5u1naa2skvcu-yd4nhk2y", "chl_6mftr12tc3dz-h40gxyvh",
+  "chl_o7sdbnuprf6c-4n1tvown", "chl_50ck9cv7qxsc-awqi5mih", "chl_uk5f0m7o82s8-9eo71e5h", "chl_5nzhlkevct8l-6aln7lzs",
 ]);
 
 /** The loop for this dressed Virgil, when it's one of those exact pictures; a redrawn one has none. */
