@@ -176,11 +176,11 @@ export function SectionTitle({ title, action, icon, className }: { title: string
 
 export function Stat({ icon, value, label, tint = "var(--color-cream-2)" }: { icon: string; value: ReactNode; label: string; tint?: string }) {
   return (
-    <div className="card flex items-center gap-3 p-3 pr-4">
+    <div className="card flex flex-col items-start gap-2 p-3 pb-3.5 lg:flex-row lg:items-center lg:gap-3 lg:pr-4 lg:pb-3">
       <IconTile name={icon} size={44} bg={tint} />
       <div className="min-w-0">
         <div className="font-display text-[22px] leading-6 font-semibold text-ink tabular-nums">{value}</div>
-        <div className="label mt-0.5 truncate">{label}</div>
+        <div className="label mt-0.5 line-clamp-2">{label}</div>
       </div>
     </div>
   );
