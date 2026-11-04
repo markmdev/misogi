@@ -65,6 +65,16 @@ function CopyBlock({ text, secret, label = "Copy", mono = false, big = false }: 
   );
 }
 
+/** The one message a person sends Muse to connect it: it names their account through its connect code. */
+export function MuseMessage({ origin, title, connectCode }: { origin: string; title?: string; connectCode: string }) {
+  const text = `Hi! I'm climbing ${title ? `“${title}”` : "a challenge"} on Misogi this year, and I'd like you to be my coach.
+
+Connect to my Misogi here, it shows you how: ${origin}/hi/${connectCode}
+
+Then ask me your first question.`;
+  return <CopyBlock text={text} secret={connectCode} label="Copy" big />;
+}
+
 export function ConnectPanel({
   origin,
   title,
@@ -90,11 +100,6 @@ export function ConnectPanel({
   const connected = status?.agent_seen_at && status.agent_kind && status.agent_kind !== "virgil" && status.agent_kind !== "web";
 
   const keyText = key ?? "msk_••••••••";
-  const museMessage = `Hi! I'm climbing ${title ? `“${title}”` : "a challenge"} on Misogi this year, and I'd like you to be my coach.
-
-Connect to my Misogi here, it shows you how: ${origin}/hi/${connectCode}
-
-Then ask me your first question.`;
 
   const claudeCmd = `claude mcp add --transport http misogi ${origin}/api/mcp --header "Authorization: Bearer ${keyText}"`;
   const urlOnly = `${origin}/api/mcp/u/${keyText}`;
@@ -147,7 +152,7 @@ Then ask me your first question.`;
       {tab === "muse" ? (
         <div className="flex flex-col gap-3">
           <p className="text-[14px] leading-6 text-ink-2">Copy this and send it to Muse. It connects and sets up your check-ins by itself.</p>
-          <CopyBlock text={museMessage} secret={connectCode} label="Copy" big />
+          <MuseMessage origin={origin} title={title} connectCode={connectCode} />
           <p className="text-[13px] leading-5 text-ink-3">
             When Muse asks, tap <b>Always allow</b> for {new URL(origin).host}, then <b>Connect</b> on its card, and <b>Connect</b> again in the window it opens.
           </p>
