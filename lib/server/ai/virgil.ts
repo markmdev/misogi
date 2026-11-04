@@ -8,7 +8,7 @@ import { myChallenges } from "../domain/challenges";
 import { PLAYBOOK, VIRGIL_PERSONA } from "../playbook";
 import { runTool, TOOLS, type ToolCtx } from "../tools";
 import { AppError, dateIn, id, nowIso } from "../util";
-import { functionCalls, outputText, respond, type ResponseItem } from "./client";
+import { functionCalls, outputText, respond, type ResponseItem, type ResponsesResult } from "./client";
 
 export type VirgilEvent =
   | { type: "tool"; name: string; label: string }
@@ -57,20 +57,21 @@ function store(userId: string, thread: string, role: Stored["role"], text: strin
   );
 }
 
-const WRITE_EFFECTS: Record<string, string> = {
-  log_progress: "logs",
-  remove_log: "logs",
-  set_plan: "plan",
-  add_quests: "quests",
-  skip_quest: "quests",
-  complete_milestone: "plan",
-  update_space: "space",
-  undo_space: "space",
-  update_challenge: "challenge",
-  create_challenge: "challenge",
-  join_challenge: "challenge",
-  set_preferences: "profile",
-  complete_challenge: "challenge",
+// What each tool that changes something touches (so the page refreshes it), and how to say it was done.
+const WRITE_EFFECTS: Record<string, [what: string, said: string]> = {
+  log_progress: ["logs", "logged it"],
+  remove_log: ["logs", "removed that log"],
+  set_plan: ["plan", "updated your plan"],
+  add_quests: ["quests", "added to your quests"],
+  skip_quest: ["quests", "skipped that quest"],
+  complete_milestone: ["plan", "marked that camp reached"],
+  update_space: ["space", "asked for a new version of your page"],
+  undo_space: ["space", "put your page back a version"],
+  update_challenge: ["challenge", "updated your challenge"],
+  create_challenge: ["challenge", "started your challenge"],
+  join_challenge: ["challenge", "joined you up"],
+  set_preferences: ["profile", "saved your preferences"],
+  complete_challenge: ["challenge", "marked your challenge complete"],
 };
 
 export async function runVirgil(
@@ -102,11 +103,20 @@ export async function runVirgil(
   const ctx: ToolCtx = { user, source: "virgil", origin: args.origin };
   const tools = toolDefs();
   const changed = new Set<string>();
+  const done = new Set<string>();
   const seen = new Map<string, number>();
   let finalText = "";
 
   for (let step = 0; step < MAX_STEPS; step++) {
-    const r = await respond("agent", { instructions, input, tools, max_output_tokens: 6000 }, { visitor: user.id });
+    let r: ResponsesResult;
+    try {
+      r = await respond("agent", { instructions, input, tools, max_output_tokens: 6000 }, { visitor: user.id });
+    } catch (e) {
+      // What already went through stays done: an error now would have them ask again and do it twice.
+      if (!done.size) throw e;
+      finalText = `Done: I ${[...done].join(", then ")}. My reply got cut off there, so tell me if you want anything else.`;
+      break;
+    }
     const calls = functionCalls(r);
     const text = outputText(r);
     if (calls.length === 0) {
@@ -141,7 +151,10 @@ export async function runVirgil(
           : await runTool(call.name, ctx, parsed);
         output = JSON.stringify(res.ok ? res.result : { error: res.error });
         emit({ type: "tool_done", name: call.name, ok: res.ok, error: res.ok ? undefined : res.error.message });
-        if (res.ok && WRITE_EFFECTS[call.name]) changed.add(WRITE_EFFECTS[call.name]);
+        if (res.ok && WRITE_EFFECTS[call.name]) {
+          changed.add(WRITE_EFFECTS[call.name][0]);
+          done.add(WRITE_EFFECTS[call.name][1]);
+        }
       }
       input.push({ type: "function_call_output", call_id: call.call_id, output: output.slice(0, 30_000) });
     }
