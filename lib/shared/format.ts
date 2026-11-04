@@ -33,7 +33,7 @@ export function shortDate(date: string | null | undefined, withYear = false): st
 export function num(n: number | null | undefined): string {
   if (n == null) return "–";
   if (Math.abs(n) >= 1000) return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
-  return Number.isInteger(n) ? String(n) : n.toFixed(Math.abs(n) < 10 ? 1 : 0);
+  return String(Math.round(n * 10) / 10);
 }
 
 /** "12.5 mi", "3 books", "HSK 2", "V5" style value. */
@@ -51,6 +51,12 @@ export function withUnit(n: number | null | undefined, unit: string): string {
   if (/^(level|hsk|lvl)$/i.test(unit)) return `${unit.toUpperCase() === "HSK" ? "HSK" : "Level"} ${num(n)}`;
   if (unit === "V") return `V${num(n)}`;
   if (/^[$€£¥₹]/.test(unit)) return `${unit[0]}${num(n)}${unit.slice(1)}`;
+  if (/^(s|sec|secs|seconds)$/i.test(unit) && n >= 60 && n < 3600) return withUnit(n / 60, "min");
+  if (/^(min|mins|minutes)$/i.test(unit) && !Number.isInteger(n) && n < 1000) {
+    const secs = Math.round(n * 60);
+    if (secs < 60) return `${secs} sec`;
+    return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")} ${unit}`;
+  }
   const singular = Math.abs(n) === 1 && unit.length > 3 && unit.endsWith("s") ? unit.slice(0, -1) : unit;
   return `${num(n)} ${singular}`;
 }
