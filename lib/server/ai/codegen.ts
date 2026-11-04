@@ -60,8 +60,8 @@ Hard rules:
   At narrow widths: grids drop to one or two columns; flex and grid children get min-width: 0; a row with a name, a bar and a number
   gives the bar the remaining space (flex: 1) with the name truncating (ellipsis), never a fixed-width bar column; charts are SVG with a
   viewBox and width: 100%, or CSS bars sized in %, never a fixed pixel width. Text that doesn't fit wraps between words onto
-  another line (never overflow-wrap: anywhere or word-break: break-all, and no white-space: nowrap on labels); only a single word
-  too wide for its box ends in an ellipsis instead of sticking out.
+  another line: never overflow-wrap: anywhere or word-break: break-all. white-space: nowrap only together with overflow: hidden and
+  text-overflow: ellipsis, so a one-line name or a single word too wide for its box ends in "…" instead of sticking out.
 - A photo in a small cell (a calendar day, a grid tile) fills the cell edge to edge with object-fit: cover; its label sits over or
   under it on one line, ending in an ellipsis if it doesn't fit, and a day number over a photo stays readable on a soft backing.
 - It's embedded below Misogi's own header (title, join button, leaderboard already shown). Don't add site navigation or repeat the title as a giant banner; lead with the content that's special to this person.
